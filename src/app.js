@@ -1,15 +1,20 @@
-import { FishingGame, LAYERS } from './engine.js';
+import { FishingGame } from './engine.js';
+import { GAMES } from './catalog.js';
 const $ = id => document.getElementById(id);
 const canvas = $('sea'), ctx = canvas.getContext('2d');
 const game = new FishingGame();
 let width = 800, height = 470, frameTime = 0, lastTime = 0, lastUI = 0, sound = true, audio, pointerId = null, announcementUntil = 0;
+let inGame = false, resumeAfterExit = false;
+const gameScreen = $('gameScreen'), exitDialog = $('exitDialog');
 let best = 0;
 try { best = Number(localStorage.getItem('papayu-fishing-best')) || 0; } catch {}
 $('bestScore').innerHTML = `${best} <small>poin</small>`;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const particles = [];
 function resize() {
-  const rect = canvas.getBoundingClientRect(); width = rect.width; height = rect.height;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  width = rect.width; height = rect.height;
   const dpr = Math.min(devicePixelRatio || 1, 2);
   canvas.width = width * dpr; canvas.height = height * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
@@ -39,7 +44,6 @@ function updateUI() {
   $('catchCount').textContent = `${game.count} IKAN`;
   $('frenzyBanner').hidden = !game.frenzy || game.mode !== 'playing';
   $('frenzyTime').textContent = `· ${Math.ceil(8 - game.elapsed % 25)}d`;
-  $('seaStatus').textContent = game.mode === 'playing' ? game.frenzy ? 'FRENZY BERLANGSUNG' : 'PETUALANGAN DIMULAI' : game.mode === 'paused' ? 'SEDANG ISTIRAHAT' : 'SIAP BERPETUALANG';
   const names = ['Penjelajah pemula', 'Sahabat laut', 'Kapten Teluk Ceria'];
   const level = game.score >= 900 ? 2 : game.score >= 300 ? 1 : 0;
   $('levelName').textContent = names[level];
@@ -54,13 +58,13 @@ function showOverlay(title, text, button, footnote) {
   $('overlayFootnote').textContent = footnote; $('gameOverlay').hidden = false;
 }
 function start() {
+  if (!inGame || exitDialog.open) return;
   if (game.mode === 'paused') game.resume();
   else { game.reset(); particles.length = 0; $('lastCatch').innerHTML = '<span class="catch-illustration">♧</span><div><strong>Siapa yang pertama?</strong><p>Ikan pertamamu menunggu!</p></div>'; }
   $('gameOverlay').hidden = true; $('fishButton').disabled = false; $('pauseButton').disabled = false;
   updateUI(); tone([392, 523, 659]);
   canvas.focus({ preventScroll: true });
-  const column = document.querySelector('.game-column');
-  if (matchMedia('(max-width: 760px)').matches || column.getBoundingClientRect().bottom > innerHeight) column.scrollIntoView({ block: 'start', behavior: 'instant' });
+
 }
 function pause() {
   if (game.mode !== 'playing') return;
@@ -70,11 +74,82 @@ function pause() {
 $('playButton').addEventListener('click', start);
 $('pauseButton').addEventListener('click', pause);
 $('soundButton').addEventListener('click', () => { sound = !sound; $('soundButton').textContent = sound ? '♫' : '♪̸'; $('soundButton').setAttribute('aria-label', sound ? 'Matikan suara' : 'Aktifkan suara'); $('soundButton').setAttribute('aria-pressed', String(!sound)); if (sound) tone([523]); });
-const hub = $('hubDialog');
-$('hubButton').addEventListener('click', () => { pause(); hub.showModal(); });
-$('closeHub').addEventListener('click', () => hub.close());
-$('chooseFishing').addEventListener('click', () => hub.close());
-hub.addEventListener('click', event => { if (event.target === hub) { const r = hub.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) hub.close(); } });
+// Hub catalog and game navigation are independent of the fishing engine.
+const launchers = { fishing: openFishing };
+for (const item of GAMES) {
+  const card = document.createElement('article');
+  card.className = 'catalog-card'; card.dataset.game = item.id;
+  card.innerHTML = `<div class="catalog-art" aria-hidden="true"><span>${item.icon}</span></div><div class="catalog-content"><div class="catalog-kicker"><span>${item.category}</span><span class="${item.available ? 'available-tag' : ''}">${item.duration}</span></div><h3>${item.title}</h3><p>${item.description}</p><div class="mode-tags">${item.modes.map(mode => `<span>${mode}</span>`).join('')}</div></div>`;
+  const button = document.createElement('button');
+  button.className = item.available ? 'primary-button' : 'unavailable-button';
+  button.disabled = !item.available;
+  button.textContent = item.available ? `${item.action} →` : 'Segera hadir';
+  if (item.available) button.addEventListener('click', () => launchers[item.id]());
+  card.querySelector('.catalog-content').append(button); $('gameCatalog').append(card);
+}
+function updateFullscreenButton() {
+  $('fullscreenButton').setAttribute('aria-label', document.fullscreenElement ? 'Keluar dari layar penuh' : 'Aktifkan layar penuh');
+}
+async function enterFullscreen() {
+  // iOS and some embedded browsers do not support this API; viewport layout still fills the screen.
+  try { if (!document.fullscreenElement && gameScreen.requestFullscreen) await gameScreen.requestFullscreen(); } catch {}
+  updateFullscreenButton();
+}
+function openFishing(pushHistory = true, fullscreen = true) {
+  inGame = true; $('hubScreen').hidden = true; $('hubHeader').hidden = true; gameScreen.hidden = false;
+  document.body.classList.add('in-game'); document.title = 'Teluk Ceria • Papayu';
+  showOverlay('Lautnya sudah siap. Kamu juga?', 'Tahan di laut untuk turun. Geser, lalu lepaskan!', 'Mulai memancing', '90 detik, lima kedalaman, banyak kejutan.');
+  $('fishButton').disabled = true; $('pauseButton').disabled = true;
+  resize(); updateUI(); $('playButton').focus({ preventScroll: true });
+  if (pushHistory) history.pushState({ view: 'fishing' }, '', '#fishing');
+  if (fullscreen) enterFullscreen();
+}
+function leaveGame() {
+  if (exitDialog.open) exitDialog.close();
+  inGame = false; pointerId = null; game.reset('ready'); particles.length = 0;
+  gameScreen.hidden = true; $('hubScreen').hidden = false; $('hubHeader').hidden = false;
+  document.body.classList.remove('in-game'); document.title = 'Papayu Gamehub';
+  $('announcement').classList.remove('visible'); announcementUntil = 0;
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  document.querySelector('[data-game="fishing"] button').focus({ preventScroll: true });
+  // Keep last completed/abandoned catch details in the hub until the next round starts.
+}
+function requestExit() {
+  if (!inGame || exitDialog.open) return;
+  if (game.mode === 'playing' || game.mode === 'paused') {
+    resumeAfterExit = game.mode === 'playing'; pause(); exitDialog.showModal();
+  } else confirmExit();
+}
+function cancelExit() {
+  exitDialog.close();
+  if (resumeAfterExit) start();
+  else $('playButton').focus({ preventScroll: true });
+  resumeAfterExit = false;
+}
+function confirmExit() {
+  leaveGame();
+  if (history.state?.view === 'fishing') history.back();
+}
+$('exitButton').addEventListener('click', requestExit);
+$('cancelExit').addEventListener('click', cancelExit);
+$('confirmExit').addEventListener('click', confirmExit);
+exitDialog.addEventListener('cancel', event => { event.preventDefault(); cancelExit(); });
+$('fullscreenButton').addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else enterFullscreen();
+});
+document.addEventListener('fullscreenchange', () => { updateFullscreenButton(); if (inGame && !document.fullscreenElement) pause(); });
+window.addEventListener('popstate', () => {
+  if (history.state?.view === 'fishing') { if (!inGame) openFishing(false, false); return; }
+  if (!inGame) return;
+  if (game.mode === 'playing' || game.mode === 'paused') {
+    history.pushState({ view: 'fishing' }, '', '#fishing'); requestExit();
+  } else leaveGame();
+});
+window.addEventListener('beforeunload', event => {
+  if (inGame && ['playing', 'paused'].includes(game.mode)) { event.preventDefault(); event.returnValue = ''; }
+});
+history.replaceState({ view: 'hub' }, '', location.pathname + location.search);
 function aim(event) { game.aim((event.clientX - canvas.getBoundingClientRect().left) / width); }
 function pointerDown(event) {
   if (game.mode !== 'playing' || pointerId !== null || event.button !== 0) return;
@@ -91,7 +166,7 @@ for (const target of [canvas, $('fishButton')]) {
   target.addEventListener('contextmenu', event => event.preventDefault());
 }
 window.addEventListener('keydown', event => {
-  if (hub.open || game.mode !== 'playing') return;
+  if (!inGame || exitDialog.open || game.mode !== 'playing') return;
   if (['Space', 'ArrowLeft', 'ArrowRight', 'Escape'].includes(event.code)) event.preventDefault();
   if (event.code === 'Space' && !event.repeat) game.press();
   if (event.code === 'ArrowLeft') game.aim(game.hook.targetX - .035);
@@ -125,7 +200,7 @@ function ellipse(x, y, rx, ry, color) { ctx.fillStyle = color; ctx.beginPath(); 
 function path(points, color) { ctx.fillStyle = color; ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fill(); }
 function rounded(x, y, w, h, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); }
 function drawFish(fish, x, y, caught = false) {
-  const scale = Math.max(.7, Math.min(1, width / 650));
+  const scale = Math.max(.4, Math.min(1, width / 650, height / 470));
   const s = fish.size * scale;
   ctx.save(); ctx.translate(x, y); ctx.scale(fish.direction, 1);
   if (caught) ctx.rotate(-.35);
@@ -155,7 +230,7 @@ function drawFish(fish, x, y, caught = false) {
 }
 function drawBoat(t) {
   const bx = width * .47, by = height * .278 + Math.sin(t * 1.4) * (reducedMotion ? 0 : 2);
-  const scale = Math.max(.65, Math.min(1, width / 650));
+  const scale = Math.max(.4, Math.min(1, width / 650, height / 450));
   ctx.save(); ctx.translate(bx, by); ctx.scale(scale, scale);
   ellipse(-11, 17, 67, 5, '#326f7435');
   // Rod and line origin.
@@ -212,10 +287,11 @@ function draw(t, dt) {
 }
 function frame(now) {
   const dt = Math.min((now - lastTime) / 1000 || 0, .05); lastTime = now;
-  if (game.mode !== 'paused' && game.mode !== 'ended') frameTime += dt;
-  game.tick(dt); game.drainEvents().forEach(onEvent);
-  if (now - lastUI >= 100) { updateUI(); lastUI = now; }
-  draw(frameTime, dt);
+  if (inGame && game.mode !== 'paused' && game.mode !== 'ended') frameTime += dt;
+  if (inGame) game.tick(dt);
+  game.drainEvents().forEach(onEvent);
+  if (inGame && now - lastUI >= 100) { updateUI(); lastUI = now; }
+  if (inGame) draw(frameTime, dt);
   if (now > announcementUntil) $('announcement').classList.remove('visible');
   requestAnimationFrame(frame);
 }

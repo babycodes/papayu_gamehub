@@ -42,10 +42,12 @@ function movable(button, game, action) {
     };
     button.setPointerCapture(event.pointerId);
   });
-  const hit = () =>
-    document
-      .elementFromPoint(gesture.x, gesture.y)
-      ?.closest("[data-tile-drop]");
+  const hit = () => {
+    const element = document.elementFromPoint(gesture.x, gesture.y);
+    return element?.closest(
+      action === "handoff" ? ".tile-exchange" : "[data-tile-drop]",
+    );
+  };
   const frame = () => {
     if (!gesture?.ghost) return;
     const area = $("boardView").querySelector(".board-layout");
@@ -129,6 +131,8 @@ export function renderTileDuel(game) {
   const pending = duel.pending;
   const grid = $("boardGrid");
   grid.classList.toggle("pending-tile", Boolean(pending));
+  grid.classList.toggle("tile-error", Boolean(game.tileError));
+  grid.dataset.phase = duel.awaitingDice ? "dice" : pending?.stage || "draw";
   let message =
     "Buka bidak. Jika mendapat gambarmu sendiri, susun lalu lanjut bermain.";
   if (duel.awaitingDice)
@@ -193,11 +197,18 @@ export function renderTileDuel(game) {
         `${game.tileName(duel.dice[0] > duel.dice[1] ? 0 : 1)} mulai duluan`,
       ),
     );
+  dice.hidden = !duel.awaitingDice;
   grid.append(dice);
   const exchange = node("section", "tile-exchange");
   exchange.dataset.tileDrop = "handoff";
   exchange.setAttribute("aria-label", "Papan serah-terima");
-  exchange.append(node("strong", "", "PAPAN SERAH-TERIMA"));
+  exchange.append(
+    node(
+      "strong",
+      "",
+      pending?.stage === "arrange" ? "SUSUN BIDAK" : "SERAH-TERIMA",
+    ),
+  );
   if (pending?.stage === "pickup") {
     const button = node(
       "button",
@@ -245,6 +256,13 @@ export function renderTileDuel(game) {
       `tile-panel ${active ? "active-tile-panel" : ""}`,
     );
     panel.dataset.board = player;
+    panel.classList.toggle(
+      "drawing-panel",
+      !duel.awaitingDice &&
+        !pending &&
+        duel.winner === null &&
+        duel.availableBoard() === player,
+    );
     if (active) panel.setAttribute("aria-current", "true");
     const theme = TILE_THEMES[duel.themes[player]];
     const header = node("header");
@@ -268,6 +286,11 @@ export function renderTileDuel(game) {
               : "MENUNGGU";
     header.append(
       node("strong", "", `${game.tileName(player)} · ${theme.name}`),
+      node(
+        "span",
+        "tile-progress",
+        `${duel.collections[player].reduce((sum, n) => sum + n, 0)}/16`,
+      ),
       node("b", "", status),
     );
     const board = node("div", "tile-board");
@@ -388,7 +411,8 @@ export function renderTileDuel(game) {
       columns.append(button);
     });
     collection.append(columns);
-    panel.append(header, board, holding, collection);
+    if (holds) exchange.append(holding);
+    panel.append(header, board, collection);
     grid.append(panel);
   }
 }

@@ -23,7 +23,7 @@ export const GAMES = [
   },
   {
     id: "mahjong",
-    title: "Duel Buah & Hewan",
+    title: "Mahjong Anak",
     description:
       "Mahjong anak: buka ubin campuran dan lengkapi koleksi buah atau hewan!",
     icon: "🍎",
@@ -31,7 +31,7 @@ export const GAMES = [
     modes: ["2 pemain", "Lawan bot"],
     duration: "2–5 menit",
     tag: "TILE PARTY",
-    action: "Main Duel Buah & Hewan",
+    action: "Main Mahjong Anak",
   },
   {
     id: "chess",

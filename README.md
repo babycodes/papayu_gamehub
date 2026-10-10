@@ -1,6 +1,6 @@
 # Papayu GameHub
 
-Gamehub untuk penjelajah kecil. Empat game: **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Duel Buah & Hewan (mahjong anak)**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
+Gamehub untuk penjelajah kecil. Empat game: **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Mahjong Anak**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
 
 ## Menjalankan
 
@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-27 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, serah-terima, pengambilan dari papan serah-terima, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Duel Buah & Hewan. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+27 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, serah-terima, pengambilan dari papan serah-terima, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -36,7 +36,7 @@ Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (berga
 - Tombol Gamehub dan Back browser meminta konfirmasi untuk pertandingan yang belum selesai. Modal berada di dalam layar game, menjeda permainan dan menonaktifkan interaksi di belakangnya. Tombol lanjut/keluar mendukung sentuhan; Tab menjaga fokus di modal dan Escape membatalkan. **Akhiri & ganti mode** juga tersedia dari menu jeda. Main lagi tersedia setelah pertandingan berakhir.
 - Keempat game memakai layar penuh dengan fallback ke viewport pada browser yang tidak mendukung Fullscreen API.
 
-## Duel Buah & Hewan — mahjong anak
+## Mahjong Anak
 
 Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang sama dengan game papan; pemain 1 memilih tema buah atau hewan, pemain 2 mendapat tema lainnya. Bot memilih ubin tertutup secara acak tanpa melihat isinya.
 
@@ -47,7 +47,7 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 - **Kontrol:** seret bidak dengan mouse, pena, atau sentuhan ke tujuan. Layar kecil otomatis menggulir saat bidak diseret mendekati tepi atas/bawah. Alternatif: ketuk bidak, lalu tujuannya; ketuk bidak di papan serah-terima untuk mengambilnya. Salah kolom ditolak tanpa kehilangan bidak.
 - Pemain pertama yang selesai **menyusun** empat kolom (masing-masing 4 ubin, total 16) menang. Bidak yang masih di tangan atau papan serah-terima belum dihitung. Tempat bidak yang sudah diambil ditandai centang.
 - **Main lagi** mengacak ulang semua ubin dengan nama, tema, kubu, dan mode yang sama; kedua pemain melempar dadu lagi untuk menentukan giliran awal.
-- **Akhiri / mode**, menu jeda, dan peringatan keluar berlaku seperti pada Tic Tac Toe/Catur. Di HP kecil, area papan dapat digulir tanpa meninggalkan layar game.
+- **Akhiri / mode**, menu jeda, dan peringatan keluar berlaku seperti pada Tic Tac Toe/Catur. Di HP, kedua zona pemain dan papan serah-terima selalu terlihat tanpa scroll. Zona aktif menampilkan papan saat membuka bidak, lalu kolom koleksi saat menyusun. Progres selalu terlihat di nama pemain; dadu hanya tampil di awal ronde. Dalam posisi landscape kedua zona tampil berdampingan.
 
 ## Cara bermain memancing
 
@@ -56,13 +56,13 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 3. Geser jari/mouse di laut atau tekan **← →** untuk mengarahkan kail. Kail otomatis menggulung saat menyentuh ikan; lepaskan untuk menggulung lebih awal.
 4. Ikan harus sampai di perahu agar poin dihitung. Saat waktu habis, ronde selesai.
 
-| Lapisan | Penghuni | Poin dasar |
-| --- | --- | --- |
-| 1 | Ikan kecil | 10 |
-| 2 | Ikan kuning | 25 |
-| 3 | Ikan karang | 40 |
-| 4 | Ikan besar | 75 |
-| 5 | Ikan bulan langka | 150 |
+| Lapisan | Penghuni          | Poin dasar |
+| ------- | ----------------- | ---------- |
+| 1       | Ikan kecil        | 10         |
+| 2       | Ikan kuning       | 25         |
+| 3       | Ikan karang       | 40         |
+| 4       | Ikan besar        | 75         |
+| 5       | Ikan bulan langka | 150        |
 
 - **Combo:** tangkap lagi dalam 8 detik untuk meningkatkan pengali hingga ×4.
 - **Frenzy:** setiap 25 detik, poin menjadi ×2 selama 8 detik. Ikan bintang ajaib bernilai dasar 200 muncul di lapisan 5.
@@ -80,7 +80,7 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 - `src/library.js`: pencarian, filter, favorit, pagination, dan statistik lokal.
 - `src/boards.js`: UI papan, pilihan mode, promosi, dan lifecycle bot.
 - `src/board-engine.js`: aturan Tic Tac Toe dan bot untuk Tic Tac Toe/Catur.
-- `src/mahjong-engine.js`: pengacakan dua papan, serah-terima/pengambilan, pilihan urutan kolom, koleksi, dan kemenangan Duel Buah & Hewan.
+- `src/mahjong-engine.js`: pengacakan dua papan, serah-terima/pengambilan, pilihan urutan kolom, koleksi, dan kemenangan Mahjong Anak.
 - `src/tile-ui.js`: dadu pembuka, papan serah-terima, susunan kolom, serta kontrol seret dengan mouse/pena/sentuhan.
 - `src/catalog.js`: daftar game dan metadata mode. Untuk game berikutnya tambahkan metadata di sini dan handler peluncuran di `app.js`.
 - `index.html` / `styles.css`: lobi Gamehub dan layout responsif.

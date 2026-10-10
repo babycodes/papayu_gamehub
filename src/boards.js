@@ -108,7 +108,7 @@ export class BoardGames {
     $("pausedChangeMode").hidden = true;
     $("boardSetupTitle").textContent =
       this.id === "mahjong"
-        ? "Buah atau hewan?"
+        ? "Mahjong Anak"
         : this.id === "chess"
           ? "Siap mengatur strategi?"
           : "Silang atau lingkaran?";
@@ -424,9 +424,18 @@ export class BoardGames {
     const action =
       panel?.querySelector(".tray-tile:not(:disabled)") ||
       $("boardGrid").querySelector(
-        ".roll-tile-dice:not(:disabled), .pickup-tile:not(:disabled), .duel-tile:not(:disabled)",
+        ".roll-tile-dice:not(:disabled), .tray-tile:not(:disabled), .duel-tile:not(:disabled)",
       );
-    action?.focus();
+    action?.focus({
+      preventScroll:
+        this.id === "mahjong" &&
+        window.matchMedia("(max-width: 900px)").matches,
+    });
+    if (
+      window.matchMedia("(max-width: 900px)").matches &&
+      this.id === "mahjong"
+    )
+      return;
     const exchange = $("boardGrid").querySelector(".tile-exchange");
     if (action && exchange && !exchange.contains(action)) {
       const hidden =

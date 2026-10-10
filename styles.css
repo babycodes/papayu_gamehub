@@ -3332,3 +3332,264 @@ select {
   border-color: #474463;
   background: #28243f;
 }
+/* Local duel: the board stays between two clearly named camps. */
+.local-player-fields .player-field {
+  display: grid;
+  grid-template-columns: 1fr 115px;
+  gap: 10px;
+}
+.local-player-fields input {
+  width: 100%;
+  min-width: 0;
+  background: #34354f;
+  border: 1px solid #514b6c;
+  border-radius: 9px;
+  color: #eee8ff;
+  font: 12px Arial;
+  padding: 11px;
+}
+.board-setup .local-setup-hint {
+  font-size: 10px;
+  line-height: 1.5;
+  margin: 8px 0;
+  color: #a9b5cd;
+}
+.setup-error {
+  color: #ffb9b9 !important;
+  font-size: 11px !important;
+}
+.board-setup {
+  inset: 0;
+}
+.board-setup-card {
+  max-height: calc(100dvh - 155px);
+  overflow: auto;
+  width: min(380px, 94%);
+}
+.board-arena {
+  width: min(100%, calc(100dvh - 200px), 560px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.board-arena .board-stage {
+  width: 100%;
+}
+.board-layout {
+  position: relative;
+  gap: 0;
+}
+.board-side {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(220px, 19vw);
+}
+.board-arena {
+  width: min(calc(100% - 460px), calc(100dvh - 200px), 560px);
+}
+.board-view.local-match {
+  background: linear-gradient(
+    to bottom,
+    #402437 0%,
+    #402437 50%,
+    #1e3759 50%,
+    #1e3759 100%
+  );
+}
+.board-view.local-match[data-top-team="blue"] {
+  background: linear-gradient(
+    to bottom,
+    #1e3759 0%,
+    #1e3759 50%,
+    #402437 50%,
+    #402437 100%
+  );
+}
+.local-match .board-arena {
+  width: min(calc(100% - 460px), calc(100dvh - 290px), 520px);
+}
+.player-camp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 1px solid;
+  border-radius: 12px;
+  opacity: 0.6;
+  transition:
+    opacity 0.15s,
+    box-shadow 0.15s;
+}
+.player-camp[data-team="red"] {
+  background: #4a2b40;
+  border-color: #ab586e;
+  --camp-color: #ff9bb1;
+}
+.player-camp[data-team="blue"] {
+  background: #263f62;
+  border-color: #5089c5;
+  --camp-color: #9fcaff;
+}
+.player-camp strong {
+  display: block;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  color: #fff;
+}
+.player-camp span {
+  display: block;
+  font-size: 9px;
+  margin-top: 4px;
+  color: var(--camp-color);
+}
+.player-camp b {
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  color: var(--camp-color);
+  flex-shrink: 0;
+}
+.player-camp.active-camp {
+  opacity: 1;
+  box-shadow:
+    0 0 0 2px var(--camp-color),
+    0 0 24px #ffffff10;
+}
+.local-match[data-active-team="red"] #boardTurn {
+  color: #ffb0bf;
+}
+.local-match[data-active-team="blue"] #boardTurn {
+  color: #b4d8ff;
+}
+.tic-cell[data-team="red"] {
+  color: #ff9cb6;
+}
+.tic-cell[data-team="blue"] {
+  color: #9ccaff;
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .board-arena {
+    width: min(calc(100% - 340px), calc(100dvh - 200px), 560px);
+  }
+  .local-match .board-arena {
+    width: min(calc(100% - 340px), calc(100dvh - 290px), 520px);
+  }
+  .board-side {
+    width: 150px;
+  }
+  .board-tip h3 {
+    font-size: 15px;
+  }
+}
+@media (max-width: 760px) {
+  .board-layout {
+    gap: 14px;
+  }
+  .board-arena {
+    width: min(100%, calc(100dvh - 260px), 480px);
+  }
+  .local-match .board-arena {
+    width: min(100%, calc(100dvh - 340px), 480px);
+  }
+  .board-side {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 480px;
+  }
+  .player-camp {
+    min-height: 44px;
+    padding: 7px 12px;
+  }
+  .player-camp strong {
+    font-size: 12px;
+  }
+  .player-camp span {
+    font-size: 8px;
+  }
+  .board-setup-card {
+    position: relative;
+    max-height: calc(100dvh - 155px);
+    width: min(380px, 100%);
+  }
+  .board-setup {
+    position: fixed;
+    inset: 120px 12px 15px;
+    background: #142039aa;
+    z-index: 12;
+    padding: 8px;
+  }
+  .local-player-fields .player-field {
+    grid-template-columns: minmax(0, 1fr) 110px;
+    gap: 8px;
+  }
+  .local-player-fields input {
+    padding: 10px;
+    font-size: 11px;
+  }
+}
+@media (max-height: 500px) and (min-width: 600px) {
+  .board-arena {
+    width: min(calc(100dvh - 104px), calc(100% - 360px), 400px);
+  }
+  .local-match .board-arena {
+    width: min(calc(100dvh - 210px), calc(100% - 360px), 400px);
+  }
+  .board-side {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 160px;
+  }
+  .player-camp {
+    min-height: 35px;
+    padding: 5px 10px;
+  }
+  .player-camp strong {
+    font-size: 11px;
+  }
+  .player-camp span {
+    font-size: 7px;
+  }
+  .player-camp b {
+    font-size: 7px;
+  }
+  .board-setup {
+    position: fixed;
+    inset: 90px 12px 8px;
+    z-index: 12;
+  }
+  .board-setup-card {
+    max-height: calc(100dvh - 105px);
+    width: 370px;
+  }
+}
+.board-view.local-match {
+  background: linear-gradient(
+    to bottom,
+    #402437 0%,
+    #402437 var(--duel-split, 50%),
+    #1e3759 var(--duel-split, 50%),
+    #1e3759 100%
+  );
+}
+.board-view.local-match[data-top-team="blue"] {
+  background: linear-gradient(
+    to bottom,
+    #1e3759 0%,
+    #1e3759 var(--duel-split, 50%),
+    #402437 var(--duel-split, 50%),
+    #402437 100%
+  );
+}
+@media (max-width: 760px) and (min-height: 501px) {
+  .local-match .board-layout {
+    justify-content: center;
+  }
+}
+.board-hud > div:first-child{min-width:0}.board-hud strong{overflow-wrap:anywhere}

@@ -1,4 +1,5 @@
 import { Chess, ticResult, ticBot, chessBot } from "./board-engine.js";
+import { localPlayers, playerForRole, TEAM_NAMES } from "./players.js";
 const $ = (id) => document.getElementById(id);
 const PIECES = {
   w: { p: "♙", n: "♘", b: "♗", r: "♖", q: "♕", k: "♔" },
@@ -21,15 +22,31 @@ export class BoardGames {
     $("boardStart").addEventListener("click", () =>
       this.mode === "paused" ? this.resume() : this.start(),
     );
-    $("boardReplay").addEventListener("click", () => this.setup());
+    $("boardReplay").addEventListener("click", () => this.replay());
     $("boardPause").addEventListener("click", () => this.pause());
     $("flipBoard").addEventListener("click", () => {
       this.flipped = !this.flipped;
+      this.campFlipped = !this.campFlipped;
       this.render();
     });
     $("opponent").addEventListener("change", () => {
-      $("difficultyField").hidden = $("opponent").value !== "bot";
+      this.updateSettings();
     });
+    for (const [own, other] of [
+      ["playerOneTeam", "playerTwoTeam"],
+      ["playerTwoTeam", "playerOneTeam"],
+    ]) {
+      $(own).addEventListener("change", () => {
+        $(other).value =
+          $(own).value === "red"
+            ? "blue"
+            : $(own).value === "blue"
+              ? "red"
+              : "";
+        $("boardSetupError").hidden = true;
+      });
+    }
+    new ResizeObserver(() => this.updateSplit()).observe($("boardGrid"));
     $("promotionDialog")
       .querySelectorAll("[data-piece]")
       .forEach((button) =>
@@ -69,17 +86,17 @@ export class BoardGames {
   open(id) {
     this.id = id;
     this.flipped = false;
+    this.campFlipped = false;
+    this.players = null;
+    this.firstPlayer = 0;
+    $("playerOneTeam").value = "";
+    $("playerTwoTeam").value = "";
     this.setup();
   }
   setup() {
-    this.clearBot();
+    this.resetPosition();
     this.mode = "ready";
-    this.selected = null;
-    this.cells = Array(9).fill(null);
-    this.turn = "X";
-    this.chess = new Chess();
-    this.result = null;
-    this.lastMove = null;
+    this.updateSettings();
     $("boardView").dataset.game = this.id;
     $("boardResult").hidden = true;
     $("boardSetup").hidden = false;
@@ -97,14 +114,75 @@ export class BoardGames {
     $("boardPause").disabled = true;
     this.render();
   }
+  updateSettings() {
+    const local = $("opponent").value === "local";
+    $("difficultyField").hidden = local;
+    $("localPlayers").hidden = !local;
+    $("boardSetupError").hidden = true;
+  }
+  resetPosition() {
+    this.clearBot();
+    this.cancelPromotion();
+    this.selected = null;
+    this.cells = Array(9).fill(null);
+    this.turn = "X";
+    this.chess = new Chess();
+    this.result = null;
+    this.lastMove = null;
+    this.winnerRole = null;
+  }
   start() {
+    if (this.mode !== "ready") return;
     this.opponent = $("opponent").value;
     this.easy = $("botDifficulty").value === "easy";
+    if (this.opponent === "local") {
+      try {
+        this.players = localPlayers(
+          $("playerOneName").value,
+          $("playerTwoName").value,
+          $("playerOneTeam").value,
+        );
+      } catch (error) {
+        $("boardSetupError").textContent = error.message;
+        $("boardSetupError").hidden = false;
+        return;
+      }
+    } else this.players = null;
+    this.firstPlayer = 0;
+    this.beginRound();
+  }
+  beginRound() {
     this.mode = "playing";
     $("boardSetup").hidden = true;
+    $("boardResult").hidden = true;
     $("boardPause").disabled = false;
     this.onStart(this.id);
     this.render();
+  }
+  replay() {
+    if (this.mode !== "ended") return;
+    this.resetPosition();
+    if (this.opponent === "local") {
+      this.firstPlayer = 1 - this.firstPlayer;
+      if (this.id === "chess") this.flipped = !this.flipped;
+    }
+    this.beginRound();
+    $("boardGrid").firstElementChild?.focus({ preventScroll: true });
+  }
+  player(role) {
+    return this.players
+      ? playerForRole(this.players, this.firstPlayer, role)
+      : null;
+  }
+  playerName(role) {
+    return (
+      this.player(role)?.name ||
+      ((role === "O" || role === "b") && this.opponent === "bot"
+        ? "Bot"
+        : this.opponent === "bot"
+          ? "Kamu"
+          : role)
+    );
   }
   clearBot() {
     clearTimeout(this.botTimer);
@@ -200,7 +278,8 @@ export class BoardGames {
       this.finish(
         this.result.winner === "draw"
           ? "Seri! Sama-sama hebat."
-          : `${this.result.winner === "O" && this.opponent === "bot" ? "Bot" : "Pemain " + this.result.winner} menang!`,
+          : `${this.playerName(this.result.winner)} menang!`,
+        this.result.winner === "draw" ? null : this.result.winner,
       );
     else {
       this.turn = this.turn === "X" ? "O" : "X";
@@ -222,7 +301,8 @@ export class BoardGames {
     this.onMove();
     if (this.chess.isCheckmate())
       this.finish(
-        `Skakmat! ${this.chess.turn() === "w" ? (this.opponent === "bot" ? "Bot" : "Hitam") : "Putih"} menang.`,
+        `Skakmat! ${this.playerName(this.chess.turn() === "w" ? "b" : "w")} menang.`,
+        this.chess.turn() === "w" ? "b" : "w",
       );
     else if (this.chess.isStalemate())
       this.finish("Remis — tidak ada langkah legal.");
@@ -237,7 +317,8 @@ export class BoardGames {
       this.queueBot();
     }
   }
-  finish(message) {
+  finish(message, winnerRole = null) {
+    this.winnerRole = winnerRole;
     this.clearBot();
     this.mode = "ended";
     $("boardPause").disabled = true;
@@ -246,11 +327,74 @@ export class BoardGames {
     this.render();
     $("boardReplay").focus({ preventScroll: true });
   }
+  updateSplit() {
+    if (!this.players || this.mode === "ready") return;
+    const board = $("boardGrid").getBoundingClientRect(),
+      view = $("boardView").getBoundingClientRect();
+    $("boardView").style.setProperty(
+      "--duel-split",
+      `${board.top + board.height / 2 - view.top}px`,
+    );
+  }
+  renderCamps(role) {
+    const local =
+      this.mode !== "ready" && this.opponent === "local" && this.players;
+    $("boardView").classList.toggle("local-match", Boolean(local));
+    $("topCamp").hidden = $("bottomCamp").hidden = !local;
+    if (!local) {
+      delete $("boardView").dataset.activeTeam;
+      return;
+    }
+    const firstRole = this.id === "chess" ? "w" : "X",
+      secondRole = this.id === "chess" ? "b" : "O";
+    const upperPlayer = this.id === "chess" && this.campFlipped ? 0 : 1;
+    const upperRole = upperPlayer === this.firstPlayer ? firstRole : secondRole;
+    const lowerRole = upperRole === firstRole ? secondRole : firstRole;
+    $("boardView").dataset.topTeam = this.player(upperRole).team;
+    $("boardView").dataset.bottomTeam = this.player(lowerRole).team;
+    $("boardView").dataset.activeTeam = this.player(role).team;
+    requestAnimationFrame(() => this.updateSplit());
+    for (const [id, campRole] of [
+      ["topCamp", upperRole],
+      ["bottomCamp", lowerRole],
+    ]) {
+      const player = this.player(campRole),
+        camp = $(id);
+      camp.replaceChildren();
+      camp.dataset.team = player.team;
+      camp.classList.toggle(
+        "active-camp",
+        this.mode === "playing" && role === campRole,
+      );
+      const name = document.createElement("strong");
+      name.textContent = player.name;
+      const label = document.createElement("span");
+      label.textContent = `Kubu ${TEAM_NAMES[player.team]} · ${campRole === "w" ? "Putih" : campRole === "b" ? "Hitam" : campRole}`;
+      const status = document.createElement("b");
+      status.textContent =
+        this.mode === "ended"
+          ? this.winnerRole === campRole
+            ? "MENANG!"
+            : this.winnerRole
+              ? "SELESAI"
+              : "SERI"
+          : this.mode === "paused"
+            ? "DIJEDA"
+            : role === campRole
+              ? "GILIRANMU"
+              : "MENUNGGU";
+      const identity = document.createElement("div");
+      identity.append(name, label);
+      camp.append(identity, status);
+    }
+  }
   render() {
     const focusCell = document.activeElement?.dataset.cell;
     const chess = this.id === "chess";
     $("boardGrid").className = chess ? "chess-grid" : "tic-grid";
     $("boardGrid").replaceChildren();
+    const role = chess ? this.chess.turn() : this.turn;
+    const currentPlayer = this.player(role);
     const turn = chess
       ? this.chess.turn() === "w"
         ? "Putih"
@@ -265,7 +409,8 @@ export class BoardGames {
             ? "Pertandingan selesai"
             : this.thinking
               ? "Bot sedang berpikir…"
-              : `Giliran ${this.isBotTurn() ? "bot" : turn}${chess && this.chess.isCheck() ? " · SKAK!" : ""}`;
+              : `Giliran ${currentPlayer ? currentPlayer.name + " · Kubu " + TEAM_NAMES[currentPlayer.team] : this.isBotTurn() ? "bot" : turn}${chess && this.chess.isCheck() ? " · SKAK!" : ""}`;
+    this.renderCamps(role);
     $("boardMode").textContent =
       this.mode === "ready"
         ? "Bot atau 2 pemain lokal"
@@ -281,6 +426,8 @@ export class BoardGames {
         const button = document.createElement("button");
         button.className = `tic-cell ${value === "X" ? "cross" : value === "O" ? "circle" : ""}`;
         button.dataset.cell = i;
+        if (value && this.player(value))
+          button.dataset.team = this.player(value).team;
         button.textContent = value || "";
         button.setAttribute(
           "aria-label",

@@ -413,31 +413,83 @@
           </div>
         </div>
         <div class="board-layout">
-          <div class="board-stage">
-            <div id="boardGrid"></div>
-            <div id="boardSetup" class="board-setup">
-              <div class="board-setup-card">
-                <span class="eyebrow">READY, PLAYER?</span>
-                <h2 id="boardSetupTitle"></h2>
-                <p id="boardSetupText"></p>
-                <div id="boardSettings">
-                  <label
-                    >Siapa lawanmu?<select id="opponent">
-                      <option value="bot">Lawan bot</option>
-                      <option value="local">2 pemain lokal</option>
-                    </select></label
-                  ><label id="difficultyField"
-                    >Level bot<select id="botDifficulty">
-                      <option value="normal">Pintar</option>
-                      <option value="easy">Santai</option>
-                    </select></label
-                  >
+          <div class="board-arena">
+            <div id="topCamp" class="player-camp" hidden></div>
+            <div class="board-stage">
+              <div id="boardGrid"></div>
+              <div id="boardSetup" class="board-setup">
+                <div class="board-setup-card">
+                  <span class="eyebrow">READY, PLAYER?</span>
+                  <h2 id="boardSetupTitle"></h2>
+                  <p id="boardSetupText"></p>
+                  <div id="boardSettings">
+                    <label
+                      >Siapa lawanmu?<select id="opponent">
+                        <option value="bot">Lawan bot</option>
+                        <option value="local">2 pemain lokal</option>
+                      </select></label
+                    ><label id="difficultyField"
+                      >Level bot<select id="botDifficulty">
+                        <option value="normal">Pintar</option>
+                        <option value="easy">Santai</option>
+                      </select></label
+                    >
+                    <div id="localPlayers" class="local-player-fields" hidden>
+                      <p class="local-setup-hint">
+                        Nama boleh dikosongkan. Pilih kubu; pemain 1 mulai
+                        sebagai X / putih.
+                      </p>
+                      <div class="player-field">
+                        <label
+                          >Nama pemain 1<input
+                            id="playerOneName"
+                            type="text"
+                            maxlength="20"
+                            placeholder="Pemain 1"
+                            autocomplete="off" /></label
+                        ><label
+                          >Kubu pemain 1<select id="playerOneTeam">
+                            <option value="">Pilih kubu</option>
+                            <option value="red">Merah</option>
+                            <option value="blue">Biru</option>
+                          </select></label
+                        >
+                      </div>
+                      <div class="player-field">
+                        <label
+                          >Nama pemain 2<input
+                            id="playerTwoName"
+                            type="text"
+                            maxlength="20"
+                            placeholder="Pemain 2"
+                            autocomplete="off" /></label
+                        ><label
+                          >Kubu pemain 2<select id="playerTwoTeam">
+                            <option value="">Pilih kubu</option>
+                            <option value="red">Merah</option>
+                            <option value="blue">Biru</option>
+                          </select></label
+                        >
+                      </div>
+                      <p class="local-setup-hint">
+                        Kubu selalu berbeda. Saat main lagi, giliran pertama
+                        bergantian, nama dan kubu tetap.
+                      </p>
+                    </div>
+                    <p
+                      id="boardSetupError"
+                      class="setup-error"
+                      role="alert"
+                      hidden
+                    ></p>
+                  </div>
+                  <button id="boardStart" class="primary-button">
+                    Mulai pertandingan
+                  </button>
                 </div>
-                <button id="boardStart" class="primary-button">
-                  Mulai pertandingan
-                </button>
               </div>
             </div>
+            <div id="bottomCamp" class="player-camp" hidden></div>
           </div>
           <aside class="board-side">
             <div class="board-tip">

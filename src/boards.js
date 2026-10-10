@@ -1,5 +1,6 @@
 import { Chess, ticResult, ticBot, chessBot } from "./board-engine.js";
 import { localPlayers, playerForRole, TEAM_NAMES } from "./players.js";
+import { TileDuel, TILE_THEMES } from "./mahjong-engine.js";
 const $ = (id) => document.getElementById(id);
 const PIECES = {
   w: { p: "♙", n: "♘", b: "♗", r: "♖", q: "♕", k: "♔" },
@@ -71,9 +72,11 @@ export class BoardGames {
       )
         return;
       event.preventDefault();
-      const buttons = [...$("boardGrid").children],
+      const buttons = [
+          ...$("boardGrid").querySelectorAll("button:not(:disabled)"),
+        ],
         i = buttons.indexOf(document.activeElement),
-        step = this.id === "chess" ? 8 : 3;
+        step = this.id === "chess" ? 8 : this.id === "mahjong" ? 4 : 3;
       const offset = {
         ArrowLeft: -1,
         ArrowRight: 1,
@@ -101,14 +104,19 @@ export class BoardGames {
     $("boardResult").hidden = true;
     $("boardSetup").hidden = false;
     $("boardSettings").hidden = false;
+    $("pausedChangeMode").hidden = true;
     $("boardSetupTitle").textContent =
-      this.id === "chess"
-        ? "Siap mengatur strategi?"
-        : "Silang atau lingkaran?";
+      this.id === "mahjong"
+        ? "Buah atau hewan?"
+        : this.id === "chess"
+          ? "Siap mengatur strategi?"
+          : "Silang atau lingkaran?";
     $("boardSetupText").textContent =
-      this.id === "chess"
-        ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
-        : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
+      this.id === "mahjong"
+        ? "Dua papan berisi 16 ubin campuran. Buka satu saat giliranmu; ubin diberikan ke pemilik temanya. Lengkapi 4 kelompok, masing-masing 4 gambar, untuk menang."
+        : this.id === "chess"
+          ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
+          : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
     $("boardStart").textContent = "Mulai pertandingan";
     $("flipBoard").hidden = this.id !== "chess";
     $("boardPause").disabled = true;
@@ -124,7 +132,12 @@ export class BoardGames {
   }
   updateSettings() {
     const local = $("opponent").value === "local";
-    $("difficultyField").hidden = local;
+    $("difficultyField").hidden = local || this.id === "mahjong";
+    $("tileThemeField").hidden = this.id !== "mahjong";
+    $("localSetupHint").textContent =
+      this.id === "mahjong"
+        ? "Nama boleh dikosongkan. Pilih kubu dan tema pemain 1; pemain 2 mendapat tema lainnya."
+        : "Nama boleh dikosongkan. Pilih kubu; pemain 1 mulai sebagai X / putih.";
     $("localPlayers").hidden = !local;
     $("boardSetupError").hidden = true;
   }
@@ -138,6 +151,11 @@ export class BoardGames {
     this.result = null;
     this.lastMove = null;
     this.winnerRole = null;
+    if (this.id === "mahjong")
+      this.tileGame = new TileDuel({
+        firstTheme: this.tileTheme || $("tileTheme").value,
+        firstPlayer: this.firstPlayer || 0,
+      });
   }
   start() {
     if (this.mode !== "ready") return;
@@ -157,6 +175,10 @@ export class BoardGames {
       }
     } else this.players = null;
     this.firstPlayer = 0;
+    if (this.id === "mahjong") {
+      this.tileTheme = $("tileTheme").value;
+      this.tileGame = new TileDuel({ firstTheme: this.tileTheme });
+    }
     this.beginRound();
   }
   beginRound() {
@@ -166,6 +188,7 @@ export class BoardGames {
     $("boardPause").disabled = false;
     this.onStart(this.id);
     this.render();
+    $("boardView").querySelector(".board-layout").scrollTop = 0;
   }
   replay() {
     if (this.mode !== "ended") return;
@@ -174,8 +197,16 @@ export class BoardGames {
       this.firstPlayer = 1 - this.firstPlayer;
       if (this.id === "chess") this.flipped = !this.flipped;
     }
+    if (this.id === "mahjong")
+      this.tileGame = new TileDuel({
+        firstTheme: this.tileTheme,
+        firstPlayer: this.firstPlayer,
+      });
     this.beginRound();
-    $("boardGrid").firstElementChild?.focus({ preventScroll: true });
+    this.queueBot();
+    $("boardGrid")
+      .querySelector("button:not(:disabled)")
+      ?.focus({ preventScroll: true });
   }
   player(role) {
     return this.players
@@ -204,6 +235,7 @@ export class BoardGames {
     this.cancelPromotion();
     $("boardSetup").hidden = false;
     $("boardSettings").hidden = true;
+    $("pausedChangeMode").hidden = false;
     $("boardSetupTitle").textContent = "Waktunya istirahat.";
     $("boardSetupText").textContent =
       "Papanmu aman. Lanjutkan saat kamu sudah siap.";
@@ -215,6 +247,7 @@ export class BoardGames {
     if (this.mode !== "paused") return;
     this.mode = "playing";
     $("boardSetup").hidden = true;
+    $("pausedChangeMode").hidden = true;
     $("boardPause").disabled = false;
     this.render();
     this.queueBot();
@@ -231,7 +264,11 @@ export class BoardGames {
   isBotTurn() {
     return (
       this.opponent === "bot" &&
-      (this.id === "chess" ? this.chess.turn() === "b" : this.turn === "O")
+      (this.id === "mahjong"
+        ? this.tileGame.turn === 1
+        : this.id === "chess"
+          ? this.chess.turn() === "b"
+          : this.turn === "O")
     );
   }
   queueBot() {
@@ -242,7 +279,11 @@ export class BoardGames {
       this.botTimer = null;
       this.thinking = false;
       if (this.mode !== "playing" || !this.isBotTurn()) return;
-      if (this.id === "chess") {
+      if (this.id === "mahjong") {
+        const choices = this.tileGame.choices();
+        const choice = choices[Math.floor(Math.random() * choices.length)];
+        if (choice) this.makeTileMove(choice.board, choice.index);
+      } else if (this.id === "chess") {
         const move = chessBot(this.chess, this.easy);
         if (move) this.makeChessMove(move);
       } else {
@@ -276,6 +317,28 @@ export class BoardGames {
         ? square
         : null;
     this.render();
+  }
+  tileRole(player) {
+    return player === this.firstPlayer ? "X" : "O";
+  }
+  tileName(player) {
+    return this.players?.[player].name || (player === 0 ? "Kamu" : "Bot");
+  }
+  makeTileMove(board, index) {
+    if (this.mode !== "playing") return;
+    const move = this.tileGame.draw(board, index);
+    if (!move) return;
+    this.onMove();
+    if (this.tileGame.winner !== null) {
+      const winner = this.tileGame.winner;
+      this.finish(
+        `${this.tileName(winner)} menang! Koleksi lengkap: 16/16.`,
+        this.tileRole(winner),
+      );
+    } else {
+      this.render();
+      this.queueBot();
+    }
   }
   makeTicMove(index) {
     if (this.mode !== "playing" || this.cells[index]) return;
@@ -344,11 +407,102 @@ export class BoardGames {
       `${board.top + board.height / 2 - view.top}px`,
     );
   }
+  renderTiles() {
+    const duel = this.tileGame;
+    const announcement = document.createElement("p");
+    announcement.className = "tile-announcement";
+    announcement.setAttribute("role", "status");
+    if (duel.last) {
+      const { theme, picture, owner } = duel.last;
+      announcement.textContent = `${TILE_THEMES[theme].pictures[picture]} ${TILE_THEMES[theme].labels[picture]} diberikan ke ${this.tileName(owner)}!`;
+    } else
+      announcement.textContent =
+        "Ubin masih tertutup. Siap mengumpulkan koleksimu?";
+    $("boardGrid").append(announcement);
+    for (const player of [0, 1]) {
+      const panel = document.createElement("section");
+      const active = this.mode === "playing" && duel.turn === player;
+      panel.className = `tile-panel ${active ? "active-tile-panel" : ""}`;
+      panel.dataset.board = player;
+      if (active) panel.setAttribute("aria-current", "true");
+      const theme = TILE_THEMES[duel.themes[player]];
+      const header = document.createElement("header");
+      const name = document.createElement("strong");
+      name.textContent = `${this.tileName(player)} · ${theme.name}`;
+      const status = document.createElement("b");
+      status.textContent =
+        this.mode === "ended"
+          ? duel.winner === player
+            ? "MENANG!"
+            : "SELESAI"
+          : this.mode === "paused"
+            ? "DIJEDA"
+            : active
+              ? "▶ GILIRANMU"
+              : "MENUNGGU";
+      header.append(name, status);
+      const grid = document.createElement("div");
+      grid.className = "tile-board";
+      grid.setAttribute("role", "group");
+      grid.setAttribute("aria-label", `Papan ${this.tileName(player)}`);
+      duel.boards[player].forEach((tile, index) => {
+        const button = document.createElement("button");
+        button.className = `duel-tile ${tile.revealed ? "revealed-tile" : ""}`;
+        button.dataset.cell = `${player}-${index}`;
+        button.textContent = tile.revealed
+          ? TILE_THEMES[tile.theme].pictures[tile.picture]
+          : "✦";
+        const available =
+          this.mode === "playing" &&
+          !this.isBotTurn() &&
+          !tile.revealed &&
+          duel.availableBoard() === player;
+        button.disabled = !available;
+        button.setAttribute(
+          "aria-label",
+          tile.revealed
+            ? `${TILE_THEMES[tile.theme].labels[tile.picture]}, sudah dikirim`
+            : `Ubin ${index + 1} papan ${this.tileName(player)}, tertutup`,
+        );
+        button.addEventListener("click", () => {
+          if (this.mode === "playing" && !this.isBotTurn())
+            this.makeTileMove(player, index);
+        });
+        grid.append(button);
+      });
+      const collection = document.createElement("div");
+      collection.className = "tile-collection";
+      collection.setAttribute("aria-label", `Koleksi ${this.tileName(player)}`);
+      const progress = document.createElement("span");
+      const total = duel.collections[player].reduce((sum, n) => sum + n, 0);
+      progress.textContent = `KOLEKSI ${total}/16`;
+      const groups = document.createElement("div");
+      duel.collections[player].forEach((count, picture) => {
+        const group = document.createElement("span");
+        group.className = count === 4 ? "complete-group" : "";
+        group.textContent = `${theme.pictures[picture]} ${count}/4`;
+        group.setAttribute(
+          "aria-label",
+          `${theme.labels[picture]} ${count} dari 4`,
+        );
+        groups.append(group);
+      });
+      collection.append(progress, groups);
+      const note = document.createElement("small");
+      note.textContent =
+        active && duel.availableBoard() !== player
+          ? "Papanmu habis. Buka ubin dari papan lawan."
+          : "Buka satu ubin saat giliranmu.";
+      panel.append(header, grid, collection, note);
+      $("boardGrid").append(panel);
+    }
+  }
   renderCamps(role) {
     const local =
       this.mode !== "ready" && this.opponent === "local" && this.players;
     $("boardView").classList.toggle("local-match", Boolean(local));
-    $("topCamp").hidden = $("bottomCamp").hidden = !local;
+    $("topCamp").hidden = $("bottomCamp").hidden =
+      !local || this.id === "mahjong";
     if (!local) {
       delete $("boardView").dataset.activeTeam;
       return;
@@ -402,15 +556,26 @@ export class BoardGames {
   render() {
     const focusCell = document.activeElement?.dataset.cell;
     const chess = this.id === "chess";
-    $("boardGrid").className = chess ? "chess-grid" : "tic-grid";
+    const tiles = this.id === "mahjong";
+    $("boardGrid").className = tiles
+      ? "tile-duel"
+      : chess
+        ? "chess-grid"
+        : "tic-grid";
     $("boardGrid").replaceChildren();
-    const role = chess ? this.chess.turn() : this.turn;
+    const role = tiles
+      ? this.tileRole(this.tileGame.turn)
+      : chess
+        ? this.chess.turn()
+        : this.turn;
     const currentPlayer = this.player(role);
     const turn = chess
       ? this.chess.turn() === "w"
         ? "Putih"
         : "Hitam"
-      : this.turn;
+      : tiles
+        ? this.tileName(this.tileGame.turn)
+        : this.turn;
     $("boardTurn").textContent =
       this.mode === "ready"
         ? "Pilih mode permainan"
@@ -426,13 +591,17 @@ export class BoardGames {
       this.mode === "ready"
         ? "Bot atau 2 pemain lokal"
         : this.opponent === "bot"
-          ? `Lawan bot · ${this.easy ? "Santai" : "Pintar"}`
+          ? `Lawan bot · ${tiles ? "Ubin acak" : this.easy ? "Santai" : "Pintar"}`
           : "2 pemain · satu perangkat";
-    $("boardInstructions").textContent = chess
-      ? "Pilih bidak, lalu kotak tujuan. Titik menandai langkah legal."
-      : "Ketuk kotak kosong. Susun 3 simbol mendatar, tegak, atau diagonal.";
+    $("boardInstructions").textContent = tiles
+      ? "Buka satu ubin dari papanmu. Buah untuk pemilik buah, hewan untuk pemilik hewan. Jika papanmu habis, buka dari papan lainnya. Lengkapi 16 ubin untuk menang."
+      : chess
+        ? "Pilih bidak, lalu kotak tujuan. Titik menandai langkah legal."
+        : "Ketuk kotak kosong. Susun 3 simbol mendatar, tegak, atau diagonal.";
     $("moveHistoryWrap").hidden = !chess;
-    if (!chess) {
+    if (tiles) {
+      this.renderTiles();
+    } else if (!chess) {
       this.cells.forEach((value, i) => {
         const button = document.createElement("button");
         button.className = `tic-cell ${value === "X" ? "cross" : value === "O" ? "circle" : ""}`;
@@ -500,8 +669,8 @@ export class BoardGames {
             "check-square",
             Boolean(
               piece?.type === "k" &&
-                piece.color === this.chess.turn() &&
-                this.chess.isCheck(),
+              piece.color === this.chess.turn() &&
+              this.chess.isCheck(),
             ),
           );
           button.setAttribute(
@@ -526,9 +695,17 @@ export class BoardGames {
         : "Belum ada langkah. Putih mulai duluan.";
       $("moveHistory").scrollTop = $("moveHistory").scrollHeight;
     }
-    if (focusCell !== undefined && this.mode !== "ended")
-      $("boardGrid")
-        .querySelector(`[data-cell="${focusCell}"]`)
-        ?.focus({ preventScroll: true });
+    if (focusCell !== undefined && this.mode !== "ended") {
+      const previous = $("boardGrid").querySelector(
+        `[data-cell="${focusCell}"]`,
+      );
+      const next =
+        previous && !previous.disabled
+          ? previous
+          : tiles
+            ? $("boardGrid").querySelector("button:not(:disabled)")
+            : null;
+      next?.focus({ preventScroll: true });
+    }
   }
 }

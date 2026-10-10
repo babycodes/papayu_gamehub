@@ -18,6 +18,7 @@ let width = 800,
 let inGame = false,
   resumeAfterExit = false,
   pendingExitAction = "exit",
+  exitReturnFocus = null,
   activeGame = "fishing";
 const boards = new BoardGames({
   onStart: recordPlay,
@@ -115,7 +116,7 @@ function showOverlay(title, text, button, footnote) {
   $("gameOverlay").hidden = false;
 }
 function start() {
-  if (!inGame || activeGame !== "fishing" || exitDialog.open) return;
+  if (!inGame || activeGame !== "fishing" || !exitDialog.hidden) return;
   if (game.mode === "paused") game.resume();
   else {
     game.reset();
@@ -216,7 +217,7 @@ function openGame(id, pushHistory = true, fullscreen = true) {
   if (fullscreen) enterFullscreen();
 }
 function leaveGame() {
-  if (exitDialog.open) exitDialog.close();
+  if (!exitDialog.hidden) closeExitDialog();
   inGame = false;
   pointerId = null;
   game.reset("ready");
@@ -240,8 +241,9 @@ function requestExit() {
   requestDecision("exit");
 }
 function requestDecision(action) {
-  if (!inGame || exitDialog.open) return;
+  if (!inGame || !exitDialog.hidden) return;
   pendingExitAction = action;
+  exitReturnFocus = document.activeElement;
   const changeMode = action === "mode";
   $("exitTitle").textContent = changeMode
     ? "Akhiri & pilih mode?"
@@ -255,11 +257,11 @@ function requestDecision(action) {
   if (session().mode === "playing" || session().mode === "paused") {
     resumeAfterExit = session().mode === "playing";
     pause();
-    exitDialog.showModal();
+    showExitDialog();
   } else confirmExit();
 }
 function cancelExit() {
-  exitDialog.close();
+  closeExitDialog();
   if (resumeAfterExit) {
     if (activeGame === "fishing") start();
     else boards.resume();
@@ -268,10 +270,12 @@ function cancelExit() {
       preventScroll: true,
     });
   resumeAfterExit = false;
+  if (exitReturnFocus?.isConnected && !exitReturnFocus.disabled)
+    exitReturnFocus.focus({ preventScroll: true });
 }
 function confirmExit() {
   if (pendingExitAction === "mode") {
-    exitDialog.close();
+    closeExitDialog();
     resumeAfterExit = false;
     pendingExitAction = "exit";
     boards.chooseMode();
@@ -284,9 +288,32 @@ $("exitButton").addEventListener("click", requestExit);
 $("boardChangeMode").addEventListener("click", () => requestDecision("mode"));
 $("cancelExit").addEventListener("click", cancelExit);
 $("confirmExit").addEventListener("click", confirmExit);
-exitDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  cancelExit();
+$("pausedChangeMode").addEventListener("click", () => requestDecision("mode"));
+function showExitDialog() {
+  // Keep the modal in the fullscreen subtree, with its own hit surface and focus trap.
+  for (const child of gameScreen.children) {
+    if (child !== exitDialog) child.inert = true;
+  }
+  exitDialog.hidden = false;
+  $("cancelExit").focus({ preventScroll: true });
+}
+function closeExitDialog() {
+  exitDialog.hidden = true;
+  for (const child of gameScreen.children) child.inert = false;
+}
+exitDialog.addEventListener("keydown", (event) => {
+  if (event.code === "Escape") {
+    event.preventDefault();
+    event.stopPropagation();
+    cancelExit();
+  } else if (event.code === "Tab") {
+    event.preventDefault();
+    const target =
+      document.activeElement === $("cancelExit")
+        ? $("confirmExit")
+        : $("cancelExit");
+    target.focus();
+  }
 });
 $("fullscreenButton").addEventListener("click", () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -353,7 +380,7 @@ for (const target of [canvas, $("fishButton")]) {
   target.addEventListener("contextmenu", (event) => event.preventDefault());
 }
 window.addEventListener("keydown", (event) => {
-  if (!inGame || exitDialog.open) return;
+  if (!inGame || !exitDialog.hidden) return;
   if (event.code === "Escape" && !$("promotionDialog").open) {
     event.preventDefault();
     pause();

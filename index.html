@@ -40,7 +40,7 @@
             Jelajahi game <span>→</span>
           </button>
           <div class="hero-stats">
-            <span><b>03</b> game siap main</span
+            <span><b>04</b> game siap main</span
             ><span><b>∞</b> kesempatan seru</span
             ><span><b>0</b> iklan mengganggu</span>
           </div>
@@ -406,7 +406,7 @@
               class="secondary-button"
               aria-label="Akhiri permainan dan pilih mode lawan"
             >
-              Pilih mode
+              Akhiri / mode
             </button>
             <button
               id="flipBoard"
@@ -441,8 +441,14 @@
                         <option value="easy">Santai</option>
                       </select></label
                     >
+                    <label id="tileThemeField" hidden
+                      >Tema pemain 1<select id="tileTheme">
+                        <option value="fruit">Buah 🍎</option>
+                        <option value="animal">Hewan 🐱</option>
+                      </select></label
+                    >
                     <div id="localPlayers" class="local-player-fields" hidden>
-                      <p class="local-setup-hint">
+                      <p class="local-setup-hint" id="localSetupHint">
                         Nama boleh dikosongkan. Pilih kubu; pemain 1 mulai
                         sebagai X / putih.
                       </p>
@@ -493,6 +499,9 @@
                   <button id="boardStart" class="primary-button">
                     Mulai pertandingan
                   </button>
+                  <button id="pausedChangeMode" class="secondary-button" hidden>
+                    Akhiri & ganti mode
+                  </button>
                 </div>
               </div>
             </div>
@@ -532,30 +541,36 @@
           </button>
         </div>
       </dialog>
-      <dialog
+      <div
         id="exitDialog"
+        class="exit-modal"
+        role="alertdialog"
+        aria-modal="true"
+        hidden
         aria-labelledby="exitTitle"
         aria-describedby="exitDescription"
       >
-        <span class="eyebrow">PETUALANGAN MASIH BERLANGSUNG</span>
-        <h2 id="exitTitle">Kembali ke Gamehub?</h2>
-        <p id="exitDescription">
-          Permainan belum selesai. Jika keluar sekarang, progres pertandingan
-          ini akan hilang. Permainan dijeda selama kamu memilih.
-        </p>
-        <div class="exit-actions">
-          <button
-            id="cancelExit"
-            class="primary-button"
-            aria-label="Lanjut bermain"
-            autofocus
-          >
-            Lanjut bermain <span>→</span></button
-          ><button id="confirmExit" class="secondary-button">
-            Keluar ke Gamehub
-          </button>
+        <div class="exit-modal-card">
+          <span class="eyebrow">PETUALANGAN MASIH BERLANGSUNG</span>
+          <h2 id="exitTitle">Kembali ke Gamehub?</h2>
+          <p id="exitDescription">
+            Permainan belum selesai. Jika keluar sekarang, progres pertandingan
+            ini akan hilang. Permainan dijeda selama kamu memilih.
+          </p>
+          <div class="exit-actions">
+            <button
+              id="cancelExit"
+              class="primary-button"
+              aria-label="Lanjut bermain"
+              autofocus
+            >
+              Lanjut bermain <span>→</span></button
+            ><button id="confirmExit" class="secondary-button">
+              Keluar ke Gamehub
+            </button>
+          </div>
         </div>
-      </dialog>
+      </div>
     </section>
     <script type="importmap">
       { "imports": { "chess.js": "/vendor/chess.js" } }

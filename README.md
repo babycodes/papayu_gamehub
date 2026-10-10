@@ -1,6 +1,6 @@
 # Papayu GameHub
 
-Gamehub untuk penjelajah kecil. Tiga game: **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, dan **Catur**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
+Gamehub untuk penjelajah kecil. Empat game: **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Duel Buah & Hewan (mahjong anak)**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
 
 ## Menjalankan
 
@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-16 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, dan pemilihan nama/kubu serta pergantian pemain pada rematch. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+21 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi/transfer ubin, giliran, serta kemenangan Duel Buah & Hewan. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -27,14 +27,25 @@ Library memiliki search, filter Petualangan/Arcade/Strategi, favorit, urutan nam
 
 Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (bergantian pada perangkat yang sama, bukan multiplayer online). Level bot **Santai** memilih langkah legal secara acak. Level **Pintar** memakai minimax optimal untuk Tic Tac Toe dan pencarian dua langkah untuk Catur; bot Catur ditujukan untuk permainan kasual, bukan kekuatan mesin kompetitif. Saat melawan bot, manusia bermain sebagai X atau putih.
 
-- **Dua pemain lokal:** isi nama (opsional, maksimal 20 karakter) dan pilih kubu merah/biru. Memilih kubu satu pemain otomatis memberi kubu berbeda untuk pemain lainnya. Nama yang sama ditolak agar giliran jelas. Nama/kubu, warna simbol Tic Tac Toe, dan panel giliran aktif ditampilkan di atas/bawah papan. Panel aktif memiliki warna terang, bingkai tebal, dan label **▶ GILIRANMU**; pemain lain bertanda **MENUNGGU**. Warna kubu terpisah dari warna bidak Catur.
+- **Dua pemain lokal:** isi nama (opsional, maksimal 20 karakter) dan pilih kubu merah/biru. Memilih kubu satu pemain otomatis memberi kubu berbeda untuk pemain lainnya. Nama yang sama ditolak agar giliran jelas. Nama/kubu, warna simbol Tic Tac Toe, dan panel giliran aktif ditampilkan di atas/bawah papan. Panel aktif memiliki border hijau kontras dan label **▶ GILIRANMU**; pemain lain bertanda **MENUNGGU**. Warna kubu terpisah dari warna bidak Catur.
 - **Main lagi:** langsung memulai ronde baru dengan lawan dan tingkat bot yang sama. Nama/kubu tetap; dua pemain lokal bergantian mendapat X atau putih. Kubu tetap di sisi yang sama, dan orientasi Catur menyesuaikan saat giliran awal berganti.
-- **Pilih mode:** ganti lawan bot/lokal atau nama/kubu langsung dari game. Pertandingan aktif/dijeda meminta konfirmasi **Akhiri & pilih mode** sebelum progres dihapus. Membatalkan mengembalikan keadaan sebelumnya; konfirmasi menghentikan bot dan membuka pilihan mode tanpa kembali ke Gamehub. Nama/kubu sebelumnya tetap tersedia di formulir. Setelah pertandingan selesai, pilihan mode terbuka langsung.
+- **Akhiri / mode:** ganti lawan bot/lokal atau nama/kubu langsung dari game. Pertandingan aktif/dijeda meminta konfirmasi **Akhiri & pilih mode** sebelum progres dihapus. Membatalkan mengembalikan keadaan sebelumnya; konfirmasi menghentikan bot dan membuka pilihan mode tanpa kembali ke Gamehub. Nama/kubu sebelumnya tetap tersedia di formulir. Setelah pertandingan selesai, pilihan mode terbuka langsung.
 - **Tic Tac Toe:** ketuk kotak kosong untuk menaruh simbol. Tiga simbol berbaris menang; papan penuh tanpa pemenang berakhir seri.
 - **Catur:** pilih bidak lalu kotak legal bertanda titik. Mendukung skak/skakmat, rokade, en passant, dan pilihan promosi menteri/benteng/gajah/kuda. Remis otomatis untuk stalemate, pengulangan posisi tiga kali, material tidak cukup, atau aturan 50 langkah. Riwayat langkah memakai notasi SAN; tombol Putar papan mengubah orientasi.
 - Gunakan **Jeda** / Escape untuk berhenti sementara. Bot juga berhenti saat jeda, tab tidak aktif, atau menu keluar terbuka.
-- Tombol Gamehub dan Back browser meminta konfirmasi untuk pertandingan yang belum selesai. Main lagi tersedia setelah pertandingan berakhir.
-- Ketiga game memakai layar penuh dengan fallback ke viewport pada browser yang tidak mendukung Fullscreen API.
+- Tombol Gamehub dan Back browser meminta konfirmasi untuk pertandingan yang belum selesai. Modal berada di dalam layar game, menjeda permainan dan menonaktifkan interaksi di belakangnya. Tombol lanjut/keluar mendukung sentuhan; Tab menjaga fokus di modal dan Escape membatalkan. **Akhiri & ganti mode** juga tersedia dari menu jeda. Main lagi tersedia setelah pertandingan berakhir.
+- Keempat game memakai layar penuh dengan fallback ke viewport pada browser yang tidak mendukung Fullscreen API.
+
+## Duel Buah & Hewan — mahjong anak
+
+Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang sama dengan game papan; pemain 1 memilih tema buah atau hewan, pemain 2 mendapat tema lainnya. Bot memilih ubin tertutup secara acak tanpa melihat isinya.
+
+- Ada **32 ubin**: empat jenis buah dan empat jenis hewan, masing-masing empat salinan. Ubin diacak ke **dua papan**, masing-masing 16 ubin campuran.
+- Pemain bergantian membuka **satu ubin dari papan sendiri**. Ubin diberikan ke pemilik temanya, sekalipun dibuka lawan; koleksi otomatis diurutkan menjadi empat kelompok gambar yang sama.
+- Jika papan sendiri habis, pemain membuka ubin dari papan lawan. Panel giliran ditandai border hijau dan label **GILIRANMU**.
+- Pemain pertama yang melengkapi empat kelompok (masing-masing 4 ubin, total 16) menang. Gambar yang telah dibuka tetap terlihat sebagai catatan pengiriman.
+- **Main lagi** mengacak ulang semua ubin dengan nama, tema, kubu, dan mode yang sama; giliran awal bergantian dalam mode lokal.
+- **Akhiri / mode**, menu jeda, dan peringatan keluar berlaku seperti pada Tic Tac Toe/Catur. Di HP kecil, area papan dapat digulir tanpa meninggalkan layar game.
 
 ## Cara bermain memancing
 
@@ -66,14 +77,15 @@ Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (berga
 - `src/app.js`: gambar Canvas, input sentuh/keyboard, suara, pergantian halaman, dan menu keluar.
 - `src/library.js`: pencarian, filter, favorit, pagination, dan statistik lokal.
 - `src/boards.js`: UI papan, pilihan mode, promosi, dan lifecycle bot.
-- `src/board-engine.js`: aturan Tic Tac Toe dan bot untuk kedua game papan.
+- `src/board-engine.js`: aturan Tic Tac Toe dan bot untuk Tic Tac Toe/Catur.
+- `src/mahjong-engine.js`: pengacakan dua papan, perpindahan ubin, koleksi, dan kemenangan Duel Buah & Hewan.
 - `src/catalog.js`: daftar game dan metadata mode. Untuk game berikutnya tambahkan metadata di sini dan handler peluncuran di `app.js`.
 - `index.html` / `styles.css`: lobi Gamehub dan layout responsif.
 - `server.js`: server statis Node.js. Hanya aset aplikasi dan file ESM `chess.js` yang boleh diakses; `node_modules` lain tetap ditolak.
 - `test/engine.test.js` / `test/board-engine.test.js`: tes menggunakan runner bawaan Node.js.
 - Dependency `chess.js` 1.4.0 (BSD-2-Clause) dikunci di package-lock.json untuk aturan Catur dan dihidangkan dari instalasi lokal, tanpa CDN.
 
-Ketiga game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
+Keempat game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
 
 ## Privasi dan file rahasia
 

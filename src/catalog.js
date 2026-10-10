@@ -22,6 +22,18 @@ export const GAMES = [
     action: "Main Tic Tac Toe",
   },
   {
+    id: "mahjong",
+    title: "Duel Buah & Hewan",
+    description:
+      "Mahjong anak: buka ubin campuran dan lengkapi koleksi buah atau hewan!",
+    icon: "🍎",
+    category: "Arcade",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "2–5 menit",
+    tag: "TILE PARTY",
+    action: "Main Duel Buah & Hewan",
+  },
+  {
     id: "chess",
     title: "Catur",
     description: "Siapkan strategimu. Satu langkah bisa mengubah segalanya.",

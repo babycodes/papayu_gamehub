@@ -3390,24 +3390,6 @@ select {
 .board-arena {
   width: min(calc(100% - 460px), calc(100dvh - 200px), 560px);
 }
-.board-view.local-match {
-  background: linear-gradient(
-    to bottom,
-    #402437 0%,
-    #402437 50%,
-    #1e3759 50%,
-    #1e3759 100%
-  );
-}
-.board-view.local-match[data-top-team="blue"] {
-  background: linear-gradient(
-    to bottom,
-    #1e3759 0%,
-    #1e3759 50%,
-    #402437 50%,
-    #402437 100%
-  );
-}
 .local-match .board-arena {
   width: min(calc(100% - 460px), calc(100dvh - 290px), 520px);
 }
@@ -3420,7 +3402,7 @@ select {
   padding: 10px 16px;
   border: 1px solid;
   border-radius: 12px;
-  opacity: 0.6;
+  opacity: 0.8;
   transition:
     opacity 0.15s,
     box-shadow 0.15s;
@@ -3455,15 +3437,8 @@ select {
 }
 .player-camp.active-camp {
   opacity: 1;
-  background: var(--camp-color);
-  border-color: #fff;
-  box-shadow:
-    0 0 0 3px var(--camp-color),
-    0 0 30px #ffffff30;
-}
-.player-camp.active-camp strong,
-.player-camp.active-camp span {
-  color: #172035;
+  border-color: #a3ff71;
+  box-shadow: 0 0 0 2px #a3ff71;
 }
 .player-camp.active-camp b {
   color: #fff;
@@ -3498,12 +3473,6 @@ select {
     padding: 6px 7px;
     font-size: 9px;
   }
-}
-.local-match[data-active-team="red"] #boardTurn {
-  color: #ffb0bf;
-}
-.local-match[data-active-team="blue"] #boardTurn {
-  color: #b4d8ff;
 }
 .tic-cell[data-team="red"] {
   color: #ff9cb6;
@@ -3609,27 +3578,221 @@ select {
     width: 370px;
   }
 }
-.board-view.local-match {
-  background: linear-gradient(
-    to bottom,
-    #402437 0%,
-    #402437 var(--duel-split, 50%),
-    #1e3759 var(--duel-split, 50%),
-    #1e3759 100%
-  );
-}
-.board-view.local-match[data-top-team="blue"] {
-  background: linear-gradient(
-    to bottom,
-    #1e3759 0%,
-    #1e3759 var(--duel-split, 50%),
-    #402437 var(--duel-split, 50%),
-    #402437 100%
-  );
-}
 @media (max-width: 760px) and (min-height: 501px) {
   .local-match .board-layout {
     justify-content: center;
   }
 }
-.board-hud > div:first-child{min-width:0}.board-hud strong{overflow-wrap:anywhere}
+.board-hud > div:first-child {
+  min-width: 0;
+}
+.board-hud strong {
+  overflow-wrap: anywhere;
+}
+
+.board-view.local-match {
+  background: radial-gradient(ellipse at 50% 70%, #30355b, #161b34);
+}
+/* In-screen modal also works when native fullscreen is unavailable or changes. */
+.exit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: auto;
+  background: #0b1026d9;
+  color: #f0eaff;
+  pointer-events: auto;
+}
+.exit-modal-card {
+  width: min(100%, 440px);
+  max-height: 100%;
+  overflow: auto;
+  padding: 28px;
+  background: #22233e;
+  border: 1px solid #575375;
+  border-radius: 20px;
+  box-shadow: 0 24px 80px #0006;
+}
+.exit-modal-card h2 {
+  font-size: 24px;
+  margin: 16px 0;
+}
+.exit-modal-card p {
+  color: #bcb7d2;
+  font-size: 12px;
+}
+.exit-modal-card .primary-button {
+  background: #8c67dd;
+}
+.exit-modal-card .secondary-button {
+  color: #eee8ff;
+  border-color: #6b6588;
+}
+.exit-modal-card button {
+  touch-action: manipulation;
+  min-height: 44px;
+}
+#pausedChangeMode {
+  display: block;
+  margin: 12px auto 0;
+  color: #e2ffae;
+  border-color: #90ad61;
+}
+.board-view[data-game="mahjong"] .board-layout {
+  display: block;
+  overflow: auto;
+  padding: 10px 4px 20px;
+}
+.board-view[data-game="mahjong"] .board-arena {
+  width: min(100%, 850px);
+  margin: auto;
+}
+.board-view[data-game="mahjong"] .board-stage {
+  width: 100%;
+  aspect-ratio: auto;
+}
+.board-view[data-game="mahjong"] .board-side {
+  position: static;
+  transform: none;
+  width: min(100%, 850px);
+  margin: 16px auto;
+}
+.board-view[data-game="mahjong"] .board-tip {
+  display: none;
+}
+.board-view[data-game="mahjong"] .board-setup {
+  position: fixed;
+  inset: 135px 12px 12px;
+}
+.tile-duel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.tile-announcement {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d1cbea;
+}
+.tile-panel {
+  padding: 16px;
+  border: 2px solid #4d5372;
+  border-radius: 16px;
+  background: #242b46;
+  min-width: 0;
+}
+.tile-panel.active-tile-panel {
+  border-color: #a3ff71;
+  box-shadow: 0 0 0 1px #a3ff71;
+}
+.tile-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.tile-panel header strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.tile-panel header b {
+  font-size: 9px;
+  white-space: nowrap;
+  color: #bbb9d4;
+}
+.tile-panel.active-tile-panel header b {
+  color: #fff;
+}
+.tile-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: min(100%, 260px);
+  margin: auto;
+}
+.duel-tile {
+  aspect-ratio: 1;
+  min-height: 44px;
+  min-width: 0;
+  border: 1px solid #787498;
+  border-bottom-width: 4px;
+  border-radius: 9px;
+  background: #444263;
+  color: #d7c9ff;
+  font-size: 25px;
+  touch-action: manipulation;
+}
+.duel-tile:disabled {
+  cursor: default;
+}
+.duel-tile:not(:disabled):hover {
+  background: #615b85;
+  border-color: #a3ff71;
+}
+.duel-tile.revealed-tile {
+  background: #dbe5e1;
+  border-color: #94aaa3;
+}
+.tile-collection {
+  margin: 14px 0 8px;
+}
+.tile-collection > span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  color: #c1bdd5;
+}
+.tile-collection > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.tile-collection > div > span {
+  border-radius: 7px;
+  padding: 7px 3px;
+  background: #353d5a;
+  text-align: center;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.tile-collection .complete-group {
+  outline: 1px solid #a3ff71;
+  color: #e1ffd0;
+}
+.tile-panel small {
+  display: block;
+  color: #aaa8c5;
+  font-size: 10px;
+}
+@media (max-width: 599px) {
+  .tile-duel {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .tile-panel {
+    padding: 12px;
+  }
+  .tile-board {
+    max-width: 200px;
+  }
+  .tile-panel header {
+    margin-bottom: 8px;
+  }
+  .exit-modal-card {
+    padding: 20px;
+  }
+  .exit-modal-card .exit-actions {
+    flex-direction: column;
+  }
+  .exit-modal-card .exit-actions button {
+    width: 100%;
+  }
+}

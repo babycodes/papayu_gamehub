@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-21 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi/transfer ubin, giliran, serta kemenangan Duel Buah & Hewan. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+23 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, serah-terima, penolakan kolom yang salah, giliran, serta kemenangan setelah penyusunan Duel Buah & Hewan. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -41,9 +41,10 @@ Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (berga
 Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang sama dengan game papan; pemain 1 memilih tema buah atau hewan, pemain 2 mendapat tema lainnya. Bot memilih ubin tertutup secara acak tanpa melihat isinya.
 
 - Ada **32 ubin**: empat jenis buah dan empat jenis hewan, masing-masing empat salinan. Ubin diacak ke **dua papan**, masing-masing 16 ubin campuran.
-- Pemain bergantian membuka **satu ubin dari papan sendiri**. Ubin diberikan ke pemilik temanya, sekalipun dibuka lawan; koleksi otomatis diurutkan menjadi empat kelompok gambar yang sama.
+- Pemain bergantian membuka **satu ubin dari papan sendiri**. Jika ubin milik lawan, tekan **Serahkan ke [nama pemain]**. Ubin milik sendiri langsung masuk wadah terima sendiri. Pemilik ubin menyusunnya sebelum ubin berikutnya dibuka.
 - Jika papan sendiri habis, pemain membuka ubin dari papan lawan. Panel giliran ditandai border hijau dan label **GILIRANMU**.
-- Pemain pertama yang melengkapi empat kelompok (masing-masing 4 ubin, total 16) menang. Gambar yang telah dibuka tetap terlihat sebagai catatan pengiriman.
+- **Wadah & susunan:** ketuk ubin di wadah terima, lalu ketuk kolom gambar yang sama; di PC ubin juga bisa diseret ke kolom. Empat kolom disusun dari atas ke bawah, masing-masing empat tempat. Kolom yang salah ditolak tanpa menghilangkan ubin.
+- Pemain pertama yang selesai **menyusun** empat kolom (masing-masing 4 ubin, total 16) menang. Ubin yang masih di wadah belum dihitung. Gambar yang telah dibuka tetap terlihat sebagai catatan pengiriman.
 - **Main lagi** mengacak ulang semua ubin dengan nama, tema, kubu, dan mode yang sama; giliran awal bergantian dalam mode lokal.
 - **Akhiri / mode**, menu jeda, dan peringatan keluar berlaku seperti pada Tic Tac Toe/Catur. Di HP kecil, area papan dapat digulir tanpa meninggalkan layar game.
 

@@ -25,6 +25,7 @@ export class TileDuel {
     this.collections = [Array(4).fill(0), Array(4).fill(0)];
     this.winner = null;
     this.last = null;
+    this.pending = null;
     const tiles = Object.keys(TILE_THEMES).flatMap((theme) =>
       Array.from({ length: 16 }, (_, i) => ({
         theme,
@@ -53,6 +54,7 @@ export class TileDuel {
       : 1 - this.turn;
   }
   choices() {
+    if (this.pending || this.winner !== null) return [];
     const board = this.availableBoard();
     return this.boards[board].flatMap((tile, index) =>
       tile.revealed ? [] : [{ board, index }],
@@ -61,6 +63,7 @@ export class TileDuel {
   draw(board, index) {
     if (
       this.winner !== null ||
+      this.pending ||
       !Number.isInteger(index) ||
       index < 0 ||
       index >= 16 ||
@@ -72,7 +75,6 @@ export class TileDuel {
     const sender = this.turn;
     const owner = this.themes.indexOf(tile.theme);
     tile.revealed = true;
-    this.collections[owner][tile.picture]++;
     this.last = {
       board,
       index,
@@ -81,9 +83,39 @@ export class TileDuel {
       theme: tile.theme,
       picture: tile.picture,
     };
-    if (this.collections[owner].every((count) => count === 4))
-      this.winner = owner;
-    else this.turn = 1 - this.turn;
+    this.pending = {
+      ...this.last,
+      stage: sender === owner ? "arrange" : "handoff",
+    };
     return this.last;
+  }
+  actor() {
+    return this.pending?.stage === "arrange" ? this.pending.owner : this.turn;
+  }
+  handoff(player) {
+    if (
+      this.winner !== null ||
+      this.pending?.stage !== "handoff" ||
+      this.pending.sender !== player
+    )
+      return false;
+    this.pending.stage = "arrange";
+    return true;
+  }
+  place(player, picture) {
+    if (
+      this.winner !== null ||
+      this.pending?.stage !== "arrange" ||
+      this.pending.owner !== player ||
+      this.pending.picture !== picture
+    )
+      return false;
+    const sender = this.pending.sender;
+    this.collections[player][picture]++;
+    this.pending = null;
+    if (this.collections[player].every((count) => count === 4))
+      this.winner = player;
+    else this.turn = 1 - sender;
+    return true;
   }
 }

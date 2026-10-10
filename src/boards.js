@@ -113,7 +113,7 @@ export class BoardGames {
           : "Silang atau lingkaran?";
     $("boardSetupText").textContent =
       this.id === "mahjong"
-        ? "Dua papan berisi 16 ubin campuran. Buka satu saat giliranmu; ubin diberikan ke pemilik temanya. Lengkapi 4 kelompok, masing-masing 4 gambar, untuk menang."
+        ? "Buka satu ubin. Serahkan ubin lawan ke wadahnya, lalu pemiliknya menyusun ke kolom gambar yang sama. Lengkapi empat kolom, masing-masing empat ubin, untuk menang."
         : this.id === "chess"
           ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
           : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
@@ -151,6 +151,8 @@ export class BoardGames {
     this.result = null;
     this.lastMove = null;
     this.winnerRole = null;
+    this.selectedTile = false;
+    this.tileError = null;
     if (this.id === "mahjong")
       this.tileGame = new TileDuel({
         firstTheme: this.tileTheme || $("tileTheme").value,
@@ -265,7 +267,7 @@ export class BoardGames {
     return (
       this.opponent === "bot" &&
       (this.id === "mahjong"
-        ? this.tileGame.turn === 1
+        ? this.tileGame.actor() === 1
         : this.id === "chess"
           ? this.chess.turn() === "b"
           : this.turn === "O")
@@ -280,6 +282,12 @@ export class BoardGames {
       this.thinking = false;
       if (this.mode !== "playing" || !this.isBotTurn()) return;
       if (this.id === "mahjong") {
+        const pending = this.tileGame.pending;
+        if (pending) {
+          if (pending.stage === "handoff") this.handoffTile();
+          else this.placeTile(pending.owner, pending.picture, true);
+          return;
+        }
         const choices = this.tileGame.choices();
         const choice = choices[Math.floor(Math.random() * choices.length)];
         if (choice) this.makeTileMove(choice.board, choice.index);
@@ -328,6 +336,39 @@ export class BoardGames {
     if (this.mode !== "playing") return;
     const move = this.tileGame.draw(board, index);
     if (!move) return;
+    this.selectedTile = false;
+    this.tileError = null;
+    this.onMove();
+    this.render();
+    this.queueBot();
+    this.focusTileAction();
+  }
+  handoffTile() {
+    if (this.mode !== "playing" || !this.tileGame.handoff(this.tileGame.turn))
+      return;
+    this.selectedTile = false;
+    this.tileError = null;
+    this.onMove();
+    this.render();
+    this.queueBot();
+    this.focusTileAction();
+  }
+  placeTile(player, picture, automatic = false) {
+    if (
+      this.mode !== "playing" ||
+      (!automatic && (!this.selectedTile || this.isBotTurn()))
+    )
+      return;
+    if (!this.tileGame.place(player, picture)) {
+      if (this.tileGame.pending?.owner === player) {
+        this.tileError =
+          "Gambar belum cocok. Pilih kolom dengan gambar yang sama.";
+        this.render();
+      }
+      return;
+    }
+    this.selectedTile = false;
+    this.tileError = null;
     this.onMove();
     if (this.tileGame.winner !== null) {
       const winner = this.tileGame.winner;
@@ -338,7 +379,20 @@ export class BoardGames {
     } else {
       this.render();
       this.queueBot();
+      this.focusTileAction();
     }
+  }
+  focusTileAction() {
+    if (this.mode !== "playing" || this.isBotTurn()) return;
+    const actor = this.tileGame.actor();
+    const panel = $("boardGrid").querySelector(
+      `.tile-panel[data-board="${actor}"]`,
+    );
+    const action =
+      panel?.querySelector(
+        ".handoff-tile:not(:disabled), .tray-tile:not(:disabled)",
+      ) || $("boardGrid").querySelector(".duel-tile:not(:disabled)");
+    action?.focus();
   }
   makeTicMove(index) {
     if (this.mode !== "playing" || this.cells[index]) return;
@@ -412,16 +466,23 @@ export class BoardGames {
     const announcement = document.createElement("p");
     announcement.className = "tile-announcement";
     announcement.setAttribute("role", "status");
-    if (duel.last) {
+    if (this.tileError) announcement.textContent = this.tileError;
+    else if (duel.pending) {
+      const { theme, picture, owner, stage } = duel.pending;
+      announcement.textContent =
+        stage === "handoff"
+          ? `${TILE_THEMES[theme].pictures[picture]} Ubin milik ${this.tileName(owner)}. Serahkan ke wadahnya.`
+          : `${this.tileName(owner)}, ketuk ubin di wadah, lalu kolom ${TILE_THEMES[theme].labels[picture]} untuk menyusunnya.`;
+    } else if (duel.last) {
       const { theme, picture, owner } = duel.last;
-      announcement.textContent = `${TILE_THEMES[theme].pictures[picture]} ${TILE_THEMES[theme].labels[picture]} diberikan ke ${this.tileName(owner)}!`;
+      announcement.textContent = `${TILE_THEMES[theme].pictures[picture]} ${TILE_THEMES[theme].labels[picture]} sudah disusun oleh ${this.tileName(owner)}!`;
     } else
       announcement.textContent =
-        "Ubin masih tertutup. Siap mengumpulkan koleksimu?";
+        "Buka ubin, serahkan, lalu susun ke kolom gambar yang sama.";
     $("boardGrid").append(announcement);
     for (const player of [0, 1]) {
       const panel = document.createElement("section");
-      const active = this.mode === "playing" && duel.turn === player;
+      const active = this.mode === "playing" && duel.actor() === player;
       panel.className = `tile-panel ${active ? "active-tile-panel" : ""}`;
       panel.dataset.board = player;
       if (active) panel.setAttribute("aria-current", "true");
@@ -438,7 +499,11 @@ export class BoardGames {
           : this.mode === "paused"
             ? "DIJEDA"
             : active
-              ? "▶ GILIRANMU"
+              ? duel.pending
+                ? duel.pending.stage === "handoff"
+                  ? "SERAHKAN UBIN"
+                  : "SUSUN UBIN"
+                : "▶ GILIRANMU"
               : "MENUNGGU";
       header.append(name, status);
       const grid = document.createElement("div");
@@ -455,13 +520,14 @@ export class BoardGames {
         const available =
           this.mode === "playing" &&
           !this.isBotTurn() &&
+          !duel.pending &&
           !tile.revealed &&
           duel.availableBoard() === player;
         button.disabled = !available;
         button.setAttribute(
           "aria-label",
           tile.revealed
-            ? `${TILE_THEMES[tile.theme].labels[tile.picture]}, sudah dikirim`
+            ? `${TILE_THEMES[tile.theme].labels[tile.picture]}, ${duel.pending?.board === player && duel.pending.index === index ? "ditemukan, belum disusun" : "sudah disusun"}`
             : `Ubin ${index + 1} papan ${this.tileName(player)}, tertutup`,
         );
         button.addEventListener("click", () => {
@@ -470,30 +536,132 @@ export class BoardGames {
         });
         grid.append(button);
       });
+      const tray = document.createElement("div");
+      tray.className = "tile-tray";
+      tray.setAttribute("aria-label", `Wadah ${this.tileName(player)}`);
+      const trayTitle = document.createElement("strong");
+      const pending = duel.pending;
+      const receiving =
+        pending?.owner === player && pending.stage === "arrange";
+      const sending = pending?.sender === player && pending.stage === "handoff";
+      trayTitle.textContent = sending
+        ? "UBIN UNTUK DISERAHKAN"
+        : "WADAH TERIMA";
+      tray.append(trayTitle);
+      if (receiving || sending) {
+        const tile = document.createElement("button");
+        tile.className = `tray-tile ${receiving && this.selectedTile ? "selected-tray-tile" : ""}`;
+        tile.textContent = TILE_THEMES[pending.theme].pictures[pending.picture];
+        tile.setAttribute(
+          "aria-label",
+          `Pilih ${TILE_THEMES[pending.theme].labels[pending.picture]} dari wadah ${this.tileName(player)}`,
+        );
+        tile.setAttribute(
+          "aria-pressed",
+          String(receiving && this.selectedTile),
+        );
+        tile.disabled = this.mode !== "playing" || this.isBotTurn() || sending;
+        tile.draggable = !tile.disabled;
+        tile.addEventListener("click", () => {
+          if (this.mode !== "playing" || this.isBotTurn()) return;
+          this.selectedTile = true;
+          this.tileError = null;
+          this.render();
+          $("boardGrid")
+            .querySelector(
+              `.tile-panel[data-board="${player}"] .collection-column`,
+            )
+            ?.focus({ preventScroll: true });
+        });
+        tile.addEventListener("dragstart", (event) => {
+          event.dataTransfer.setData(
+            "text/plain",
+            `${player}:${pending.picture}`,
+          );
+          event.dataTransfer.effectAllowed = "move";
+          this.selectedTile = true;
+        });
+        tray.append(tile);
+        if (sending) {
+          const send = document.createElement("button");
+          send.className = "secondary-button handoff-tile";
+          send.textContent = `Serahkan ke ${this.tileName(pending.owner)} →`;
+          send.disabled = this.mode !== "playing" || this.isBotTurn();
+          send.addEventListener("click", () => {
+            if (!this.isBotTurn()) this.handoffTile();
+          });
+          tray.append(send);
+        } else {
+          const hint = document.createElement("span");
+          hint.textContent = this.selectedTile
+            ? "Pilih kolom gambar yang sama ↓"
+            : "Ketuk ubin, lalu kolomnya ↓";
+          tray.append(hint);
+        }
+      } else {
+        const empty = document.createElement("span");
+        empty.textContent = "Ubin yang diterima akan muncul di sini.";
+        tray.append(empty);
+      }
       const collection = document.createElement("div");
       collection.className = "tile-collection";
-      collection.setAttribute("aria-label", `Koleksi ${this.tileName(player)}`);
+      collection.setAttribute("aria-label", `Susunan ${this.tileName(player)}`);
       const progress = document.createElement("span");
       const total = duel.collections[player].reduce((sum, n) => sum + n, 0);
-      progress.textContent = `KOLEKSI ${total}/16`;
+      progress.textContent = `TERSUSUN ${total}/16`;
       const groups = document.createElement("div");
+      groups.className = "collection-columns";
       duel.collections[player].forEach((count, picture) => {
-        const group = document.createElement("span");
-        group.className = count === 4 ? "complete-group" : "";
-        group.textContent = `${theme.pictures[picture]} ${count}/4`;
+        const group = document.createElement("button");
+        group.className = `collection-column ${count === 4 ? "complete-group" : ""}`;
+        group.dataset.picture = picture;
+        group.disabled =
+          this.mode !== "playing" || this.isBotTurn() || !receiving;
+        group.setAttribute(
+          "aria-disabled",
+          String(group.disabled || !this.selectedTile),
+        );
         group.setAttribute(
           "aria-label",
-          `${theme.labels[picture]} ${count} dari 4`,
+          `Susun ${theme.labels[picture]} di kolom ${this.tileName(player)}, ${count} dari 4`,
         );
+        const title = document.createElement("span");
+        title.className = "column-title";
+        title.textContent = `${theme.pictures[picture]} ${count}/4`;
+        group.append(title);
+        for (let slot = 0; slot < 4; slot++) {
+          const item = document.createElement("span");
+          item.className = `collection-slot ${slot < count ? "filled-slot" : ""}`;
+          item.textContent = slot < count ? theme.pictures[picture] : "·";
+          group.append(item);
+        }
+        group.addEventListener("click", () => this.placeTile(player, picture));
+        group.addEventListener("dragover", (event) => {
+          if (this.mode === "playing" && receiving && !this.isBotTurn())
+            event.preventDefault();
+        });
+        group.addEventListener("drop", (event) => {
+          event.preventDefault();
+          if (
+            event.dataTransfer.getData("text/plain") !==
+            `${player}:${duel.pending?.picture}`
+          )
+            return;
+          this.placeTile(player, picture);
+        });
         groups.append(group);
       });
       collection.append(progress, groups);
       const note = document.createElement("small");
       note.textContent =
-        active && duel.availableBoard() !== player
-          ? "Papanmu habis. Buka ubin dari papan lawan."
-          : "Buka satu ubin saat giliranmu.";
-      panel.append(header, grid, collection, note);
+        active && duel.pending
+          ? duel.pending.stage === "handoff"
+            ? "Serahkan ubin ini ke wadah pemiliknya."
+            : "Susun ubin ke kolom gambar yang sama."
+          : active && duel.availableBoard() !== player
+            ? "Papanmu habis. Buka ubin dari papan lawan."
+            : "Buka satu ubin saat giliranmu.";
+      panel.append(header, grid, tray, collection, note);
       $("boardGrid").append(panel);
     }
   }
@@ -564,7 +732,7 @@ export class BoardGames {
         : "tic-grid";
     $("boardGrid").replaceChildren();
     const role = tiles
-      ? this.tileRole(this.tileGame.turn)
+      ? this.tileRole(this.tileGame.actor())
       : chess
         ? this.chess.turn()
         : this.turn;
@@ -574,7 +742,7 @@ export class BoardGames {
         ? "Putih"
         : "Hitam"
       : tiles
-        ? this.tileName(this.tileGame.turn)
+        ? this.tileName(this.tileGame.actor())
         : this.turn;
     $("boardTurn").textContent =
       this.mode === "ready"
@@ -586,6 +754,18 @@ export class BoardGames {
             : this.thinking
               ? "Bot sedang berpikir…"
               : `Giliran ${currentPlayer ? currentPlayer.name + " · Kubu " + TEAM_NAMES[currentPlayer.team] : this.isBotTurn() ? "bot" : turn}${chess && this.chess.isCheck() ? " · SKAK!" : ""}`;
+    if (
+      tiles &&
+      this.mode === "playing" &&
+      !this.thinking &&
+      this.tileGame.pending
+    ) {
+      const pending = this.tileGame.pending;
+      $("boardTurn").textContent =
+        pending.stage === "handoff"
+          ? `${this.tileName(pending.sender)}: serahkan ubin ke ${this.tileName(pending.owner)}`
+          : `${this.tileName(pending.owner)}: susun ubin di kolomnya`;
+    }
     this.renderCamps(role);
     $("boardMode").textContent =
       this.mode === "ready"
@@ -594,7 +774,7 @@ export class BoardGames {
           ? `Lawan bot · ${tiles ? "Ubin acak" : this.easy ? "Santai" : "Pintar"}`
           : "2 pemain · satu perangkat";
     $("boardInstructions").textContent = tiles
-      ? "Buka satu ubin dari papanmu. Buah untuk pemilik buah, hewan untuk pemilik hewan. Jika papanmu habis, buka dari papan lainnya. Lengkapi 16 ubin untuk menang."
+      ? "Buka satu ubin dari papanmu. Serahkan ubin lawan ke wadahnya. Pemilik mengetuk ubin lalu kolom gambar yang sama, atau menyeretnya di PC. Susun empat kolom penuh untuk menang."
       : chess
         ? "Pilih bidak, lalu kotak tujuan. Titik menandai langkah legal."
         : "Ketuk kotak kosong. Susun 3 simbol mendatar, tegak, atau diagonal.";

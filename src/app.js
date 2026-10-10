@@ -17,6 +17,7 @@ let width = 800,
   announcementUntil = 0;
 let inGame = false,
   resumeAfterExit = false,
+  pendingExitAction = "exit",
   activeGame = "fishing";
 const boards = new BoardGames({
   onStart: recordPlay,
@@ -236,7 +237,21 @@ function leaveGame() {
   // Keep last completed/abandoned catch details in the hub until the next round starts.
 }
 function requestExit() {
+  requestDecision("exit");
+}
+function requestDecision(action) {
   if (!inGame || exitDialog.open) return;
+  pendingExitAction = action;
+  const changeMode = action === "mode";
+  $("exitTitle").textContent = changeMode
+    ? "Akhiri & pilih mode?"
+    : "Kembali ke Gamehub?";
+  $("exitDescription").textContent = changeMode
+    ? "Pertandingan belum selesai. Mengganti mode akan mengakhiri pertandingan ini dan menghapus progresnya. Permainan dijeda selama kamu memilih."
+    : "Permainan belum selesai. Jika keluar sekarang, progres pertandingan ini akan hilang. Permainan dijeda selama kamu memilih.";
+  $("confirmExit").textContent = changeMode
+    ? "Akhiri & pilih mode"
+    : "Keluar ke Gamehub";
   if (session().mode === "playing" || session().mode === "paused") {
     resumeAfterExit = session().mode === "playing";
     pause();
@@ -255,10 +270,18 @@ function cancelExit() {
   resumeAfterExit = false;
 }
 function confirmExit() {
+  if (pendingExitAction === "mode") {
+    exitDialog.close();
+    resumeAfterExit = false;
+    pendingExitAction = "exit";
+    boards.chooseMode();
+    return;
+  }
   leaveGame();
   if (GAMES.some((g) => g.id === history.state?.view)) history.back();
 }
 $("exitButton").addEventListener("click", requestExit);
+$("boardChangeMode").addEventListener("click", () => requestDecision("mode"));
 $("cancelExit").addEventListener("click", cancelExit);
 $("confirmExit").addEventListener("click", confirmExit);
 exitDialog.addEventListener("cancel", (event) => {

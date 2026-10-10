@@ -3455,9 +3455,49 @@ select {
 }
 .player-camp.active-camp {
   opacity: 1;
+  background: var(--camp-color);
+  border-color: #fff;
   box-shadow:
-    0 0 0 2px var(--camp-color),
-    0 0 24px #ffffff10;
+    0 0 0 3px var(--camp-color),
+    0 0 30px #ffffff30;
+}
+.player-camp.active-camp strong,
+.player-camp.active-camp span {
+  color: #172035;
+}
+.player-camp.active-camp b {
+  color: #fff;
+  background: #172035;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+.player-camp > div {
+  min-width: 0;
+}
+#boardChangeMode {
+  color: #e2ffae;
+  border-color: #90ad61;
+  background: #34442b;
+  white-space: nowrap;
+}
+.board-hud-actions {
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .board-hud {
+    gap: 8px;
+  }
+  .board-hud-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 48%;
+  }
+  .player-camp.active-camp b {
+    padding: 6px 7px;
+    font-size: 9px;
+  }
 }
 .local-match[data-active-team="red"] #boardTurn {
   color: #ffb0bf;

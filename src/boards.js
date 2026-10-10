@@ -114,6 +114,14 @@ export class BoardGames {
     $("boardPause").disabled = true;
     this.render();
   }
+  chooseMode() {
+    this.players = null;
+    this.firstPlayer = 0;
+    this.flipped = false;
+    this.campFlipped = false;
+    this.setup();
+    $("opponent").focus({ preventScroll: true });
+  }
   updateSettings() {
     const local = $("opponent").value === "local";
     $("difficultyField").hidden = local;
@@ -366,6 +374,9 @@ export class BoardGames {
         "active-camp",
         this.mode === "playing" && role === campRole,
       );
+      if (this.mode === "playing" && role === campRole)
+        camp.setAttribute("aria-current", "true");
+      else camp.removeAttribute("aria-current");
       const name = document.createElement("strong");
       name.textContent = player.name;
       const label = document.createElement("span");
@@ -381,7 +392,7 @@ export class BoardGames {
           : this.mode === "paused"
             ? "DIJEDA"
             : role === campRole
-              ? "GILIRANMU"
+              ? "▶ GILIRANMU"
               : "MENUNGGU";
       const identity = document.createElement("div");
       identity.append(name, label);

@@ -1,6 +1,6 @@
 # Papayu GameHub
 
-Gamehub untuk penjelajah kecil. Game pertama: **Petualangan Memancing — Teluk Ceria**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
+Gamehub untuk penjelajah kecil. Tiga game: **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, dan **Catur**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
 
 ## Menjalankan
 
@@ -17,9 +17,23 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-Enam tes memeriksa siklus ronde, tangkapan dan combo, bonus waktu, frenzy, jeda, serta reset permainan. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+14 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, serta siklus ronde memancing. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
-## Cara bermain
+## Game library
+
+Library memiliki search, filter Petualangan/Arcade/Strategi, favorit, urutan nama atau paling dimainkan lokal, dan pagination (pilih 2, 6, atau 12 game per halaman). Tombol `/` memfokuskan pencarian. Favorit dan jumlah sesi yang dimulai tersimpan di browser; daftar paling dimainkan memakai jumlah sesi nyata di perangkat ini. Tidak ada akun, leaderboard global, atau angka pemain buatan.
+
+## Tic Tac Toe & Catur
+
+Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (bergantian pada perangkat yang sama, bukan multiplayer online). Level bot **Santai** memilih langkah legal secara acak. Level **Pintar** memakai minimax optimal untuk Tic Tac Toe dan pencarian dua langkah untuk Catur; bot Catur ditujukan untuk permainan kasual, bukan kekuatan mesin kompetitif. Saat melawan bot, manusia bermain sebagai X atau putih.
+
+- **Tic Tac Toe:** ketuk kotak kosong untuk menaruh simbol. Tiga simbol berbaris menang; papan penuh tanpa pemenang berakhir seri.
+- **Catur:** pilih bidak lalu kotak legal bertanda titik. Mendukung skak/skakmat, rokade, en passant, dan pilihan promosi menteri/benteng/gajah/kuda. Remis otomatis untuk stalemate, pengulangan posisi tiga kali, material tidak cukup, atau aturan 50 langkah. Riwayat langkah memakai notasi SAN; tombol Putar papan mengubah orientasi.
+- Gunakan **Jeda** / Escape untuk berhenti sementara. Bot juga berhenti saat jeda, tab tidak aktif, atau menu keluar terbuka.
+- Tombol Gamehub dan Back browser meminta konfirmasi untuk pertandingan yang belum selesai. Main lagi tersedia setelah pertandingan berakhir.
+- Ketiga game memakai layar penuh dengan fallback ke viewport pada browser yang tidak mendukung Fullscreen API.
+
+## Cara bermain memancing
 
 1. Dari **Gamehub**, pilih **Masuk ke teluk**, lalu tekan **Mulai memancing** untuk memulai ronde 90 detik.
 2. Tahan tombol **Turunkan kail**, area laut, atau tombol **Spasi**.
@@ -47,12 +61,16 @@ Enam tes memeriksa siklus ronde, tangkapan dan combo, bonus waktu, frenzy, jeda,
 
 - `src/engine.js`: aturan permainan, waktu, skor, spawn ikan, dan pergerakan kail; terpisah dari tampilan agar mudah dijadikan referensi untuk port Flutter.
 - `src/app.js`: gambar Canvas, input sentuh/keyboard, suara, pergantian halaman, dan menu keluar.
-- `src/catalog.js`: daftar game, status ketersediaan, dan metadata mode. Untuk game berikutnya tambahkan metadata di sini dan handler peluncuran di `app.js`.
+- `src/library.js`: pencarian, filter, favorit, pagination, dan statistik lokal.
+- `src/boards.js`: UI papan, pilihan mode, promosi, dan lifecycle bot.
+- `src/board-engine.js`: aturan Tic Tac Toe dan bot untuk kedua game papan.
+- `src/catalog.js`: daftar game dan metadata mode. Untuk game berikutnya tambahkan metadata di sini dan handler peluncuran di `app.js`.
 - `index.html` / `styles.css`: lobi Gamehub dan layout responsif.
-- `server.js`: server statis tanpa dependency. Hanya aset aplikasi yang boleh diakses.
-- `test/engine.test.js`: tes logika menggunakan runner bawaan Node.js.
+- `server.js`: server statis Node.js. Hanya aset aplikasi dan file ESM `chess.js` yang boleh diakses; `node_modules` lain tetap ditolak.
+- `test/engine.test.js` / `test/board-engine.test.js`: tes menggunakan runner bawaan Node.js.
+- Dependency `chess.js` 1.4.0 (BSD-2-Clause) dikunci di package-lock.json untuk aturan Catur dan dihidangkan dari instalasi lokal, tanpa CDN.
 
-Lobi saat ini berisi satu game yang dapat dimainkan, panduan, skor ikan, bonus, dan rekor. Tic Tac Toe dan Catur ditandai **segera hadir**; mode 2 pemain lokal dan lawan bot masih rencana untuk implementasi berikutnya. Versi Flutter/native APK adalah tahap berikutnya; belum dibuat.
+Ketiga game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
 
 ## Privasi dan file rahasia
 

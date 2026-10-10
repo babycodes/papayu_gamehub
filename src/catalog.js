@@ -1,6 +1,70 @@
-// Add new games here, then register their launch handler in app.js.
 export const GAMES = [
-  { id: 'fishing', title: 'Petualangan memancing', description: 'Lima kedalaman, ikan langka, dan kejutan di Teluk Ceria.', icon: '⚓', category: 'PETUALANGAN', available: true, modes: ['Solo'], duration: '90 detik', action: 'Masuk ke teluk' },
-  { id: 'tic-tac-toe', title: 'Tic Tac Toe', description: 'Tiga simbol berbaris. Tantangan kecil untuk jeda santaimu.', icon: '×○', category: 'ARCADE', available: false, modes: ['2 pemain lokal', 'Lawan bot'], duration: 'Segera hadir' },
-  { id: 'chess', title: 'Catur', description: 'Satu papan, banyak strategi. Rencanakan langkah terbaikmu.', icon: '♜', category: 'STRATEGI', available: false, modes: ['2 pemain lokal', 'Lawan bot'], duration: 'Segera hadir' },
+  {
+    id: "fishing",
+    title: "Petualangan Memancing",
+    description: "Lempar kail, kejar ikan langka, dan rayakan frenzy!",
+    icon: "⚓",
+    category: "Petualangan",
+    modes: ["Solo"],
+    duration: "90 detik",
+    tag: "FRENZY TIME",
+    action: "Main memancing",
+  },
+  {
+    id: "tic-tac-toe",
+    title: "Tic Tac Toe",
+    description: "Silang atau lingkaran? Susun tiga dan rebut kemenangan.",
+    icon: "×○",
+    category: "Arcade",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "1–3 menit",
+    tag: "QUICK MATCH",
+    action: "Main Tic Tac Toe",
+  },
+  {
+    id: "chess",
+    title: "Catur",
+    description: "Siapkan strategimu. Satu langkah bisa mengubah segalanya.",
+    icon: "♜",
+    category: "Strategi",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "Tanpa batas waktu",
+    tag: "BRAIN POWER",
+    action: "Main Catur",
+  },
 ];
+export function queryGames(
+  games,
+  {
+    search = "",
+    category = "Semua",
+    sort = "default",
+    favoritesOnly = false,
+    favorites = [],
+    plays = {},
+    page = 1,
+    pageSize = 6,
+  } = {},
+) {
+  const query = search.trim().toLocaleLowerCase("id-ID");
+  const results = games.filter(
+    (g) =>
+      (category === "Semua" || g.category === category) &&
+      (!favoritesOnly || favorites.includes(g.id)) &&
+      `${g.title} ${g.description} ${g.category} ${g.modes.join(" ")}`
+        .toLocaleLowerCase("id-ID")
+        .includes(query),
+  );
+  if (sort === "popular")
+    results.sort((a, b) => (plays[b.id] || 0) - (plays[a.id] || 0));
+  if (sort === "name")
+    results.sort((a, b) => a.title.localeCompare(b.title, "id"));
+  const pages = Math.max(1, Math.ceil(results.length / pageSize));
+  const current = Math.max(1, Math.min(pages, page));
+  return {
+    items: results.slice((current - 1) * pageSize, current * pageSize),
+    total: results.length,
+    pages,
+    page: current,
+  };
+}

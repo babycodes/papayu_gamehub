@@ -1,43 +1,506 @@
 <!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#faf8f3">
-  <title>Papayu Gamehub</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <header id="hubHeader" class="header">
-    <a class="brand" href="/" aria-label="Papayu beranda"><span class="brand-icon">p<span>•</span></span>papayu<span class="brand-label">GAMEHUB</span></a>
-    <nav aria-label="Navigasi utama"><span class="nav-item active">Gamehub <span class="tiny-dot"></span></span></nav>
-    <div class="header-right"><span class="made-for">Dunia kecil, imajinasi besar</span></div>
-  </header>
-  <main id="hubScreen">
-    <div class="breadcrumb"><span>SELAMAT DATANG DI PAPAYU</span><span>/</span>GAMEHUB</div>
-    <div class="intro"><div><div class="eyebrow"><span></span> PILIH GAME. MULAI CERITAMU.</div><h1>Petualangan kecil,<br><em>senyum besar.</em></h1><p>Satu rumah untuk bermain, penasaran, dan mencoba lagi.</p></div><div class="age-badge"><span>✦</span><div>Untuk penjelajah kecil<small>TANPA IKLAN · TANPA AKUN</small></div></div></div>
-    <section aria-label="Pilihan game"><div class="hub-section-heading"><h2>Mau main apa hari ini?</h2><span>01 game siap dimainkan</span></div><div id="gameCatalog" class="game-catalog"></div></section>
-    <section id="fishingDetails" class="fishing-details"><div class="hub-section-heading"><div><span class="eyebrow">SEBELUM BERLAYAR</span><h2>Kenalan dengan Teluk Ceria.</h2></div><span>Petualangan memancing</span></div>
-      <section class="sidebar hub-information" aria-label="Panduan memancing">
-        <div class="expedition-card"><div class="card-kicker">EKSPEDISI HARI INI <span>01</span></div><h2>Teluk Ceria</h2><p>Laut tenang. Ikan penasaran.<br>Petualangan menunggumu.</p><div class="weather"><span>☀</span> Cerah <span class="weather-divider">·</span> Ombak bersahabat</div><div class="journey"><div class="journey-icon">⚑</div><div><strong id="levelName">Penjelajah pemula</strong><span id="levelHint">Raih 300 poin untuk naik level</span></div></div></div>
-        <div class="how-card"><div class="card-kicker">CARA BERMAIN <span>↙</span></div><div class="step"><span>1</span><div><strong>Tahan untuk turun</strong><p>Tekan tombol atau area laut.</p></div></div><div class="step"><span>2</span><div><strong>Arahkan kailmu</strong><p>Geser di laut atau tekan ← →.</p></div></div><div class="step"><span>3</span><div><strong>Lepaskan & gulung!</strong><p>Bawa ikan ke atas untuk poin.</p></div></div><div class="keyboard-tip"><kbd>SPASI</kbd> juga bisa untuk memancing</div></div>
-        <div class="collection-card"><div class="card-kicker">TANGKAPAN TERAKHIR <span id="catchCount">0 IKAN</span></div><div id="lastCatch" class="last-catch"><span class="catch-illustration">♧</span><div><strong>Siapa yang pertama?</strong><p>Ikan pertamamu menunggu!</p></div></div><div class="personal-best"><span>Rekor pribadimu</span><strong id="bestScore">0 <small>poin</small></strong></div></div>
-      </section>
-    <section class="fish-guide"><div class="guide-heading"><span class="eyebrow">KENALI PENGHUNI LAUT</span><h2>Semakin dalam, semakin berharga.</h2><p>Setiap tangkapan punya cerita kecilnya sendiri.</p></div><div class="species"><span class="mini-fish mint">➤</span><strong>Ikan kecil</strong><small>Si lincah di permukaan</small><b>10 <span>POIN</span></b></div><div class="species"><span class="mini-fish gold">➤</span><strong>Ikan sedang</strong><small>Penasaran dengan kailmu</small><b>25–40 <span>POIN</span></b></div><div class="species"><span class="mini-fish pink">➤</span><strong>Ikan besar</strong><small>Penghuni laut dalam</small><b>75 <span>POIN</span></b></div><div class="species"><span class="mini-fish purple">➤ ✦</span><strong>Ikan langka</strong><small>Kejutan dari kedalaman</small><b>150 <span>POIN</span></b></div></section>
-    <div class="hub-bonuses"><span>ϟ <strong>Combo hingga ×4</strong> · tangkap lagi dalam 8 detik</span><span>✦ <strong>Frenzy ×2</strong> · setiap 25 detik</span><span>◷ <strong>Bonus +12 detik</strong> · cari jam di lapisan 3</span></div>
-    <footer><span class="footer-brand">papayu <span>dibuat untuk rasa ingin tahu.</span></span><span>Petualangan kecil, senyum besar. <span class="footer-flower">✳</span></span></footer>
-    </section>
-  </main>
-  <section id="gameScreen" class="game-screen" aria-label="Petualangan memancing" hidden>
-    <header class="game-toolbar"><button id="exitButton" class="exit-button" aria-label="Kembali ke Gamehub">← <span>Gamehub</span></button><div class="game-title"><span>⚓</span> Teluk Ceria</div><div class="game-tools"><button id="soundButton" class="icon-button" aria-label="Matikan suara" title="Suara">♫</button><button id="fullscreenButton" class="icon-button" aria-label="Aktifkan layar penuh" title="Layar penuh"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button></div></header>
-      <div class="game-column">
-        <div class="scoreboard"><div class="stat"><span class="stat-icon star">✦</span><div><small>SKOR KAMU</small><strong id="score">0 <span>poin</span></strong></div></div><div class="stat"><span class="stat-icon clock">◷</span><div><small>SISA WAKTU</small><strong id="timer">01:30</strong></div></div><div class="stat combo-stat"><span class="stat-icon combo">ϟ</span><div><small>COMBO</small><strong id="combo">×1 <span>ayo mulai!</span></strong></div></div><button id="pauseButton" class="icon-button pause" aria-label="Jeda permainan" disabled><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="2" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="7" y="2" width="3" height="10" rx="1" fill="currentColor"/></svg></button></div>
-        <div class="sea-frame"><canvas id="sea" aria-label="Laut dengan lima lapisan ikan. Tahan Spasi atau tombol Turunkan Kail untuk memancing." tabindex="0"></canvas><div id="frenzyBanner" class="frenzy-banner" hidden>✦ FRENZY! SEMUA POIN ×2 <span id="frenzyTime"></span></div><div id="gameOverlay" class="game-overlay"><div class="overlay-shell"><span class="overlay-icon">⚓</span><h2 id="overlayTitle">Lautnya sudah siap.<br>Kamu juga?</h2><p id="overlayText">Tahan di laut untuk turun. Geser, lalu lepaskan!</p><button id="playButton" class="primary-button">Mulai memancing <span>→</span></button><span id="overlayFootnote">90 detik, lima kedalaman, banyak kejutan.</span></div></div><div id="announcement" class="announcement" role="status" aria-live="polite"></div></div>
-        <div class="control-bar"><div class="hook-status"><span class="hook-icon">♧</span><div><strong id="hookTitle">Kail siap beraksi</strong><span id="hookHint">Tahan, arahkan, lalu lepaskan.</span></div></div><button id="fishButton" class="fish-button" disabled><span>↓</span> Tahan untuk turunkan kail <span class="button-hint">SPASI</span></button></div>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101029" />
+    <title>Papayu Gamehub</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header id="hubHeader" class="header">
+      <a class="brand" href="/" aria-label="Papayu beranda"
+        ><span class="brand-icon">p<span>•</span></span
+        >papayu<span class="brand-label">GAMEHUB</span></a
+      >
+      <nav aria-label="Navigasi utama">
+        <a class="nav-item active" href="#librarySection">Game library</a
+        ><a class="nav-item" href="#popularSection">Paling dimainkan</a>
+      </nav>
+      <div class="header-right">
+        <span class="guest-avatar">☺</span
+        ><span class="guest-label"
+          >PLAYER ONE<small>Mode tamu · progres lokal</small></span
+        >
       </div>
-  <dialog id="exitDialog" aria-labelledby="exitTitle" aria-describedby="exitDescription"><span class="eyebrow">PETUALANGAN MASIH BERLANGSUNG</span><h2 id="exitTitle">Kembali ke Gamehub?</h2><p id="exitDescription">Ronde belum selesai. Jika keluar sekarang, skor ronde ini tidak disimpan. Waktu dijeda selama kamu memilih.</p><div class="exit-actions"><button id="cancelExit" class="primary-button" aria-label="Lanjut bermain" autofocus>Lanjut bermain <span>→</span></button><button id="confirmExit" class="secondary-button">Keluar ke Gamehub</button></div></dialog>
-  </section>
-  <script type="module" src="/src/app.js"></script>
-</body>
+    </header>
+    <main id="hubScreen">
+      <section class="gaming-hero">
+        <div class="hero-copy">
+          <span class="hero-pill">✦ GOOD GAMES. GREAT TIMES.</span>
+          <h1>Tekan play.<br /><em>Lepaskan serunya!</em></h1>
+          <p>
+            Dari lautan penuh kejutan sampai duel strategi.<br />Petualangan
+            berikutnya? Kamu yang pilih.
+          </p>
+          <button id="exploreButton" class="hero-button">
+            Jelajahi game <span>→</span>
+          </button>
+          <div class="hero-stats">
+            <span><b>03</b> game siap main</span
+            ><span><b>∞</b> kesempatan seru</span
+            ><span><b>0</b> iklan mengganggu</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <span class="floating-star star-one">✦</span
+          ><span class="floating-star star-two">✧</span>
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="art-tile tile-tic">×<span>○</span></div>
+          <div class="art-tile tile-chess">♜</div>
+          <div class="controller">
+            <div class="controller-top">PAPAYU</div>
+            <div class="dpad">✚</div>
+            <div class="controller-buttons"><i></i><i></i><i></i><i></i></div>
+            <div class="controller-stick stick-one"></div>
+            <div class="controller-stick stick-two"></div>
+            <div class="controller-led"></div>
+          </div>
+          <span class="hero-spark">LET'S PLAY!</span>
+        </div>
+      </section>
+      <section
+        id="librarySection"
+        class="library-section"
+        aria-label="Game library"
+      >
+        <div class="library-heading">
+          <div>
+            <span class="eyebrow">YOUR NEXT LITTLE OBSESSION</span>
+            <h2>Temukan game favoritmu<span>✦</span></h2>
+          </div>
+          <span id="resultCount" role="status" aria-live="polite"></span>
+        </div>
+        <div class="library-tools">
+          <label class="search-box"
+            ><span aria-hidden="true">⌕</span
+            ><input
+              id="gameSearch"
+              type="search"
+              placeholder="Cari game, kategori, atau mode…"
+              aria-label="Cari game"
+              autocomplete="off"
+            /><kbd>/</kbd></label
+          ><label class="sort-box"
+            >Urutkan<select id="gameSort">
+              <option value="default">Pilihan Papayu</option>
+              <option value="popular">Paling dimainkan lokal</option>
+              <option value="name">Nama A–Z</option>
+            </select></label
+          >
+        </div>
+        <div class="filter-row">
+          <div
+            id="categoryFilters"
+            class="category-filters"
+            role="group"
+            aria-label="Filter kategori"
+          ></div>
+          <button
+            id="favoritesFilter"
+            class="favorites-filter"
+            aria-pressed="false"
+          >
+            ♥ Favoritku
+          </button>
+        </div>
+        <div id="gameCatalog" class="game-catalog"></div>
+        <div id="emptyLibrary" class="empty-library" hidden>
+          <span>⌕</span>
+          <h3>Belum ketemu, nih.</h3>
+          <p>Coba kata kunci lain atau pilih kategori berbeda.</p>
+          <button id="clearFilters" class="primary-button">
+            Reset pencarian
+          </button>
+        </div>
+        <div class="pagination">
+          <label
+            >Tampilkan
+            <select id="pageSize" aria-label="Game per halaman">
+              <option value="6">6 per halaman</option>
+              <option value="2">2 per halaman</option>
+              <option value="12">12 per halaman</option>
+            </select></label
+          ><span id="pageInfo"></span>
+          <div class="page-controls">
+            <button id="prevPage" aria-label="Halaman sebelumnya">←</button>
+            <div id="pageNumbers"></div>
+            <button id="nextPage" aria-label="Halaman berikutnya">→</button>
+          </div>
+        </div>
+      </section>
+      <section id="popularSection" class="popular-section">
+        <div class="popular-copy">
+          <span class="eyebrow">ON YOUR DEVICE</span>
+          <h2>Sering main?<br />Naik ke daftar atas.</h2>
+          <p>
+            Game paling sering kamu mainkan di perangkat ini. Statistik lokal,
+            tanpa perlu akun.
+          </p>
+          <div class="session-badge">
+            <b id="totalSessions">0</b><span>pertandingan & ronde dimulai</span>
+          </div>
+          <small>Ranking antar pemain akan hadir bersama sistem akun.</small>
+        </div>
+        <div id="popularGames" class="popular-games"></div>
+      </section>
+      <details id="fishingDetails" class="fishing-details">
+        <summary>⚓ Panduan &amp; rekor memancing <span>+</span></summary>
+        <div class="hub-section-heading">
+          <div>
+            <span class="eyebrow">SEBELUM BERLAYAR</span>
+            <h2>Kenalan dengan Teluk Ceria.</h2>
+          </div>
+          <span>Petualangan memancing</span>
+        </div>
+        <section class="sidebar hub-information" aria-label="Panduan memancing">
+          <div class="expedition-card">
+            <div class="card-kicker">EKSPEDISI HARI INI <span>01</span></div>
+            <h2>Teluk Ceria</h2>
+            <p>Laut tenang. Ikan penasaran.<br />Petualangan menunggumu.</p>
+            <div class="weather">
+              <span>☀</span> Cerah <span class="weather-divider">·</span> Ombak
+              bersahabat
+            </div>
+            <div class="journey">
+              <div class="journey-icon">⚑</div>
+              <div>
+                <strong id="levelName">Penjelajah pemula</strong
+                ><span id="levelHint">Raih 300 poin untuk naik level</span>
+              </div>
+            </div>
+          </div>
+          <div class="how-card">
+            <div class="card-kicker">CARA BERMAIN <span>↙</span></div>
+            <div class="step">
+              <span>1</span>
+              <div>
+                <strong>Tahan untuk turun</strong>
+                <p>Tekan tombol atau area laut.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span>2</span>
+              <div>
+                <strong>Arahkan kailmu</strong>
+                <p>Geser di laut atau tekan ← →.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span>3</span>
+              <div>
+                <strong>Lepaskan & gulung!</strong>
+                <p>Bawa ikan ke atas untuk poin.</p>
+              </div>
+            </div>
+            <div class="keyboard-tip">
+              <kbd>SPASI</kbd> juga bisa untuk memancing
+            </div>
+          </div>
+          <div class="collection-card">
+            <div class="card-kicker">
+              TANGKAPAN TERAKHIR <span id="catchCount">0 IKAN</span>
+            </div>
+            <div id="lastCatch" class="last-catch">
+              <span class="catch-illustration">♧</span>
+              <div>
+                <strong>Siapa yang pertama?</strong>
+                <p>Ikan pertamamu menunggu!</p>
+              </div>
+            </div>
+            <div class="personal-best">
+              <span>Rekor pribadimu</span
+              ><strong id="bestScore">0 <small>poin</small></strong>
+            </div>
+          </div>
+        </section>
+        <section class="fish-guide">
+          <div class="guide-heading">
+            <span class="eyebrow">KENALI PENGHUNI LAUT</span>
+            <h2>Semakin dalam, semakin berharga.</h2>
+            <p>Setiap tangkapan punya cerita kecilnya sendiri.</p>
+          </div>
+          <div class="species">
+            <span class="mini-fish mint">➤</span><strong>Ikan kecil</strong
+            ><small>Si lincah di permukaan</small><b>10 <span>POIN</span></b>
+          </div>
+          <div class="species">
+            <span class="mini-fish gold">➤</span><strong>Ikan sedang</strong
+            ><small>Penasaran dengan kailmu</small
+            ><b>25–40 <span>POIN</span></b>
+          </div>
+          <div class="species">
+            <span class="mini-fish pink">➤</span><strong>Ikan besar</strong
+            ><small>Penghuni laut dalam</small><b>75 <span>POIN</span></b>
+          </div>
+          <div class="species">
+            <span class="mini-fish purple">➤ ✦</span><strong>Ikan langka</strong
+            ><small>Kejutan dari kedalaman</small><b>150 <span>POIN</span></b>
+          </div>
+        </section>
+        <div class="hub-bonuses">
+          <span
+            >ϟ <strong>Combo hingga ×4</strong> · tangkap lagi dalam 8
+            detik</span
+          ><span>✦ <strong>Frenzy ×2</strong> · setiap 25 detik</span
+          ><span
+            >◷ <strong>Bonus +12 detik</strong> · cari jam di lapisan 3</span
+          >
+        </div>
+        <footer>
+          <span class="footer-brand"
+            >papayu <span>dibuat untuk rasa ingin tahu.</span></span
+          ><span
+            >Petualangan kecil, senyum besar.
+            <span class="footer-flower">✳</span></span
+          >
+        </footer>
+      </details>
+    </main>
+    <section
+      id="gameScreen"
+      class="game-screen"
+      aria-label="Petualangan memancing"
+      hidden
+    >
+      <header class="game-toolbar">
+        <button
+          id="exitButton"
+          class="exit-button"
+          aria-label="Kembali ke Gamehub"
+        >
+          ← <span>Gamehub</span>
+        </button>
+        <div id="gameTitle" class="game-title"><span>⚓</span> Teluk Ceria</div>
+        <div class="game-tools">
+          <button
+            id="soundButton"
+            class="icon-button"
+            aria-label="Matikan suara"
+            title="Suara"
+          >
+            ♫</button
+          ><button
+            id="fullscreenButton"
+            class="icon-button"
+            aria-label="Aktifkan layar penuh"
+            title="Layar penuh"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <div id="fishingView" class="game-column">
+        <div class="scoreboard">
+          <div class="stat">
+            <span class="stat-icon star">✦</span>
+            <div>
+              <small>SKOR KAMU</small
+              ><strong id="score">0 <span>poin</span></strong>
+            </div>
+          </div>
+          <div class="stat">
+            <span class="stat-icon clock">◷</span>
+            <div>
+              <small>SISA WAKTU</small><strong id="timer">01:30</strong>
+            </div>
+          </div>
+          <div class="stat combo-stat">
+            <span class="stat-icon combo">ϟ</span>
+            <div>
+              <small>COMBO</small
+              ><strong id="combo">×1 <span>ayo mulai!</span></strong>
+            </div>
+          </div>
+          <button
+            id="pauseButton"
+            class="icon-button pause"
+            aria-label="Jeda permainan"
+            disabled
+          >
+            <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
+              <rect
+                x="2"
+                y="2"
+                width="3"
+                height="10"
+                rx="1"
+                fill="currentColor"
+              />
+              <rect
+                x="7"
+                y="2"
+                width="3"
+                height="10"
+                rx="1"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="sea-frame">
+          <canvas
+            id="sea"
+            aria-label="Laut dengan lima lapisan ikan. Tahan Spasi atau tombol Turunkan Kail untuk memancing."
+            tabindex="0"
+          ></canvas>
+          <div id="frenzyBanner" class="frenzy-banner" hidden>
+            ✦ FRENZY! SEMUA POIN ×2 <span id="frenzyTime"></span>
+          </div>
+          <div id="gameOverlay" class="game-overlay">
+            <div class="overlay-shell">
+              <span class="overlay-icon">⚓</span>
+              <h2 id="overlayTitle">Lautnya sudah siap.<br />Kamu juga?</h2>
+              <p id="overlayText">
+                Tahan di laut untuk turun. Geser, lalu lepaskan!
+              </p>
+              <button id="playButton" class="primary-button">
+                Mulai memancing <span>→</span></button
+              ><span id="overlayFootnote"
+                >90 detik, lima kedalaman, banyak kejutan.</span
+              >
+            </div>
+          </div>
+          <div
+            id="announcement"
+            class="announcement"
+            role="status"
+            aria-live="polite"
+          ></div>
+        </div>
+        <div class="control-bar">
+          <div class="hook-status">
+            <span class="hook-icon">♧</span>
+            <div>
+              <strong id="hookTitle">Kail siap beraksi</strong
+              ><span id="hookHint">Tahan, arahkan, lalu lepaskan.</span>
+            </div>
+          </div>
+          <button id="fishButton" class="fish-button" disabled>
+            <span>↓</span> Tahan untuk turunkan kail
+            <span class="button-hint">SPASI</span>
+          </button>
+        </div>
+      </div>
+      <section id="boardView" class="board-view" hidden>
+        <div class="board-hud">
+          <div>
+            <strong id="boardTurn" role="status" aria-live="polite"
+              >Pilih mode permainan</strong
+            ><span id="boardMode"></span>
+          </div>
+          <div class="board-hud-actions">
+            <button
+              id="flipBoard"
+              class="secondary-button"
+              aria-label="Putar papan"
+            >
+              Putar papan</button
+            ><button id="boardPause" class="secondary-button" disabled>
+              Jeda
+            </button>
+          </div>
+        </div>
+        <div class="board-layout">
+          <div class="board-stage">
+            <div id="boardGrid"></div>
+            <div id="boardSetup" class="board-setup">
+              <div class="board-setup-card">
+                <span class="eyebrow">READY, PLAYER?</span>
+                <h2 id="boardSetupTitle"></h2>
+                <p id="boardSetupText"></p>
+                <div id="boardSettings">
+                  <label
+                    >Siapa lawanmu?<select id="opponent">
+                      <option value="bot">Lawan bot</option>
+                      <option value="local">2 pemain lokal</option>
+                    </select></label
+                  ><label id="difficultyField"
+                    >Level bot<select id="botDifficulty">
+                      <option value="normal">Pintar</option>
+                      <option value="easy">Santai</option>
+                    </select></label
+                  >
+                </div>
+                <button id="boardStart" class="primary-button">
+                  Mulai pertandingan
+                </button>
+              </div>
+            </div>
+          </div>
+          <aside class="board-side">
+            <div class="board-tip">
+              <span>✦</span>
+              <h3>Langkah kecil.<br />Kemenangan besar.</h3>
+              <p id="boardInstructions"></p>
+            </div>
+            <div id="moveHistoryWrap" class="move-history-wrap">
+              <span>RIWAYAT LANGKAH</span>
+              <div id="moveHistory"></div>
+            </div>
+            <div id="boardResult" class="board-result" hidden>
+              <strong id="boardResultText" role="status"></strong
+              ><button id="boardReplay" class="primary-button">
+                Main lagi →
+              </button>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <dialog id="promotionDialog" aria-labelledby="promotionTitle">
+        <h2 id="promotionTitle">Promosikan pionmu!</h2>
+        <p>Pilih bidak penggantinya.</p>
+        <div class="promotion-options">
+          <button data-piece="q" aria-label="Promosi menteri">
+            ♕<span>Menteri</span></button
+          ><button data-piece="r" aria-label="Promosi benteng">
+            ♖<span>Benteng</span></button
+          ><button data-piece="b" aria-label="Promosi gajah">
+            ♗<span>Gajah</span></button
+          ><button data-piece="n" aria-label="Promosi kuda">
+            ♘<span>Kuda</span>
+          </button>
+        </div>
+      </dialog>
+      <dialog
+        id="exitDialog"
+        aria-labelledby="exitTitle"
+        aria-describedby="exitDescription"
+      >
+        <span class="eyebrow">PETUALANGAN MASIH BERLANGSUNG</span>
+        <h2 id="exitTitle">Kembali ke Gamehub?</h2>
+        <p id="exitDescription">
+          Permainan belum selesai. Jika keluar sekarang, progres pertandingan
+          ini akan hilang. Permainan dijeda selama kamu memilih.
+        </p>
+        <div class="exit-actions">
+          <button
+            id="cancelExit"
+            class="primary-button"
+            aria-label="Lanjut bermain"
+            autofocus
+          >
+            Lanjut bermain <span>→</span></button
+          ><button id="confirmExit" class="secondary-button">
+            Keluar ke Gamehub
+          </button>
+        </div>
+      </dialog>
+    </section>
+    <script type="importmap">
+      { "imports": { "chess.js": "/vendor/chess.js" } }
+    </script>
+    <script type="module" src="/src/app.js"></script>
+  </body>
 </html>

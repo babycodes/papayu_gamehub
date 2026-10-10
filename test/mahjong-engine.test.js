@@ -25,22 +25,23 @@ test("tile duel deals two mixed boards and exactly four of every picture", () =>
     assert.equal(new Set(board.map((tile) => tile.theme)).size, 2);
 });
 
-test("revealing an opponent tile requires handing it over and arranging before changing turns", () => {
+test("opponent tiles immediately switch the turn and become available to their owner", () => {
   const game = new TileDuel({ random: () => 0.37 });
   const index = game.boards[0].findIndex((tile) => tile.theme === "animal");
   const move = game.draw(0, index);
   assert.equal(move.sender, 0);
   assert.equal(move.owner, 1);
   assert.equal(game.collections[1][move.picture], 0);
-  assert.equal(game.pending.stage, "handoff");
-  assert.equal(game.actor(), 0);
+  assert.equal(game.pending.stage, "pickup");
+  assert.equal(game.actor(), 1);
   assert.equal(
     game.collections[0].reduce((a, b) => a + b),
     0,
   );
-  assert.equal(game.turn, 0);
+  assert.equal(game.turn, 1);
   assert.equal(game.draw(0, index), null);
-  assert.equal(game.handoff(0), true);
+  assert.equal(game.pickup(0), false);
+  assert.equal(game.place(0, move.picture), false);
   assert.equal(game.actor(), 1);
   assert.equal(game.pending.stage, "pickup");
   assert.ok(game.pickup(1));
@@ -77,7 +78,6 @@ test("a full duel conserves tiles and ends at the first complete collection", ()
       assert.ok(game.draw(choice.board, choice.index));
       assert.equal(game.winner, null);
       const pending = game.pending;
-      if (pending.stage === "handoff") assert.ok(game.handoff(pending.sender));
       if (game.pending.stage === "pickup")
         assert.ok(game.pickup(pending.owner));
       assert.ok(game.place(pending.owner, pending.picture));
@@ -107,23 +107,20 @@ test("new rounds preserve chosen themes and reset collections", () => {
   assert.throws(() => new TileDuel({ firstTheme: "unknown" }));
 });
 
-test("pending handoffs and wrong columns cannot duplicate tiles or advance play", () => {
+test("pending automatic transfers and wrong columns cannot duplicate tiles or advance play", () => {
   const game = new TileDuel({ random: () => 0.37 });
   const index = game.boards[0].findIndex((tile) => tile.theme === "animal");
   const move = game.draw(0, index);
   let saved = JSON.stringify(game);
   assert.deepEqual(game.choices(), []);
   assert.equal(game.draw(0, (index + 1) % 16), null);
-  assert.equal(game.handoff(1), false);
   assert.equal(game.place(1, move.picture), false);
   assert.equal(JSON.stringify(game), saved);
-  assert.ok(game.handoff(0));
   assert.equal(game.place(1, move.picture), false);
   assert.equal(game.pickup(0), false);
   assert.ok(game.pickup(1));
   game.columns[1][(move.picture + 1) % 4] = (move.picture + 1) % 4;
   saved = JSON.stringify(game);
-  assert.equal(game.handoff(0), false);
   assert.equal(game.place(0, move.picture), false);
   assert.equal(game.place(1, (move.picture + 1) % 4), false);
   assert.equal(JSON.stringify(game), saved);
@@ -143,7 +140,6 @@ test("own tiles go to the owner's tray and victory waits for arranging the final
   assert.equal(game.pending.stage, "arrange");
   assert.equal(game.actor(), 0);
   assert.equal(game.winner, null);
-  assert.equal(game.handoff(0), false);
   assert.ok(game.place(0, picture));
   assert.equal(game.winner, 0);
   assert.equal(game.pending, null);
@@ -181,7 +177,7 @@ test("new pictures choose any empty column while matching pictures must share it
   assert.notEqual(game.columns[0][1], picture);
 });
 
-test("own tiles keep the turn; opponent tiles pass it only after handoff and placement", () => {
+test("own tiles keep the turn; opponent tiles switch immediately and block draws until placed", () => {
   const game = new TileDuel({ random: () => 0.37 });
   const own = game.boards[0].findIndex((tile) => tile.theme === "fruit");
   game.draw(0, own);
@@ -191,10 +187,13 @@ test("own tiles keep the turn; opponent tiles pass it only after handoff and pla
     (tile) => !tile.revealed && tile.theme === "animal",
   );
   game.draw(0, opponent);
-  assert.equal(game.turn, 0);
-  game.handoff(0);
-  game.pickup(1);
-  assert.equal(game.turn, 0);
+  assert.equal(game.turn, 1);
+  assert.equal(game.actor(), 1);
+  assert.deepEqual(game.choices(), []);
+  assert.equal(game.draw(1, 0), null);
+  assert.equal(game.pickup(0), false);
+  assert.ok(game.pickup(1));
+  assert.equal(game.turn, 1);
   assert.ok(game.place(1, 3));
   assert.equal(game.turn, 1);
 });

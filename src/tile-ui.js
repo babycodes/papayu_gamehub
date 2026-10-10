@@ -44,16 +44,16 @@ function movable(button, game, action) {
   });
   const hit = () => {
     const element = document.elementFromPoint(gesture.x, gesture.y);
-    return element?.closest(
-      action === "handoff" ? ".tile-exchange" : "[data-tile-drop]",
-    );
+    return element?.closest("[data-tile-drop]");
   };
   const frame = () => {
     if (!gesture?.ghost) return;
     const area = $("boardView").querySelector(".board-layout");
     const rect = area.getBoundingClientRect();
     const onExchange =
-      hit()?.dataset.tileDrop === "handoff" && gesture.y > rect.top + 30;
+      document
+        .elementFromPoint(gesture.x, gesture.y)
+        ?.closest(".tile-exchange") && gesture.y > rect.top + 30;
     if (!onExchange && gesture.y < rect.top + 65) area.scrollTop -= 9;
     else if (gesture.y > rect.bottom - 65) area.scrollTop += 9;
     document
@@ -108,9 +108,7 @@ function drop(game, action, target) {
   if (game.mode !== "playing" || game.isBotTurn()) return;
   const pending = game.tileGame.pending;
   if (!pending) return;
-  if (action === "handoff" && target.dataset.tileDrop === "handoff")
-    game.handoffTile();
-  else if (action === "pickup" || action === "arrange") {
+  if (action === "pickup" || action === "arrange") {
     const owner = Number(target.dataset.player);
     if (owner !== pending.owner) return;
     if (action === "pickup") {
@@ -141,11 +139,9 @@ export function renderTileDuel(game) {
       : `${game.tileName(duel.dicePlayer())}, lempar dadu untuk menentukan pemain pertama.`;
   else if (pending)
     message =
-      pending.stage === "handoff"
-        ? `${game.tileName(pending.sender)}, seret bidak lawan ke papan serah-terima.`
-        : pending.stage === "pickup"
-          ? `${game.tileName(pending.owner)}, ambil bidak di papan serah-terima dan susun ke kolom pilihanmu.`
-          : `${game.tileName(pending.owner)}, pilih kolom kosong untuk gambar baru, atau kolom dengan gambar yang sama.`;
+      pending.stage === "pickup"
+        ? `${game.tileName(pending.owner)}, bidakmu otomatis tersedia. Ambil atau seret langsung ke kolom pilihanmu.`
+        : `${game.tileName(pending.owner)}, pilih kolom kosong untuk gambar baru, atau kolom dengan gambar yang sama.`;
   else if (duel.last)
     message =
       duel.last.owner === duel.last.sender
@@ -200,13 +196,12 @@ export function renderTileDuel(game) {
   dice.hidden = !duel.awaitingDice;
   grid.append(dice);
   const exchange = node("section", "tile-exchange");
-  exchange.dataset.tileDrop = "handoff";
-  exchange.setAttribute("aria-label", "Papan serah-terima");
+  exchange.setAttribute("aria-label", "Bidak untuk disusun");
   exchange.append(
     node(
       "strong",
       "",
-      pending?.stage === "arrange" ? "SUSUN BIDAK" : "SERAH-TERIMA",
+      pending?.stage === "arrange" ? "SUSUN BIDAK" : "BIDAK AKTIF",
     ),
   );
   if (pending?.stage === "pickup") {
@@ -231,20 +226,8 @@ export function renderTileDuel(game) {
       ),
     );
   } else {
-    const target = node(
-      "button",
-      "exchange-empty",
-      pending?.stage === "handoff"
-        ? "Letakkan bidak lawan di sini ↓"
-        : "Papan kosong untuk menyerahkan bidak",
-    );
-    target.disabled =
-      game.mode !== "playing" ||
-      game.isBotTurn() ||
-      pending?.stage !== "handoff";
-    target.addEventListener("click", () => {
-      if (game.selectedTile) game.handoffTile();
-    });
+    const target = node("button", "exchange-empty", "Buka bidak di zona hijau");
+    target.disabled = true;
     exchange.append(target);
   }
   grid.append(exchange);
@@ -275,11 +258,9 @@ export function renderTileDuel(game) {
           ? "DIJEDA"
           : active
             ? pending
-              ? pending.stage === "handoff"
-                ? "SERAHKAN"
-                : pending.stage === "pickup"
-                  ? "AMBIL BIDAK"
-                  : "SUSUN BIDAK"
+              ? pending.stage === "pickup"
+                ? "AMBIL BIDAK"
+                : "SUSUN BIDAK"
               : "▶ GILIRANMU"
             : duel.awaitingDice
               ? "LEMPAR DADU"
@@ -323,10 +304,7 @@ export function renderTileDuel(game) {
     holding.dataset.tileDrop = "holding";
     holding.dataset.player = player;
     holding.append(node("strong", "", "BIDAK DI TANGAN"));
-    const holds =
-      pending &&
-      ((pending.stage === "arrange" && pending.owner === player) ||
-        (pending.stage === "handoff" && pending.sender === player));
+    const holds = pending?.stage === "arrange" && pending.owner === player;
     if (holds) {
       const action = pending.stage;
       const button = node(
@@ -347,16 +325,7 @@ export function renderTileDuel(game) {
         game.tileError = null;
         game.render();
       });
-      holding.append(
-        button,
-        node(
-          "span",
-          "",
-          action === "handoff"
-            ? "Seret ke papan serah-terima ↑"
-            : "Seret ke kolom pilihanmu ↓",
-        ),
-      );
+      holding.append(button, node("span", "", "Seret ke kolom pilihanmu"));
     } else holding.append(node("span", "", "Belum ada bidak di tangan."));
     const collection = node("div", "tile-collection");
     collection.setAttribute("aria-label", `Susunan ${game.tileName(player)}`);
@@ -382,8 +351,7 @@ export function renderTileDuel(game) {
         game.mode !== "playing" ||
         game.isBotTurn() ||
         !pending ||
-        pending.owner !== player ||
-        pending.stage === "handoff";
+        pending.owner !== player;
       button.setAttribute(
         "aria-label",
         `Kolom ${column + 1} ${game.tileName(player)}, ${picture === null ? "kosong" : theme.labels[picture] + " " + count + " dari 4"}`,

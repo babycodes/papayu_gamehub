@@ -114,7 +114,7 @@ export class BoardGames {
           : "Silang atau lingkaran?";
     $("boardSetupText").textContent =
       this.id === "mahjong"
-        ? "Lempar dadu; nilai tertinggi mulai duluan. Terus buka bidak selama mendapat gambarmu sendiri. Bidak lawan diserahkan dan disusun, lalu giliran pindah. Gambar yang sama wajib satu kolom."
+        ? "Lempar dadu; nilai tertinggi mulai duluan. Terus buka bidak selama mendapat gambarmu sendiri. Bidak lawan otomatis tersedia untuk lawan; ia langsung mengambil dan menyusunnya. Gambar yang sama wajib satu kolom."
         : this.id === "chess"
           ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
           : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
@@ -294,8 +294,7 @@ export class BoardGames {
         }
         const pending = this.tileGame.pending;
         if (pending) {
-          if (pending.stage === "handoff") this.handoffTile();
-          else if (pending.stage === "pickup") this.pickupTile(true);
+          if (pending.stage === "pickup") this.pickupTile(true);
           else
             this.placeTile(
               pending.owner,
@@ -360,16 +359,6 @@ export class BoardGames {
     if (this.mode !== "playing") return;
     const move = this.tileGame.draw(board, index);
     if (!move) return;
-    this.selectedTile = false;
-    this.tileError = null;
-    this.onMove();
-    this.render();
-    this.queueBot();
-    this.focusTileAction();
-  }
-  handoffTile() {
-    if (this.mode !== "playing" || !this.tileGame.handoff(this.tileGame.turn))
-      return;
     this.selectedTile = false;
     this.tileError = null;
     this.onMove();
@@ -621,11 +610,9 @@ export class BoardGames {
     ) {
       const pending = this.tileGame.pending;
       $("boardTurn").textContent =
-        pending.stage === "handoff"
-          ? `${this.tileName(pending.sender)}: serahkan ubin ke ${this.tileName(pending.owner)}`
-          : pending.stage === "pickup"
-            ? `${this.tileName(pending.owner)}: ambil bidak dari papan serah-terima`
-            : `${this.tileName(pending.owner)}: susun bidak di kolom pilihanmu`;
+        pending.stage === "pickup"
+          ? `${this.tileName(pending.owner)}: ambil bidakmu dan susun`
+          : `${this.tileName(pending.owner)}: susun bidak di kolom pilihanmu`;
     }
     this.renderCamps(role);
     $("boardMode").textContent =
@@ -635,7 +622,7 @@ export class BoardGames {
           ? `Lawan bot · ${tiles ? "Ubin acak" : this.easy ? "Santai" : "Pintar"}`
           : "2 pemain · satu perangkat";
     $("boardInstructions").textContent = tiles
-      ? "Dadu tertinggi mulai duluan. Bidak sendiri: susun dan terus bermain. Bidak lawan: serahkan, penerima menyusun lalu mengambil giliran. Gambar sama wajib satu kolom. Bisa seret atau ketuk bidak lalu tujuan."
+      ? "Dadu tertinggi mulai duluan. Bidak sendiri: susun dan terus bermain. Bidak lawan: otomatis pindah ke lawan untuk diambil dan disusun. Gambar sama wajib satu kolom. Bisa seret atau ketuk bidak lalu tujuan."
       : chess
         ? "Pilih bidak, lalu kotak tujuan. Titik menandai langkah legal."
         : "Ketuk kotak kosong. Susun 3 simbol mendatar, tegak, atau diagonal.";

@@ -92,15 +92,14 @@ export class TileDuel {
     };
     this.pending = {
       ...this.last,
-      stage: sender === owner ? "arrange" : "handoff",
+      stage: sender === owner ? "arrange" : "pickup",
     };
+    this.turn = owner;
     return this.last;
   }
   actor() {
     if (this.awaitingDice) return this.dicePlayer();
-    return this.pending && this.pending.stage !== "handoff"
-      ? this.pending.owner
-      : this.turn;
+    return this.pending ? this.pending.owner : this.turn;
   }
   dicePlayer() {
     return this.dice[0] === null ? 0 : 1;
@@ -118,16 +117,6 @@ export class TileDuel {
       }
     }
     return value;
-  }
-  handoff(player) {
-    if (
-      this.winner !== null ||
-      this.pending?.stage !== "handoff" ||
-      this.pending.sender !== player
-    )
-      return false;
-    this.pending.stage = "pickup";
-    return true;
   }
   pickup(player) {
     if (

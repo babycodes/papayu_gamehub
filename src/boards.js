@@ -1,6 +1,7 @@
 import { Chess, ticResult, ticBot, chessBot } from "./board-engine.js";
 import { localPlayers, playerForRole, TEAM_NAMES } from "./players.js";
-import { TileDuel, TILE_THEMES } from "./mahjong-engine.js";
+import { TileDuel } from "./mahjong-engine.js";
+import { renderTileDuel } from "./tile-ui.js";
 const $ = (id) => document.getElementById(id);
 const PIECES = {
   w: { p: "♙", n: "♘", b: "♗", r: "♖", q: "♕", k: "♔" },
@@ -113,7 +114,7 @@ export class BoardGames {
           : "Silang atau lingkaran?";
     $("boardSetupText").textContent =
       this.id === "mahjong"
-        ? "Buka satu ubin. Serahkan ubin lawan ke wadahnya, lalu pemiliknya menyusun ke kolom gambar yang sama. Lengkapi empat kolom, masing-masing empat ubin, untuk menang."
+        ? "START menandai awal tiap kolom. Buka satu bidak. Seret bidak lawan ke papan serah-terima. Penerima mengambil lalu memilih kolom kosong untuk gambar baru; gambar yang sama wajib satu kolom. Lengkapi empat kolom untuk menang."
         : this.id === "chess"
           ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
           : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
@@ -285,7 +286,13 @@ export class BoardGames {
         const pending = this.tileGame.pending;
         if (pending) {
           if (pending.stage === "handoff") this.handoffTile();
-          else this.placeTile(pending.owner, pending.picture, true);
+          else if (pending.stage === "pickup") this.pickupTile(true);
+          else
+            this.placeTile(
+              pending.owner,
+              this.tileGame.columnFor(pending.owner, pending.picture),
+              true,
+            );
           return;
         }
         const choices = this.tileGame.choices();
@@ -353,16 +360,25 @@ export class BoardGames {
     this.queueBot();
     this.focusTileAction();
   }
-  placeTile(player, picture, automatic = false) {
+  pickupTile(automatic = false) {
+    if (this.mode !== "playing" || (!automatic && this.isBotTurn())) return;
+    if (!this.tileGame.pickup(this.tileGame.pending?.owner)) return;
+    this.selectedTile = false;
+    this.tileError = null;
+    this.render();
+    this.queueBot();
+    this.focusTileAction();
+  }
+  placeTile(player, column, automatic = false) {
     if (
       this.mode !== "playing" ||
       (!automatic && (!this.selectedTile || this.isBotTurn()))
     )
       return;
-    if (!this.tileGame.place(player, picture)) {
+    if (!this.tileGame.place(player, column)) {
       if (this.tileGame.pending?.owner === player) {
         this.tileError =
-          "Gambar belum cocok. Pilih kolom dengan gambar yang sama.";
+          "Gambar ini harus satu kolom dengan bidak yang sama. Untuk gambar baru, pilih kolom kosong.";
         this.render();
       }
       return;
@@ -389,10 +405,20 @@ export class BoardGames {
       `.tile-panel[data-board="${actor}"]`,
     );
     const action =
-      panel?.querySelector(
-        ".handoff-tile:not(:disabled), .tray-tile:not(:disabled)",
-      ) || $("boardGrid").querySelector(".duel-tile:not(:disabled)");
+      panel?.querySelector(".tray-tile:not(:disabled)") ||
+      $("boardGrid").querySelector(
+        ".pickup-tile:not(:disabled), .duel-tile:not(:disabled)",
+      );
     action?.focus();
+    const exchange = $("boardGrid").querySelector(".tile-exchange");
+    if (action && exchange && !exchange.contains(action)) {
+      const hidden =
+        exchange.getBoundingClientRect().bottom +
+        10 -
+        action.getBoundingClientRect().top;
+      if (hidden > 0)
+        $("boardView").querySelector(".board-layout").scrollTop -= hidden;
+    }
   }
   makeTicMove(index) {
     if (this.mode !== "playing" || this.cells[index]) return;
@@ -462,208 +488,7 @@ export class BoardGames {
     );
   }
   renderTiles() {
-    const duel = this.tileGame;
-    const announcement = document.createElement("p");
-    announcement.className = "tile-announcement";
-    announcement.setAttribute("role", "status");
-    if (this.tileError) announcement.textContent = this.tileError;
-    else if (duel.pending) {
-      const { theme, picture, owner, stage } = duel.pending;
-      announcement.textContent =
-        stage === "handoff"
-          ? `${TILE_THEMES[theme].pictures[picture]} Ubin milik ${this.tileName(owner)}. Serahkan ke wadahnya.`
-          : `${this.tileName(owner)}, ketuk ubin di wadah, lalu kolom ${TILE_THEMES[theme].labels[picture]} untuk menyusunnya.`;
-    } else if (duel.last) {
-      const { theme, picture, owner } = duel.last;
-      announcement.textContent = `${TILE_THEMES[theme].pictures[picture]} ${TILE_THEMES[theme].labels[picture]} sudah disusun oleh ${this.tileName(owner)}!`;
-    } else
-      announcement.textContent =
-        "Buka ubin, serahkan, lalu susun ke kolom gambar yang sama.";
-    $("boardGrid").append(announcement);
-    for (const player of [0, 1]) {
-      const panel = document.createElement("section");
-      const active = this.mode === "playing" && duel.actor() === player;
-      panel.className = `tile-panel ${active ? "active-tile-panel" : ""}`;
-      panel.dataset.board = player;
-      if (active) panel.setAttribute("aria-current", "true");
-      const theme = TILE_THEMES[duel.themes[player]];
-      const header = document.createElement("header");
-      const name = document.createElement("strong");
-      name.textContent = `${this.tileName(player)} · ${theme.name}`;
-      const status = document.createElement("b");
-      status.textContent =
-        this.mode === "ended"
-          ? duel.winner === player
-            ? "MENANG!"
-            : "SELESAI"
-          : this.mode === "paused"
-            ? "DIJEDA"
-            : active
-              ? duel.pending
-                ? duel.pending.stage === "handoff"
-                  ? "SERAHKAN UBIN"
-                  : "SUSUN UBIN"
-                : "▶ GILIRANMU"
-              : "MENUNGGU";
-      header.append(name, status);
-      const grid = document.createElement("div");
-      grid.className = "tile-board";
-      grid.setAttribute("role", "group");
-      grid.setAttribute("aria-label", `Papan ${this.tileName(player)}`);
-      duel.boards[player].forEach((tile, index) => {
-        const button = document.createElement("button");
-        button.className = `duel-tile ${tile.revealed ? "revealed-tile" : ""}`;
-        button.dataset.cell = `${player}-${index}`;
-        button.textContent = tile.revealed
-          ? TILE_THEMES[tile.theme].pictures[tile.picture]
-          : "✦";
-        const available =
-          this.mode === "playing" &&
-          !this.isBotTurn() &&
-          !duel.pending &&
-          !tile.revealed &&
-          duel.availableBoard() === player;
-        button.disabled = !available;
-        button.setAttribute(
-          "aria-label",
-          tile.revealed
-            ? `${TILE_THEMES[tile.theme].labels[tile.picture]}, ${duel.pending?.board === player && duel.pending.index === index ? "ditemukan, belum disusun" : "sudah disusun"}`
-            : `Ubin ${index + 1} papan ${this.tileName(player)}, tertutup`,
-        );
-        button.addEventListener("click", () => {
-          if (this.mode === "playing" && !this.isBotTurn())
-            this.makeTileMove(player, index);
-        });
-        grid.append(button);
-      });
-      const tray = document.createElement("div");
-      tray.className = "tile-tray";
-      tray.setAttribute("aria-label", `Wadah ${this.tileName(player)}`);
-      const trayTitle = document.createElement("strong");
-      const pending = duel.pending;
-      const receiving =
-        pending?.owner === player && pending.stage === "arrange";
-      const sending = pending?.sender === player && pending.stage === "handoff";
-      trayTitle.textContent = sending
-        ? "UBIN UNTUK DISERAHKAN"
-        : "WADAH TERIMA";
-      tray.append(trayTitle);
-      if (receiving || sending) {
-        const tile = document.createElement("button");
-        tile.className = `tray-tile ${receiving && this.selectedTile ? "selected-tray-tile" : ""}`;
-        tile.textContent = TILE_THEMES[pending.theme].pictures[pending.picture];
-        tile.setAttribute(
-          "aria-label",
-          `Pilih ${TILE_THEMES[pending.theme].labels[pending.picture]} dari wadah ${this.tileName(player)}`,
-        );
-        tile.setAttribute(
-          "aria-pressed",
-          String(receiving && this.selectedTile),
-        );
-        tile.disabled = this.mode !== "playing" || this.isBotTurn() || sending;
-        tile.draggable = !tile.disabled;
-        tile.addEventListener("click", () => {
-          if (this.mode !== "playing" || this.isBotTurn()) return;
-          this.selectedTile = true;
-          this.tileError = null;
-          this.render();
-          $("boardGrid")
-            .querySelector(
-              `.tile-panel[data-board="${player}"] .collection-column`,
-            )
-            ?.focus({ preventScroll: true });
-        });
-        tile.addEventListener("dragstart", (event) => {
-          event.dataTransfer.setData(
-            "text/plain",
-            `${player}:${pending.picture}`,
-          );
-          event.dataTransfer.effectAllowed = "move";
-          this.selectedTile = true;
-        });
-        tray.append(tile);
-        if (sending) {
-          const send = document.createElement("button");
-          send.className = "secondary-button handoff-tile";
-          send.textContent = `Serahkan ke ${this.tileName(pending.owner)} →`;
-          send.disabled = this.mode !== "playing" || this.isBotTurn();
-          send.addEventListener("click", () => {
-            if (!this.isBotTurn()) this.handoffTile();
-          });
-          tray.append(send);
-        } else {
-          const hint = document.createElement("span");
-          hint.textContent = this.selectedTile
-            ? "Pilih kolom gambar yang sama ↓"
-            : "Ketuk ubin, lalu kolomnya ↓";
-          tray.append(hint);
-        }
-      } else {
-        const empty = document.createElement("span");
-        empty.textContent = "Ubin yang diterima akan muncul di sini.";
-        tray.append(empty);
-      }
-      const collection = document.createElement("div");
-      collection.className = "tile-collection";
-      collection.setAttribute("aria-label", `Susunan ${this.tileName(player)}`);
-      const progress = document.createElement("span");
-      const total = duel.collections[player].reduce((sum, n) => sum + n, 0);
-      progress.textContent = `TERSUSUN ${total}/16`;
-      const groups = document.createElement("div");
-      groups.className = "collection-columns";
-      duel.collections[player].forEach((count, picture) => {
-        const group = document.createElement("button");
-        group.className = `collection-column ${count === 4 ? "complete-group" : ""}`;
-        group.dataset.picture = picture;
-        group.disabled =
-          this.mode !== "playing" || this.isBotTurn() || !receiving;
-        group.setAttribute(
-          "aria-disabled",
-          String(group.disabled || !this.selectedTile),
-        );
-        group.setAttribute(
-          "aria-label",
-          `Susun ${theme.labels[picture]} di kolom ${this.tileName(player)}, ${count} dari 4`,
-        );
-        const title = document.createElement("span");
-        title.className = "column-title";
-        title.textContent = `${theme.pictures[picture]} ${count}/4`;
-        group.append(title);
-        for (let slot = 0; slot < 4; slot++) {
-          const item = document.createElement("span");
-          item.className = `collection-slot ${slot < count ? "filled-slot" : ""}`;
-          item.textContent = slot < count ? theme.pictures[picture] : "·";
-          group.append(item);
-        }
-        group.addEventListener("click", () => this.placeTile(player, picture));
-        group.addEventListener("dragover", (event) => {
-          if (this.mode === "playing" && receiving && !this.isBotTurn())
-            event.preventDefault();
-        });
-        group.addEventListener("drop", (event) => {
-          event.preventDefault();
-          if (
-            event.dataTransfer.getData("text/plain") !==
-            `${player}:${duel.pending?.picture}`
-          )
-            return;
-          this.placeTile(player, picture);
-        });
-        groups.append(group);
-      });
-      collection.append(progress, groups);
-      const note = document.createElement("small");
-      note.textContent =
-        active && duel.pending
-          ? duel.pending.stage === "handoff"
-            ? "Serahkan ubin ini ke wadah pemiliknya."
-            : "Susun ubin ke kolom gambar yang sama."
-          : active && duel.availableBoard() !== player
-            ? "Papanmu habis. Buka ubin dari papan lawan."
-            : "Buka satu ubin saat giliranmu.";
-      panel.append(header, grid, tray, collection, note);
-      $("boardGrid").append(panel);
-    }
+    renderTileDuel(this);
   }
   renderCamps(role) {
     const local =
@@ -764,7 +589,9 @@ export class BoardGames {
       $("boardTurn").textContent =
         pending.stage === "handoff"
           ? `${this.tileName(pending.sender)}: serahkan ubin ke ${this.tileName(pending.owner)}`
-          : `${this.tileName(pending.owner)}: susun ubin di kolomnya`;
+          : pending.stage === "pickup"
+            ? `${this.tileName(pending.owner)}: ambil bidak dari papan serah-terima`
+            : `${this.tileName(pending.owner)}: susun bidak di kolom pilihanmu`;
     }
     this.renderCamps(role);
     $("boardMode").textContent =
@@ -774,7 +601,7 @@ export class BoardGames {
           ? `Lawan bot · ${tiles ? "Ubin acak" : this.easy ? "Santai" : "Pintar"}`
           : "2 pemain · satu perangkat";
     $("boardInstructions").textContent = tiles
-      ? "Buka satu ubin dari papanmu. Serahkan ubin lawan ke wadahnya. Pemilik mengetuk ubin lalu kolom gambar yang sama, atau menyeretnya di PC. Susun empat kolom penuh untuk menang."
+      ? "Buka bidak lalu susun di bawah START. Seret bidak lawan ke papan serah-terima untuk diambil penerima. Gambar baru bebas memilih kolom kosong; gambar yang sama harus satu kolom. Bisa seret atau ketuk bidak lalu tujuan."
       : chess
         ? "Pilih bidak, lalu kotak tujuan. Titik menandai langkah legal."
         : "Ketuk kotak kosong. Susun 3 simbol mendatar, tegak, atau diagonal.";

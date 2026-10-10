@@ -23,6 +23,7 @@ export class TileDuel {
     this.themes = [firstTheme, firstTheme === "fruit" ? "animal" : "fruit"];
     this.turn = firstPlayer;
     this.collections = [Array(4).fill(0), Array(4).fill(0)];
+    this.columns = [Array(4).fill(null), Array(4).fill(null)];
     this.winner = null;
     this.last = null;
     this.pending = null;
@@ -90,7 +91,9 @@ export class TileDuel {
     return this.last;
   }
   actor() {
-    return this.pending?.stage === "arrange" ? this.pending.owner : this.turn;
+    return this.pending && this.pending.stage !== "handoff"
+      ? this.pending.owner
+      : this.turn;
   }
   handoff(player) {
     if (
@@ -99,18 +102,44 @@ export class TileDuel {
       this.pending.sender !== player
     )
       return false;
+    this.pending.stage = "pickup";
+    return true;
+  }
+  pickup(player) {
+    if (
+      this.winner !== null ||
+      this.pending?.stage !== "pickup" ||
+      this.pending.owner !== player
+    )
+      return false;
     this.pending.stage = "arrange";
     return true;
   }
-  place(player, picture) {
+  columnFor(player, picture) {
+    const existing = this.columns[player].indexOf(picture);
+    return existing !== -1 ? existing : this.columns[player].indexOf(null);
+  }
+  place(player, column) {
     if (
       this.winner !== null ||
       this.pending?.stage !== "arrange" ||
       this.pending.owner !== player ||
-      this.pending.picture !== picture
+      !Number.isInteger(column) ||
+      column < 0 ||
+      column > 3
+    )
+      return false;
+    const picture = this.pending.picture;
+    const existing = this.columns[player].indexOf(picture);
+    if (
+      (existing !== -1 && existing !== column) ||
+      (this.columns[player][column] !== null &&
+        this.columns[player][column] !== picture) ||
+      this.collections[player][picture] >= 4
     )
       return false;
     const sender = this.pending.sender;
+    this.columns[player][column] = picture;
     this.collections[player][picture]++;
     this.pending = null;
     if (this.collections[player].every((count) => count === 4))

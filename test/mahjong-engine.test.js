@@ -42,6 +42,8 @@ test("revealing an opponent tile requires handing it over and arranging before c
   assert.equal(game.draw(0, index), null);
   assert.equal(game.handoff(0), true);
   assert.equal(game.actor(), 1);
+  assert.equal(game.pending.stage, "pickup");
+  assert.ok(game.pickup(1));
   assert.equal(game.place(1, move.picture), true);
   assert.equal(game.collections[1][move.picture], 1);
   assert.equal(game.turn, 1);
@@ -76,6 +78,8 @@ test("a full duel conserves tiles and ends at the first complete collection", ()
       assert.equal(game.winner, null);
       const pending = game.pending;
       if (pending.stage === "handoff") assert.ok(game.handoff(pending.sender));
+      if (game.pending.stage === "pickup")
+        assert.ok(game.pickup(pending.owner));
       assert.ok(game.place(pending.owner, pending.picture));
       reveals++;
       assert.equal(
@@ -114,6 +118,10 @@ test("pending handoffs and wrong columns cannot duplicate tiles or advance play"
   assert.equal(game.place(1, move.picture), false);
   assert.equal(JSON.stringify(game), saved);
   assert.ok(game.handoff(0));
+  assert.equal(game.place(1, move.picture), false);
+  assert.equal(game.pickup(0), false);
+  assert.ok(game.pickup(1));
+  game.columns[1][(move.picture + 1) % 4] = (move.picture + 1) % 4;
   saved = JSON.stringify(game);
   assert.equal(game.handoff(0), false);
   assert.equal(game.place(0, move.picture), false);
@@ -139,4 +147,36 @@ test("own tiles go to the owner's tray and victory waits for arranging the final
   assert.ok(game.place(0, picture));
   assert.equal(game.winner, 0);
   assert.equal(game.pending, null);
+});
+
+test("new pictures choose any empty START column while matching pictures must share it", () => {
+  const game = new TileDuel({ random: () => 0.37 });
+  const first = game.boards[0].findIndex((tile) => tile.theme === "fruit");
+  const picture = game.boards[0][first].picture;
+  game.draw(0, first);
+  assert.ok(game.place(0, 3));
+  assert.equal(game.columns[0][3], picture);
+  assert.equal(game.collections[0][picture], 1);
+  game.turn = 0;
+  const second = game.boards[0].findIndex(
+    (tile) =>
+      !tile.revealed && tile.theme === "fruit" && tile.picture === picture,
+  );
+  assert.ok(second >= 0);
+  game.draw(0, second);
+  const saved = JSON.stringify(game);
+  assert.equal(game.place(0, 0), false);
+  assert.equal(JSON.stringify(game), saved);
+  assert.ok(game.place(0, 3));
+  assert.equal(game.collections[0][picture], 2);
+  assert.equal(game.columnFor(0, picture), 3);
+  game.turn = 0;
+  const different = game.boards[0].findIndex(
+    (tile) =>
+      !tile.revealed && tile.theme === "fruit" && tile.picture !== picture,
+  );
+  game.draw(0, different);
+  assert.equal(game.place(0, 3), false);
+  assert.ok(game.place(0, 1));
+  assert.notEqual(game.columns[0][1], picture);
 });

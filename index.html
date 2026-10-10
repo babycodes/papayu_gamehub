@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#faf8f3">
+  <title>Papayu • Petualangan Memancing</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="/" aria-label="Papayu beranda"><span class="brand-icon">p<span>•</span></span>papayu<span class="brand-label">GAMEHUB</span></a>
+    <nav aria-label="Navigasi utama"><button id="hubButton" class="nav-item">Gamehub</button><span class="nav-item active">Memancing <span class="tiny-dot"></span></span></nav>
+    <div class="header-right"><span class="made-for">Dunia kecil, imajinasi besar</span><button id="soundButton" class="icon-button" aria-label="Matikan suara" title="Suara">♫</button></div>
+  </header>
+  <main>
+    <div class="breadcrumb"><span>GAMEHUB</span><span>/</span>PETUALANGAN MEMANCING</div>
+    <div class="intro"><div><div class="eyebrow"><span></span> SATU LAUT, BANYAK KEJUTAN</div><h1>Petualangan <em>memancing.</em></h1><p>Turunkan kailmu. Temukan kejutan. Bawa pulang cerita.</p></div><div class="age-badge"><span>✦</span><div>Untuk penjelajah kecil<small>MUDAH DIMAINKAN · TANPA IKLAN</small></div></div></div>
+    <section class="play-layout" aria-label="Game memancing">
+      <aside class="sidebar">
+        <div class="expedition-card"><div class="card-kicker">EKSPEDISI HARI INI <span>01</span></div><h2>Teluk Ceria</h2><p>Laut tenang. Ikan penasaran.<br>Petualangan menunggumu.</p><div class="weather"><span>☀</span> Cerah <span class="weather-divider">·</span> Ombak bersahabat</div><div class="journey"><div class="journey-icon">⚑</div><div><strong id="levelName">Penjelajah pemula</strong><span id="levelHint">Raih 300 poin untuk naik level</span></div></div></div>
+        <div class="how-card"><div class="card-kicker">CARA BERMAIN <span>↙</span></div><div class="step"><span>1</span><div><strong>Tahan untuk turun</strong><p>Tekan tombol atau area laut.</p></div></div><div class="step"><span>2</span><div><strong>Arahkan kailmu</strong><p>Geser di laut atau tekan ← →.</p></div></div><div class="step"><span>3</span><div><strong>Lepaskan & gulung!</strong><p>Bawa ikan ke atas untuk poin.</p></div></div><div class="keyboard-tip"><kbd>SPASI</kbd> juga bisa untuk memancing</div></div>
+        <div class="collection-card"><div class="card-kicker">TANGKAPAN TERAKHIR <span id="catchCount">0 IKAN</span></div><div id="lastCatch" class="last-catch"><span class="catch-illustration">♧</span><div><strong>Siapa yang pertama?</strong><p>Ikan pertamamu menunggu!</p></div></div><div class="personal-best"><span>Rekor pribadimu</span><strong id="bestScore">0 <small>poin</small></strong></div></div>
+      </aside>
+      <div class="game-column">
+        <div class="scoreboard"><div class="stat"><span class="stat-icon star">✦</span><div><small>SKOR KAMU</small><strong id="score">0 <span>poin</span></strong></div></div><div class="stat"><span class="stat-icon clock">◷</span><div><small>SISA WAKTU</small><strong id="timer">01:30</strong></div></div><div class="stat combo-stat"><span class="stat-icon combo">ϟ</span><div><small>COMBO</small><strong id="combo">×1 <span>ayo mulai!</span></strong></div></div><button id="pauseButton" class="icon-button pause" aria-label="Jeda permainan" disabled><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="2" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="7" y="2" width="3" height="10" rx="1" fill="currentColor"/></svg></button></div>
+        <div class="sea-frame"><canvas id="sea" aria-label="Laut dengan lima lapisan ikan. Tahan Spasi atau tombol Turunkan Kail untuk memancing." tabindex="0"></canvas><div class="location-tag"><span class="tiny-dot"></span> TELUK CERIA <span class="tag-line">/</span> <span id="seaStatus">SIAP BERPETUALANG</span></div><div id="frenzyBanner" class="frenzy-banner" hidden>✦ FRENZY! SEMUA POIN ×2 <span id="frenzyTime"></span></div><div class="depth-labels" aria-hidden="true"><div><span>01</span> PERMUKAAN <strong>10</strong></div><div><span>02</span> AIR DANGKAL <strong>25</strong></div><div><span>03</span> LAUT TENGAH <strong>40</strong></div><div><span>04</span> LAUT DALAM <strong>75</strong></div><div><span>05</span> ZONA LANGKA <strong>150</strong></div></div><div id="gameOverlay" class="game-overlay"><div class="overlay-shell"><span class="overlay-icon">⚓</span><h2 id="overlayTitle">Lautnya sudah siap.<br>Kamu juga?</h2><p id="overlayText">Tahan di laut untuk turun. Geser, lalu lepaskan!</p><button id="playButton" class="primary-button">Mulai memancing <span>→</span></button><span id="overlayFootnote">90 detik, lima kedalaman, banyak kejutan.</span></div></div><div id="announcement" class="announcement" role="status" aria-live="polite"></div></div>
+        <div class="control-bar"><div class="hook-status"><span class="hook-icon">♧</span><div><strong id="hookTitle">Kail siap beraksi</strong><span id="hookHint">Tahan, arahkan, lalu lepaskan.</span></div></div><button id="fishButton" class="fish-button" disabled><span>↓</span> Tahan untuk turunkan kail <span class="button-hint">SPASI</span></button></div>
+        <div class="sea-caption"><span><span class="live-dot"></span> Bonus waktu bisa muncul di lapisan 3</span><span>✦ Frenzy datang setiap 25 detik</span></div>
+      </div>
+    </section>
+    <section class="fish-guide"><div class="guide-heading"><span class="eyebrow">KENALI PENGHUNI LAUT</span><h2>Semakin dalam, semakin berharga.</h2><p>Setiap tangkapan punya cerita kecilnya sendiri.</p></div><div class="species"><span class="mini-fish mint">➤</span><strong>Ikan kecil</strong><small>Si lincah di permukaan</small><b>10 <span>POIN</span></b></div><div class="species"><span class="mini-fish gold">➤</span><strong>Ikan sedang</strong><small>Penasaran dengan kailmu</small><b>25–40 <span>POIN</span></b></div><div class="species"><span class="mini-fish pink">➤</span><strong>Ikan besar</strong><small>Penghuni laut dalam</small><b>75 <span>POIN</span></b></div><div class="species"><span class="mini-fish purple">➤ ✦</span><strong>Ikan langka</strong><small>Kejutan dari kedalaman</small><b>150 <span>POIN</span></b></div></section>
+    <footer><span class="footer-brand">papayu <span>dibuat untuk rasa ingin tahu.</span></span><span>Petualangan kecil, senyum besar. <span class="footer-flower">✳</span></span></footer>
+  </main>
+  <dialog id="hubDialog"><button id="closeHub" class="dialog-close" aria-label="Tutup gamehub">×</button><span class="eyebrow">PAPAYU GAMEHUB</span><h2>Satu rumah untuk<br>banyak petualangan.</h2><p>Pilih permainanmu hari ini.</p><button id="chooseFishing" class="hub-game"><span>⚓</span><div><strong>Petualangan memancing</strong><small>Teluk Ceria · 90 detik penuh kejutan</small></div><b>→</b></button><div class="coming-soon">✦ Petualangan lainnya menyusul!</div></dialog>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>

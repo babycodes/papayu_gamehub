@@ -42,6 +42,7 @@ export function recordPlay(id) {
   render();
 }
 function render() {
+  $("libraryGameCount").textContent = String(GAMES.length).padStart(2, "0");
   const result = queryGames(GAMES, {
     ...state,
     favorites: [...favorites],

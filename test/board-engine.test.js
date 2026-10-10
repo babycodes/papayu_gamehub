@@ -21,9 +21,12 @@ test("library combines search, category, favorites, sorting and pagination", () 
     plays: { chess: 7 },
   });
   assert.equal(first.items[0].id, "chess");
-  assert.equal(first.pages, 2);
+  assert.equal(first.pages, Math.ceil(GAMES.length / 2));
   assert.equal(queryGames(GAMES, { pageSize: 2, page: 2 }).items.length, 2);
-  assert.equal(queryGames(GAMES, { category: "Arcade", page: 10 }).page, 1);
+  assert.equal(
+    queryGames(GAMES, { category: "Arcade", page: 10 }).page,
+    Math.ceil(GAMES.filter((g) => g.category === "Arcade").length / 6),
+  );
 });
 test("tic tac toe distinguishes wins, draws and ongoing play", () => {
   assert.equal(

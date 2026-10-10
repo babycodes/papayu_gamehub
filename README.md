@@ -1,6 +1,6 @@
 # Papayu GameHub
 
-Gamehub untuk penjelajah kecil. Empat game: **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Mahjong Anak**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
+Gamehub untuk penjelajah kecil. Sepuluh game, termasuk **Memory Match**, **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Mahjong Anak**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
 
 ## Menjalankan
 
@@ -17,11 +17,24 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-27 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+45 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
 Library memiliki search, filter Petualangan/Arcade/Strategi, favorit, urutan nama atau paling dimainkan lokal, dan pagination (pilih 2, 6, atau 12 game per halaman). Tombol `/` memfokuskan pencarian. Favorit dan jumlah sesi yang dimulai tersimpan di browser; daftar paling dimainkan memakai jumlah sesi nyata di perangkat ini. Tidak ada akun, leaderboard global, atau angka pemain buatan.
+
+## Enam game baru
+
+| Game                | Mode                       | Pilihan dan kontrol                                                                                                                                                                                                                                           |
+| ------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Memory Match**    | Solo / 2 pemain            | Enam tema: hewan, buah, kendaraan, alam, laut, dan campuran. Pilih **4–20 pasangan (8–40 kartu)** lewat slider atau tombol 10/15/20. Ketuk dua kartu; pasangan cocok memberi poin dan giliran lanjut. Jika tidak cocok, giliran berpindah. Tanpa batas waktu. |
+| **Connect Four**    | Bot / 2 pemain             | Jatuhkan keping ke salah satu dari tujuh kolom. Empat berurutan mendatar, tegak, atau diagonal menang. Bot Santai/Pintar.                                                                                                                                     |
+| **Air Hockey**      | Bot / 2 pemain             | Geser pemukul di sisi masing-masing. Dua sentuhan sekaligus untuk duel lokal; keyboard panah untuk pemain utama dan WASD untuk lawan lokal. Pilih target 3/5/7 gol dan tingkat bot.                                                                           |
+| **Balap Reaksi**    | Bot / 2 pemain             | Tunggu lampu hijau lalu ketuk tombol sendiri. Menekan terlalu cepat memberi poin ke lawan. Pilih 3/5/7 ronde. Keyboard Spasi untuk pemain utama, W untuk pemain kedua.                                                                                        |
+| **Puzzle Geser**    | Solo                       | Papan 3×3 atau 4×4, gambar rubah/paus/angkasa, dan acakan mudah/normal. Ketuk bidak dekat kotak kosong atau gunakan panah. Tombol gambar utuh dan petunjuk membantu menyelesaikan puzzle. Semua acakan bisa diselesaikan.                                     |
+| **Tangkap Bintang** | Solo / 2 pemain bergantian | Geser keranjang atau gunakan panah/A-D. Pilih 30/45/60 detik per pemain. Bintang emas, combo, frenzy, bonus waktu terbatas, dan bom membuat skor bervariasi. Kedua pemain mendapat durasi dasar yang sama.                                                    |
+
+Semua game mendukung layar penuh, jeda, peringatan keluar, dan main ulang langsung dengan pengaturan yang sama. Duel lokal memakai nama/kubu serta border hijau aktif; pemain utama berada di bawah, lawan di atas. Main ulang duel bergantian menentukan pemain pembuka. Memory Match menyediakan 100 gambar unik dari lima tema dan satu tema campuran, memakai emoji lokal, tanpa unduhan atau layanan gambar eksternal; bentuk gambar mengikuti dukungan perangkat.
 
 ## Tic Tac Toe & Catur
 
@@ -35,7 +48,7 @@ Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (berga
 - **Catur:** pilih bidak lalu kotak legal bertanda titik. Mendukung skak/skakmat, rokade, en passant, dan pilihan promosi menteri/benteng/gajah/kuda. Remis otomatis untuk stalemate, pengulangan posisi tiga kali, material tidak cukup, atau aturan 50 langkah. Riwayat langkah memakai notasi SAN; tombol Putar papan mengubah orientasi.
 - Gunakan **Jeda** / Escape untuk berhenti sementara. Bot juga berhenti saat jeda, tab tidak aktif, atau menu keluar terbuka.
 - Tombol Gamehub dan Back browser meminta konfirmasi untuk pertandingan yang belum selesai. Modal berada di dalam layar game, menjeda permainan dan menonaktifkan interaksi di belakangnya. Tombol lanjut/keluar mendukung sentuhan; Tab menjaga fokus di modal dan Escape membatalkan. **Akhiri & ganti mode** juga tersedia dari menu jeda. Main lagi tersedia setelah pertandingan berakhir.
-- Keempat game memakai layar penuh dengan fallback ke viewport pada browser yang tidak mendukung Fullscreen API.
+- Semua game memakai layar penuh dengan fallback ke viewport pada browser yang tidak mendukung Fullscreen API.
 
 ## Mahjong Anak
 
@@ -79,6 +92,8 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 - `src/engine.js`: aturan permainan, waktu, skor, spawn ikan, dan pergerakan kail; terpisah dari tampilan agar mudah dijadikan referensi untuk port Flutter.
 - `src/app.js`: gambar Canvas, input sentuh/keyboard, suara, pergantian halaman, dan menu keluar.
 - `src/library.js`: pencarian, filter, favorit, pagination, dan statistik lokal.
+- `src/arcade.js`: tampilan, pilihan mode, input sentuh/keyboard, jeda, dan main ulang untuk enam game baru.
+- `src/memory-engine.js`, `src/connect-engine.js`, `src/hockey-engine.js`, `src/reaction-engine.js`, `src/puzzle-engine.js`, `src/stars-engine.js`: aturan game baru yang terpisah dari UI.
 - `src/boards.js`: UI papan, pilihan mode, promosi, dan lifecycle bot.
 - `src/board-engine.js`: aturan Tic Tac Toe dan bot untuk Tic Tac Toe/Catur.
 - `src/mahjong-engine.js`: pengacakan dua papan, perpindahan otomatis/pengambilan, pilihan urutan kolom, koleksi, dan kemenangan Mahjong Anak.
@@ -89,7 +104,7 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 - `test/engine.test.js` / `test/board-engine.test.js`: tes menggunakan runner bawaan Node.js.
 - Dependency `chess.js` 1.4.0 (BSD-2-Clause) dikunci di package-lock.json untuk aturan Catur dan dihidangkan dari instalasi lokal, tanpa CDN.
 
-Keempat game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
+Kesepuluh game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
 
 ## Privasi dan file rahasia
 

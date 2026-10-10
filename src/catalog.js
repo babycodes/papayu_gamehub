@@ -1,5 +1,17 @@
 export const GAMES = [
   {
+    id: "memory-match",
+    title: "Memory Match",
+    description:
+      "Pilih tema favorit, buka kartu, dan temukan 4–20 pasangan gambar!",
+    icon: "🦋",
+    category: "Arcade",
+    modes: ["Solo", "2 pemain"],
+    duration: "Santai tanpa waktu",
+    tag: "MATCH & SMILE",
+    action: "Main Memory Match",
+  },
+  {
     id: "fishing",
     title: "Petualangan Memancing",
     description: "Lempar kail, kejar ikan langka, dan rayakan frenzy!",
@@ -43,6 +55,64 @@ export const GAMES = [
     duration: "Tanpa batas waktu",
     tag: "BRAIN POWER",
     action: "Main Catur",
+  },
+  {
+    id: "connect-four",
+    title: "Connect Four",
+    description: "Jatuhkan keping warna-warni dan susun empat berurutan!",
+    icon: "🔴",
+    category: "Arcade",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "2–5 menit",
+    tag: "DROP & CONNECT",
+    action: "Main Connect Four",
+  },
+  {
+    id: "air-hockey",
+    title: "Air Hockey",
+    description: "Geser pemukul, jaga gawang, dan tantang bot atau teman!",
+    icon: "🏒",
+    category: "Arcade",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "3–7 gol",
+    tag: "NEON DUEL",
+    action: "Main Air Hockey",
+  },
+  {
+    id: "reaction-race",
+    title: "Balap Reaksi",
+    description:
+      "Tunggu hijau, lalu ketuk! Siapa paling cepat tanpa mencuri start?",
+    icon: "🚦",
+    category: "Arcade",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "3–7 ronde",
+    tag: "READY · SET · GO",
+    action: "Main Balap Reaksi",
+  },
+  {
+    id: "sliding-puzzle",
+    title: "Puzzle Geser",
+    description:
+      "Susun gambar rubah, paus, atau angkasa. Ada petunjuk untuk membantumu!",
+    icon: "🧩",
+    category: "Strategi",
+    modes: ["Solo"],
+    duration: "Santai tanpa waktu",
+    tag: "PIECE BY PIECE",
+    action: "Main Puzzle Geser",
+  },
+  {
+    id: "catch-stars",
+    title: "Tangkap Bintang",
+    description:
+      "Geser keranjang, kumpulkan combo, dan rayakan frenzy di langit malam!",
+    icon: "🌟",
+    category: "Arcade",
+    modes: ["Solo", "2 pemain"],
+    duration: "30–60 detik / pemain",
+    tag: "STAR FRENZY",
+    action: "Main Tangkap Bintang",
   },
 ];
 export function queryGames(

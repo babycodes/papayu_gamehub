@@ -2,6 +2,7 @@ import { FishingGame } from "./engine.js";
 import { GAMES } from "./catalog.js";
 import { initLibrary, recordPlay } from "./library.js";
 import { BoardGames } from "./boards.js";
+import { ArcadeGames, ARCADE_IDS } from "./arcade.js";
 const $ = (id) => document.getElementById(id);
 const canvas = $("sea"),
   ctx = canvas.getContext("2d");
@@ -24,7 +25,17 @@ const boards = new BoardGames({
   onStart: recordPlay,
   onMove: () => tone([523], 0.06),
 });
-const session = () => (activeGame === "fishing" ? game : boards);
+const arcade = new ArcadeGames({
+  onStart: recordPlay,
+  onMove: () => tone([659], 0.06),
+  onMode: () => requestDecision("mode"),
+});
+const session = () =>
+  activeGame === "fishing"
+    ? game
+    : ARCADE_IDS.has(activeGame)
+      ? arcade
+      : boards;
 const gameScreen = $("gameScreen"),
   exitDialog = $("exitDialog");
 let best = 0;
@@ -135,7 +146,7 @@ function start() {
 function pause() {
   if (!inGame) return;
   if (activeGame !== "fishing") {
-    boards.pause();
+    session().pause();
     return;
   }
   if (game.mode !== "playing") return;
@@ -190,7 +201,8 @@ function openGame(id, pushHistory = true, fullscreen = true) {
   $("hubHeader").hidden = true;
   gameScreen.hidden = false;
   $("fishingView").hidden = id !== "fishing";
-  $("boardView").hidden = id === "fishing";
+  $("boardView").hidden = id === "fishing" || ARCADE_IDS.has(id);
+  $("arcadeView").hidden = !ARCADE_IDS.has(id);
   $("soundButton").hidden = id !== "fishing";
   $("gameTitle").textContent =
     `${item.icon} ${id === "fishing" ? "Teluk Ceria" : item.title}`;
@@ -209,6 +221,11 @@ function openGame(id, pushHistory = true, fullscreen = true) {
     resize();
     updateUI();
     $("playButton").focus({ preventScroll: true });
+  } else if (ARCADE_IDS.has(id)) {
+    arcade.open(id);
+    $("arcadeForm")
+      .querySelector("button[type=submit]")
+      .focus({ preventScroll: true });
   } else {
     boards.open(id);
     $("boardStart").focus({ preventScroll: true });
@@ -222,6 +239,7 @@ function leaveGame() {
   pointerId = null;
   game.reset("ready");
   boards.close();
+  arcade.close();
   particles.length = 0;
   gameScreen.hidden = true;
   $("hubScreen").hidden = false;
@@ -264,9 +282,15 @@ function cancelExit() {
   closeExitDialog();
   if (resumeAfterExit) {
     if (activeGame === "fishing") start();
-    else boards.resume();
+    else session().resume();
   } else
-    $(activeGame === "fishing" ? "playButton" : "boardStart").focus({
+    $(
+      activeGame === "fishing"
+        ? "playButton"
+        : ARCADE_IDS.has(activeGame)
+          ? "arcadeOverlay"
+          : "boardStart",
+    ).focus({
       preventScroll: true,
     });
   resumeAfterExit = false;
@@ -278,7 +302,7 @@ function confirmExit() {
     closeExitDialog();
     resumeAfterExit = false;
     pendingExitAction = "exit";
-    boards.chooseMode();
+    session().chooseMode();
     return;
   }
   leaveGame();

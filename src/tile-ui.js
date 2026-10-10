@@ -130,8 +130,12 @@ export function renderTileDuel(game) {
   const grid = $("boardGrid");
   grid.classList.toggle("pending-tile", Boolean(pending));
   let message =
-    "Buka bidak. Pilih kolom START untuk gambar baru; gambar yang sama wajib satu kolom.";
-  if (pending)
+    "Buka bidak. Jika mendapat gambarmu sendiri, susun lalu lanjut bermain.";
+  if (duel.awaitingDice)
+    message = duel.diceHistory.length
+      ? `Dadu seri ${duel.diceHistory.at(-1).join("–")}. Lempar ulang; ${game.tileName(duel.dicePlayer())} lebih dulu.`
+      : `${game.tileName(duel.dicePlayer())}, lempar dadu untuk menentukan pemain pertama.`;
+  else if (pending)
     message =
       pending.stage === "handoff"
         ? `${game.tileName(pending.sender)}, seret bidak lawan ke papan serah-terima.`
@@ -139,7 +143,10 @@ export function renderTileDuel(game) {
           ? `${game.tileName(pending.owner)}, ambil bidak di papan serah-terima dan susun ke kolom pilihanmu.`
           : `${game.tileName(pending.owner)}, pilih kolom kosong untuk gambar baru, atau kolom dengan gambar yang sama.`;
   else if (duel.last)
-    message = `Bidak sudah disusun oleh ${game.tileName(duel.last.owner)}. Lanjut membuka bidak.`;
+    message =
+      duel.last.owner === duel.last.sender
+        ? `${game.tileName(duel.last.owner)} mendapat bidak sendiri. Lanjut membuka bidak!`
+        : `Bidak lawan sudah disusun. Sekarang giliran ${game.tileName(duel.turn)}.`;
   const announcement = node(
     "p",
     "tile-announcement",
@@ -147,6 +154,46 @@ export function renderTileDuel(game) {
   );
   announcement.setAttribute("role", "status");
   grid.append(announcement);
+  const dice = node("section", "tile-dice");
+  dice.setAttribute("aria-label", "Dadu pemain pertama");
+  dice.append(node("strong", "", "DADU PEMBUKA"));
+  for (const player of [0, 1]) {
+    const row = node("div", "tile-dice-player");
+    row.append(node("span", "", game.tileName(player)));
+    const value = duel.dice[player];
+    const face = node("b", "dice-face", value === null ? "?" : String(value));
+    face.setAttribute(
+      "aria-label",
+      value === null ? "Belum melempar dadu" : `Dadu ${value}`,
+    );
+    row.append(face);
+    if (duel.awaitingDice) {
+      const button = node(
+        "button",
+        "secondary-button roll-tile-dice",
+        "Lempar dadu",
+      );
+      button.dataset.player = player;
+      button.disabled =
+        game.mode !== "playing" ||
+        game.isBotTurn() ||
+        duel.dicePlayer() !== player;
+      button.addEventListener("click", () => {
+        if (!game.isBotTurn()) game.rollTileDice(player);
+      });
+      row.append(button);
+    }
+    dice.append(row);
+  }
+  if (!duel.awaitingDice && duel.diceHistory.length)
+    dice.append(
+      node(
+        "span",
+        "dice-result",
+        `${game.tileName(duel.dice[0] > duel.dice[1] ? 0 : 1)} mulai duluan`,
+      ),
+    );
+  grid.append(dice);
   const exchange = node("section", "tile-exchange");
   exchange.dataset.tileDrop = "handoff";
   exchange.setAttribute("aria-label", "Papan serah-terima");
@@ -191,7 +238,8 @@ export function renderTileDuel(game) {
   }
   grid.append(exchange);
   for (const player of [0, 1]) {
-    const active = game.mode === "playing" && duel.actor() === player;
+    const active =
+      game.mode === "playing" && !duel.awaitingDice && duel.actor() === player;
     const panel = node(
       "section",
       `tile-panel ${active ? "active-tile-panel" : ""}`,
@@ -215,7 +263,9 @@ export function renderTileDuel(game) {
                   ? "AMBIL BIDAK"
                   : "SUSUN BIDAK"
               : "▶ GILIRANMU"
-            : "MENUNGGU";
+            : duel.awaitingDice
+              ? "LEMPAR DADU"
+              : "MENUNGGU";
     header.append(
       node("strong", "", `${game.tileName(player)} · ${theme.name}`),
       node("b", "", status),
@@ -233,6 +283,7 @@ export function renderTileDuel(game) {
       button.disabled =
         game.mode !== "playing" ||
         game.isBotTurn() ||
+        duel.awaitingDice ||
         Boolean(pending) ||
         tile.revealed ||
         duel.availableBoard() !== player;
@@ -315,7 +366,6 @@ export function renderTileDuel(game) {
         `Kolom ${column + 1} ${game.tileName(player)}, ${picture === null ? "kosong" : theme.labels[picture] + " " + count + " dari 4"}`,
       );
       button.append(
-        node("span", "start-tile", "START"),
         node(
           "span",
           "column-title",

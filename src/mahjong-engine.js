@@ -17,11 +17,16 @@ export class TileDuel {
     firstTheme = "fruit",
     firstPlayer = 0,
     random = Math.random,
+    requireRoll = false,
   } = {}) {
     if (!TILE_THEMES[firstTheme] || ![0, 1].includes(firstPlayer))
       throw new Error("Tema atau giliran awal tidak valid.");
     this.themes = [firstTheme, firstTheme === "fruit" ? "animal" : "fruit"];
     this.turn = firstPlayer;
+    this.random = random;
+    this.awaitingDice = requireRoll;
+    this.dice = [null, null];
+    this.diceHistory = [];
     this.collections = [Array(4).fill(0), Array(4).fill(0)];
     this.columns = [Array(4).fill(null), Array(4).fill(null)];
     this.winner = null;
@@ -55,7 +60,7 @@ export class TileDuel {
       : 1 - this.turn;
   }
   choices() {
-    if (this.pending || this.winner !== null) return [];
+    if (this.awaitingDice || this.pending || this.winner !== null) return [];
     const board = this.availableBoard();
     return this.boards[board].flatMap((tile, index) =>
       tile.revealed ? [] : [{ board, index }],
@@ -64,6 +69,7 @@ export class TileDuel {
   draw(board, index) {
     if (
       this.winner !== null ||
+      this.awaitingDice ||
       this.pending ||
       !Number.isInteger(index) ||
       index < 0 ||
@@ -91,9 +97,27 @@ export class TileDuel {
     return this.last;
   }
   actor() {
+    if (this.awaitingDice) return this.dicePlayer();
     return this.pending && this.pending.stage !== "handoff"
       ? this.pending.owner
       : this.turn;
+  }
+  dicePlayer() {
+    return this.dice[0] === null ? 0 : 1;
+  }
+  roll(player) {
+    if (!this.awaitingDice || player !== this.dicePlayer()) return null;
+    const value = 1 + Math.floor(this.random() * 6);
+    this.dice[player] = value;
+    if (this.dice.every((die) => die !== null)) {
+      this.diceHistory.push([...this.dice]);
+      if (this.dice[0] === this.dice[1]) this.dice = [null, null];
+      else {
+        this.turn = this.dice[0] > this.dice[1] ? 0 : 1;
+        this.awaitingDice = false;
+      }
+    }
+    return value;
   }
   handoff(player) {
     if (
@@ -138,13 +162,12 @@ export class TileDuel {
       this.collections[player][picture] >= 4
     )
       return false;
-    const sender = this.pending.sender;
     this.columns[player][column] = picture;
     this.collections[player][picture]++;
     this.pending = null;
     if (this.collections[player].every((count) => count === 4))
       this.winner = player;
-    else this.turn = 1 - sender;
+    else this.turn = player;
     return true;
   }
 }

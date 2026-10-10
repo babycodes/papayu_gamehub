@@ -97,7 +97,7 @@ test("a full duel conserves tiles and ends at the first complete collection", ()
   }
 });
 
-test("new rounds preserve chosen themes, alternate starters, and reset collections", () => {
+test("new rounds preserve chosen themes and reset collections", () => {
   const game = new TileDuel({ firstTheme: "animal", firstPlayer: 1 });
   assert.deepEqual(game.themes, ["animal", "fruit"]);
   assert.equal(game.turn, 1);
@@ -149,7 +149,7 @@ test("own tiles go to the owner's tray and victory waits for arranging the final
   assert.equal(game.pending, null);
 });
 
-test("new pictures choose any empty START column while matching pictures must share it", () => {
+test("new pictures choose any empty column while matching pictures must share it", () => {
   const game = new TileDuel({ random: () => 0.37 });
   const first = game.boards[0].findIndex((tile) => tile.theme === "fruit");
   const picture = game.boards[0][first].picture;
@@ -157,7 +157,7 @@ test("new pictures choose any empty START column while matching pictures must sh
   assert.ok(game.place(0, 3));
   assert.equal(game.columns[0][3], picture);
   assert.equal(game.collections[0][picture], 1);
-  game.turn = 0;
+  assert.equal(game.turn, 0);
   const second = game.boards[0].findIndex(
     (tile) =>
       !tile.revealed && tile.theme === "fruit" && tile.picture === picture,
@@ -170,7 +170,7 @@ test("new pictures choose any empty START column while matching pictures must sh
   assert.ok(game.place(0, 3));
   assert.equal(game.collections[0][picture], 2);
   assert.equal(game.columnFor(0, picture), 3);
-  game.turn = 0;
+  assert.equal(game.turn, 0);
   const different = game.boards[0].findIndex(
     (tile) =>
       !tile.revealed && tile.theme === "fruit" && tile.picture !== picture,
@@ -179,4 +179,62 @@ test("new pictures choose any empty START column while matching pictures must sh
   assert.equal(game.place(0, 3), false);
   assert.ok(game.place(0, 1));
   assert.notEqual(game.columns[0][1], picture);
+});
+
+test("own tiles keep the turn; opponent tiles pass it only after handoff and placement", () => {
+  const game = new TileDuel({ random: () => 0.37 });
+  const own = game.boards[0].findIndex((tile) => tile.theme === "fruit");
+  game.draw(0, own);
+  assert.ok(game.place(0, 2));
+  assert.equal(game.turn, 0);
+  const opponent = game.boards[0].findIndex(
+    (tile) => !tile.revealed && tile.theme === "animal",
+  );
+  game.draw(0, opponent);
+  assert.equal(game.turn, 0);
+  game.handoff(0);
+  game.pickup(1);
+  assert.equal(game.turn, 0);
+  assert.ok(game.place(1, 3));
+  assert.equal(game.turn, 1);
+});
+
+test("dice block opening tiles until both roll; the higher value starts", () => {
+  let value = 0.37;
+  const game = new TileDuel({ requireRoll: true, random: () => value });
+  assert.deepEqual(game.choices(), []);
+  assert.equal(game.draw(0, 0), null);
+  assert.equal(game.roll(1), null);
+  value = 0;
+  assert.equal(game.roll(0), 1);
+  assert.equal(game.roll(0), null);
+  assert.equal(game.awaitingDice, true);
+  value = 0.999;
+  assert.equal(game.roll(1), 6);
+  assert.equal(game.awaitingDice, false);
+  assert.equal(game.turn, 1);
+  assert.equal(game.roll(0), null);
+  assert.equal(game.choices().length, 16);
+});
+
+test("equal dice require a fresh pair of rolls, including on a new round", () => {
+  let value = 0.37;
+  const game = new TileDuel({ requireRoll: true, random: () => value });
+  game.roll(0);
+  game.roll(1);
+  assert.equal(game.awaitingDice, true);
+  assert.deepEqual(game.diceHistory, [[3, 3]]);
+  assert.deepEqual(game.dice, [null, null]);
+  assert.equal(game.draw(0, 0), null);
+  value = 0.8;
+  game.roll(0);
+  value = 0.2;
+  game.roll(1);
+  assert.equal(game.turn, 0);
+  assert.deepEqual(game.dice, [5, 2]);
+  assert.equal(game.awaitingDice, false);
+  const next = new TileDuel({ requireRoll: true });
+  assert.deepEqual(next.dice, [null, null]);
+  assert.deepEqual(next.diceHistory, []);
+  assert.equal(next.awaitingDice, true);
 });

@@ -114,7 +114,7 @@ export class BoardGames {
           : "Silang atau lingkaran?";
     $("boardSetupText").textContent =
       this.id === "mahjong"
-        ? "START menandai awal tiap kolom. Buka satu bidak. Seret bidak lawan ke papan serah-terima. Penerima mengambil lalu memilih kolom kosong untuk gambar baru; gambar yang sama wajib satu kolom. Lengkapi empat kolom untuk menang."
+        ? "Lempar dadu; nilai tertinggi mulai duluan. Terus buka bidak selama mendapat gambarmu sendiri. Bidak lawan diserahkan dan disusun, lalu giliran pindah. Gambar yang sama wajib satu kolom."
         : this.id === "chess"
           ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
           : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
@@ -158,6 +158,7 @@ export class BoardGames {
       this.tileGame = new TileDuel({
         firstTheme: this.tileTheme || $("tileTheme").value,
         firstPlayer: this.firstPlayer || 0,
+        requireRoll: true,
       });
   }
   start() {
@@ -180,7 +181,10 @@ export class BoardGames {
     this.firstPlayer = 0;
     if (this.id === "mahjong") {
       this.tileTheme = $("tileTheme").value;
-      this.tileGame = new TileDuel({ firstTheme: this.tileTheme });
+      this.tileGame = new TileDuel({
+        firstTheme: this.tileTheme,
+        requireRoll: true,
+      });
     }
     this.beginRound();
   }
@@ -196,7 +200,7 @@ export class BoardGames {
   replay() {
     if (this.mode !== "ended") return;
     this.resetPosition();
-    if (this.opponent === "local") {
+    if (this.opponent === "local" && this.id !== "mahjong") {
       this.firstPlayer = 1 - this.firstPlayer;
       if (this.id === "chess") this.flipped = !this.flipped;
     }
@@ -204,6 +208,7 @@ export class BoardGames {
       this.tileGame = new TileDuel({
         firstTheme: this.tileTheme,
         firstPlayer: this.firstPlayer,
+        requireRoll: true,
       });
     this.beginRound();
     this.queueBot();
@@ -283,6 +288,10 @@ export class BoardGames {
       this.thinking = false;
       if (this.mode !== "playing" || !this.isBotTurn()) return;
       if (this.id === "mahjong") {
+        if (this.tileGame.awaitingDice) {
+          this.rollTileDice(1);
+          return;
+        }
         const pending = this.tileGame.pending;
         if (pending) {
           if (pending.stage === "handoff") this.handoffTile();
@@ -338,6 +347,14 @@ export class BoardGames {
   }
   tileName(player) {
     return this.players?.[player].name || (player === 0 ? "Kamu" : "Bot");
+  }
+  rollTileDice(player) {
+    if (this.mode !== "playing" || this.tileGame.roll(player) === null) return;
+    if (!this.tileGame.awaitingDice) this.firstPlayer = this.tileGame.turn;
+    this.onMove();
+    this.render();
+    this.queueBot();
+    this.focusTileAction();
   }
   makeTileMove(board, index) {
     if (this.mode !== "playing") return;
@@ -407,7 +424,7 @@ export class BoardGames {
     const action =
       panel?.querySelector(".tray-tile:not(:disabled)") ||
       $("boardGrid").querySelector(
-        ".pickup-tile:not(:disabled), .duel-tile:not(:disabled)",
+        ".roll-tile-dice:not(:disabled), .pickup-tile:not(:disabled), .duel-tile:not(:disabled)",
       );
     action?.focus();
     const exchange = $("boardGrid").querySelector(".tile-exchange");
@@ -583,6 +600,14 @@ export class BoardGames {
       tiles &&
       this.mode === "playing" &&
       !this.thinking &&
+      this.tileGame.awaitingDice
+    )
+      $("boardTurn").textContent =
+        `${this.tileName(this.tileGame.dicePlayer())}: lempar dadu`;
+    if (
+      tiles &&
+      this.mode === "playing" &&
+      !this.thinking &&
       this.tileGame.pending
     ) {
       const pending = this.tileGame.pending;
@@ -601,7 +626,7 @@ export class BoardGames {
           ? `Lawan bot · ${tiles ? "Ubin acak" : this.easy ? "Santai" : "Pintar"}`
           : "2 pemain · satu perangkat";
     $("boardInstructions").textContent = tiles
-      ? "Buka bidak lalu susun di bawah START. Seret bidak lawan ke papan serah-terima untuk diambil penerima. Gambar baru bebas memilih kolom kosong; gambar yang sama harus satu kolom. Bisa seret atau ketuk bidak lalu tujuan."
+      ? "Dadu tertinggi mulai duluan. Bidak sendiri: susun dan terus bermain. Bidak lawan: serahkan, penerima menyusun lalu mengambil giliran. Gambar sama wajib satu kolom. Bisa seret atau ketuk bidak lalu tujuan."
       : chess
         ? "Pilih bidak, lalu kotak tujuan. Titik menandai langkah legal."
         : "Ketuk kotak kosong. Susun 3 simbol mendatar, tegak, atau diagonal.";

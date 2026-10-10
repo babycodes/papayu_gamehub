@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-45 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+53 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, misi dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -65,22 +65,25 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 
 ## Cara bermain memancing
 
-1. Dari **Gamehub**, pilih **Masuk ke teluk**, lalu tekan **Mulai memancing** untuk memulai ronde 90 detik.
-2. Tahan tombol **Turunkan kail**, area laut, atau tombol **Spasi**.
-3. Geser jari/mouse di laut atau tekan **← →** untuk mengarahkan kail. Kail otomatis menggulung saat menyentuh ikan; lepaskan untuk menggulung lebih awal.
-4. Ikan harus sampai di perahu agar poin dihitung. Saat waktu habis, ronde selesai.
+1. Dari **Gamehub**, pilih **Main memancing**, tentukan **Santai** atau **Tantangan**, lalu mulai ronde 90 detik. Santai memberi area tarikan lebih lebar dan waktu lebih longgar.
+2. Tahan tombol besar, area laut, atau **Spasi** untuk menurunkan kail. Geser di laut atau tekan **← →** untuk mengarahkan. Lepaskan untuk menarik kail kosong.
+3. Ikan kecil otomatis digulung. Ikan besar membuka tantangan singkat: **hiu** meminta geser mengikuti lingkaran hijau, **hiu paus** meminta tahan Gulung, dan **buntal** meminta menunggu hijau lalu tahan Gulung. Tidak perlu mengetuk cepat. Di HP, bisa menahan tombol dengan satu jari dan mengarahkan di laut dengan jari lain.
+4. Ikan harus sampai di perahu agar poin, misi, dan stiker dihitung. Jika lepas, poin sebelumnya tetap aman. Saat waktu habis, tangkapan yang belum sampai tidak dihitung.
 
-| Lapisan | Penghuni          | Poin dasar |
-| ------- | ----------------- | ---------- |
-| 1       | Ikan kecil        | 10         |
-| 2       | Ikan kuning       | 25         |
-| 3       | Ikan karang       | 40         |
-| 4       | Ikan besar        | 75         |
-| 5       | Ikan bulan langka | 150        |
+| Lapisan | Penghuni        | Poin dasar |
+| ------- | --------------- | ---------- |
+| 1       | Ikan kecil      | 10         |
+| 2       | Ikan kuning     | 25         |
+| 3       | Ikan buntal     | 60         |
+| 4       | Hiu             | 100        |
+| 5       | Hiu paus langka | 180        |
 
 - **Combo:** tangkap lagi dalam 8 detik untuk meningkatkan pengali hingga ×4.
-- **Frenzy:** setiap 25 detik, poin menjadi ×2 selama 8 detik. Ikan bintang ajaib bernilai dasar 200 muncul di lapisan 5.
+- **Laut Raksasa:** setiap 25 detik, semua ikan biasa membesar hingga ×1,6 dan poin menjadi ×2 selama 8 detik. Bintang ajaib bernilai dasar 200 muncul di lapisan 5. Ukuran gambar dan area tangkap mengikuti ukuran layar.
+- **Buaya ceria:** mulai sekitar detik ke-48, setelah tangkapan sebelumnya selesai. Ikan menepi dan muncul bayangan selama 2 detik. Buaya besar kemudian bisa dikail; selesaikan **ikuti arah → tahan gulung → tunggu hijau**. Hadiah dasar 500 poin dan +8 detik saat sampai perahu. Ikan kembali setelah buaya tertangkap atau pergi. Buaya hanya datang sekali per ronde; selama kunjungan buaya, Laut Raksasa ditunda/dinonaktifkan.
 - **Bonus waktu:** jam bercahaya di lapisan 3 memberi +12 detik saat sampai di perahu.
+- **Misi:** tangkap 3 ikan besar, 1 buntal, dan 1 buaya. Setiap misi membuka stiker; kemajuan misi dimulai ulang setiap ronde.
+- **Buku stiker:** enam jenis tangkapan dan tiga lencana misi tersimpan di browser perangkat dan terlihat dalam panduan memancing di Gamehub. Stiker dari tangkapan yang sudah sampai tetap tersimpan meskipun ronde berikutnya ditinggalkan.
 - **Level:** gelar Sahabat Laut pada 300 poin dan Kapten Teluk Ceria pada 900 poin.
 - **Jeda:** tombol jeda atau Escape. Permainan juga berhenti otomatis saat tab tidak aktif. Pilih Lanjut untuk meneruskan.
 - **Layar penuh:** game memenuhi viewport tanpa panel informasi atau scroll. Browser yang mendukung Fullscreen API juga masuk layar penuh; tombol di kanan atas dapat mengubahnya. Browser yang tidak mendukungnya (termasuk sebagian browser iPhone) tetap memakai seluruh area halaman yang tersedia.

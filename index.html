@@ -193,8 +193,8 @@
             <div class="step">
               <span>3</span>
               <div>
-                <strong>Lepaskan & gulung!</strong>
-                <p>Bawa ikan ke atas untuk poin.</p>
+                <strong>Gulung ikan besar!</strong>
+                <p>Ikuti arah, tahan, atau tunggu hijau.</p>
               </div>
             </div>
             <div class="keyboard-tip">
@@ -218,6 +218,13 @@
             </div>
           </div>
         </section>
+        <section class="fishing-collection">
+          <div class="card-kicker">
+            BUKU STIKER LAUT <span>KOLEKSI DI PERANGKAT INI</span>
+          </div>
+          <p>Tangkap ikan dan selesaikan misi untuk membuka stiker!</p>
+          <div id="fishingStickers" class="fishing-stickers"></div>
+        </section>
         <section class="fish-guide">
           <div class="guide-heading">
             <span class="eyebrow">KENALI PENGHUNI LAUT</span>
@@ -230,16 +237,17 @@
           </div>
           <div class="species">
             <span class="mini-fish gold">➤</span><strong>Ikan sedang</strong
-            ><small>Penasaran dengan kailmu</small
-            ><b>25–40 <span>POIN</span></b>
+            ><small>Penasaran dengan kailmu</small><b>25 <span>POIN</span></b>
           </div>
           <div class="species">
-            <span class="mini-fish pink">➤</span><strong>Ikan besar</strong
-            ><small>Penghuni laut dalam</small><b>75 <span>POIN</span></b>
+            <span class="mini-fish pink">➤</span
+            ><strong>Buntal &amp; hiu</strong
+            ><small>Tunggu hijau atau ikuti tarikan</small
+            ><b>60–100 <span>POIN</span></b>
           </div>
           <div class="species">
-            <span class="mini-fish purple">➤ ✦</span><strong>Ikan langka</strong
-            ><small>Kejutan dari kedalaman</small><b>150 <span>POIN</span></b>
+            <span class="mini-fish purple">➤ ✦</span><strong>Hiu paus</strong
+            ><small>Kejutan dari kedalaman</small><b>180 <span>POIN</span></b>
           </div>
         </section>
         <div class="hub-bonuses">
@@ -349,14 +357,40 @@
             </svg>
           </button>
         </div>
+        <div
+          id="fishingMissions"
+          class="fishing-missions"
+          aria-label="Misi ronde"
+        ></div>
         <div class="sea-frame">
           <canvas
             id="sea"
-            aria-label="Laut dengan lima lapisan ikan. Tahan Spasi atau tombol Turunkan Kail untuk memancing."
+            aria-label="Laut dengan lima lapisan ikan besar dan buaya. Tahan Spasi atau tombol untuk turun, geser untuk mengarahkan, lalu ikuti petunjuk gulungan."
             tabindex="0"
           ></canvas>
           <div id="frenzyBanner" class="frenzy-banner" hidden>
-            ✦ FRENZY! SEMUA POIN ×2 <span id="frenzyTime"></span>
+            🐋 LAUT RAKSASA! POIN ×2 <span id="frenzyTime"></span>
+          </div>
+          <div id="fishingFight" class="fishing-fight" hidden>
+            <div class="fight-heading">
+              <span id="fightIcon" aria-hidden="true">🐋</span
+              ><strong id="fightTitle"></strong><small id="fightStage"></small>
+            </div>
+            <p id="fightHint"></p>
+            <div id="fightLane" class="fight-lane" aria-hidden="true">
+              <span id="fightTarget"></span><b id="fightMarker">🎣</b>
+            </div>
+            <div
+              id="fightProgress"
+              class="fight-progress"
+              role="progressbar"
+              aria-label="Progres menangkap ikan"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <span></span>
+            </div>
           </div>
           <div id="gameOverlay" class="game-overlay">
             <div class="overlay-shell">
@@ -365,6 +399,17 @@
               <p id="overlayText">
                 Tahan di laut untuk turun. Geser, lalu lepaskan!
               </p>
+              <div id="fishingOptions" class="fishing-options">
+                <label for="fishingDifficulty">Pilih petualangan</label
+                ><select id="fishingDifficulty">
+                  <option value="easy">
+                    🌈 Santai · belajar sambil bermain
+                  </option>
+                  <option value="normal">
+                    ⭐ Tantangan · tarikan lebih lincah
+                  </option>
+                </select>
+              </div>
               <button id="playButton" class="primary-button">
                 Mulai memancing <span>→</span></button
               ><span id="overlayFootnote"
@@ -388,7 +433,8 @@
             </div>
           </div>
           <button id="fishButton" class="fish-button" disabled>
-            <span>↓</span> Tahan untuk turunkan kail
+            <span id="fishButtonIcon">↓</span
+            ><span id="fishButtonLabel">Tahan untuk turun</span>
             <span class="button-hint">SPASI</span>
           </button>
         </div>

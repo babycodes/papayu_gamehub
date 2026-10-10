@@ -508,27 +508,34 @@ export class BoardGames {
   renderCamps(role) {
     const local =
       this.mode !== "ready" && this.opponent === "local" && this.players;
+    const bot = this.mode !== "ready" && this.opponent === "bot";
     $("boardView").classList.toggle("local-match", Boolean(local));
+    $("boardView").classList.toggle("bot-match", bot);
     $("topCamp").hidden = $("bottomCamp").hidden =
-      !local || this.id === "mahjong";
-    if (!local) {
+      !(local || bot) || this.id === "mahjong";
+    if (!(local || bot)) {
       delete $("boardView").dataset.activeTeam;
       return;
     }
     const firstRole = this.id === "chess" ? "w" : "X",
       secondRole = this.id === "chess" ? "b" : "O";
+    const campPlayer = (campRole) =>
+      this.player(campRole) || {
+        name: this.playerName(campRole),
+        team: campRole === firstRole ? "blue" : "red",
+      };
     const upperPlayer = this.id === "chess" && this.campFlipped ? 0 : 1;
     const upperRole = upperPlayer === this.firstPlayer ? firstRole : secondRole;
     const lowerRole = upperRole === firstRole ? secondRole : firstRole;
-    $("boardView").dataset.topTeam = this.player(upperRole).team;
-    $("boardView").dataset.bottomTeam = this.player(lowerRole).team;
-    $("boardView").dataset.activeTeam = this.player(role).team;
+    $("boardView").dataset.topTeam = campPlayer(upperRole).team;
+    $("boardView").dataset.bottomTeam = campPlayer(lowerRole).team;
+    $("boardView").dataset.activeTeam = campPlayer(role).team;
     requestAnimationFrame(() => this.updateSplit());
     for (const [id, campRole] of [
       ["topCamp", upperRole],
       ["bottomCamp", lowerRole],
     ]) {
-      const player = this.player(campRole),
+      const player = campPlayer(campRole),
         camp = $(id);
       camp.replaceChildren();
       camp.dataset.team = player.team;
@@ -554,7 +561,9 @@ export class BoardGames {
           : this.mode === "paused"
             ? "DIJEDA"
             : role === campRole
-              ? "▶ GILIRANMU"
+              ? bot && campRole === secondRole
+                ? "▶ GILIRAN BOT"
+                : "▶ GILIRANMU"
               : "MENUNGGU";
       const identity = document.createElement("div");
       identity.append(name, label);

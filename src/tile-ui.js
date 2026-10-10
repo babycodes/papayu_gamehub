@@ -231,7 +231,7 @@ export function renderTileDuel(game) {
     exchange.append(target);
   }
   grid.append(exchange);
-  for (const player of [0, 1]) {
+  for (const player of [1, 0]) {
     const active =
       game.mode === "playing" && !duel.awaitingDice && duel.actor() === player;
     const panel = node(
@@ -239,6 +239,7 @@ export function renderTileDuel(game) {
       `tile-panel ${active ? "active-tile-panel" : ""}`,
     );
     panel.dataset.board = player;
+    panel.dataset.side = player === 0 ? "home" : "away";
     panel.classList.toggle(
       "drawing-panel",
       !duel.awaitingDice &&
@@ -261,7 +262,9 @@ export function renderTileDuel(game) {
               ? pending.stage === "pickup"
                 ? "AMBIL BIDAK"
                 : "SUSUN BIDAK"
-              : "▶ GILIRANMU"
+              : game.opponent === "bot" && player === 1
+                ? "▶ GILIRAN BOT"
+                : "▶ GILIRANMU"
             : duel.awaitingDice
               ? "LEMPAR DADU"
               : "MENUNGGU";

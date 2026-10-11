@@ -41,6 +41,79 @@ export function recordPlay(id) {
   save("papayu-plays", plays);
   render();
 }
+const preview = (game) => `/assets/games/${game.id}.jpg`;
+function playerInfo(game) {
+  return {
+    count: game.modes.includes("2 pemain") ? "1–2 pemain" : "1 pemain",
+    mode: game.modes.includes("Lawan bot")
+      ? "Bot / teman"
+      : game.modes.includes("2 pemain")
+        ? "Solo / teman"
+        : "Solo",
+  };
+}
+const summaries = {
+  "memory-match": "Buka kartu dan temukan pasangan gambarnya.",
+  fishing: "Jelajahi laut, tangkap ikan, dan taklukkan monster!",
+  "tic-tac-toe": "Susun tiga simbol berurutan untuk menang.",
+  mahjong: "Temukan bidakmu dan lengkapi semua kelompok gambar.",
+  chess: "Atur strategi dan lindungi rajamu.",
+  "connect-four": "Hubungkan empat keping sebelum lawanmu.",
+  "air-hockey": "Dorong puck dan cetak gol ke gawang lawan.",
+  "reaction-race": "Tunggu aba-aba, lalu sentuh secepat mungkin!",
+  "sliding-puzzle": "Geser ubin hingga semua tersusun rapi.",
+  "catch-stars": "Tangkap bintang yang jatuh dan kumpulkan poin.",
+};
+function initFeatured() {
+  let index = 0,
+    gesture;
+  function show(next) {
+    index = (next + GAMES.length) % GAMES.length;
+    const game = GAMES[index],
+      info = playerInfo(game);
+    $("featuredTitle").textContent = game.title;
+    $("featuredCategory").textContent = game.category;
+    $("featuredSummary").textContent = summaries[game.id];
+    $("featuredMeta").textContent = `${info.count} · ${info.mode}`;
+    $("featuredImage").src = preview(game);
+    $("featuredImage").alt = `Tampilan permainan ${game.title}`;
+    $("featuredCount").textContent =
+      `${String(index + 1).padStart(2, "0")} / ${GAMES.length}`;
+    [...$("featuredDots").children].forEach((dot, i) =>
+      dot.setAttribute("aria-pressed", String(i === index)),
+    );
+  }
+  GAMES.forEach((game, i) => {
+    const dot = document.createElement("button");
+    dot.setAttribute("aria-label", `Lihat ${game.title}`);
+    dot.addEventListener("click", () => show(i));
+    $("featuredDots").append(dot);
+  });
+  $("featuredPrev").addEventListener("click", () => show(index - 1));
+  $("featuredNext").addEventListener("click", () => show(index + 1));
+  $("featuredPlay").addEventListener("click", () => launch(GAMES[index].id));
+  $("featuredGames").addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    show(index + (event.key === "ArrowRight" ? 1 : -1));
+  });
+  $("featuredSwipe").addEventListener("pointerdown", (event) => {
+    if (!event.isPrimary || event.button !== 0) return;
+    gesture = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  });
+  $("featuredSwipe").addEventListener("pointerup", (event) => {
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x,
+      dy = event.clientY - gesture.y;
+    gesture = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3)
+      show(index + (dx < 0 ? 1 : -1));
+  });
+  $("featuredSwipe").addEventListener("pointercancel", () => {
+    gesture = null;
+  });
+  show(0);
+}
 function render() {
   $("libraryGameCount").textContent = String(GAMES.length).padStart(2, "0");
   const result = queryGames(GAMES, {
@@ -54,7 +127,8 @@ function render() {
     const card = document.createElement("article");
     card.className = "catalog-card";
     card.dataset.game = item.id;
-    card.innerHTML = `<div class="catalog-art"><span class="art-symbol" aria-hidden="true">${item.icon}</span><span class="art-tag">${item.tag}</span></div><div class="catalog-content"><div class="catalog-kicker"><span>${item.category}</span><span>${item.duration}</span></div><h3>${item.title}</h3><p>${item.description}</p><div class="mode-tags">${item.modes.map((mode) => `<span>${mode}</span>`).join("")}</div><div class="card-bottom"><button class="primary-button launch-game">${item.action} <span>→</span></button><span class="play-count">${plays[item.id]} sesi lokal</span></div></div>`;
+    const info = playerInfo(item);
+    card.innerHTML = `<div class="catalog-art"><img src="${preview(item)}" alt="Tampilan permainan ${item.title}" loading="lazy" decoding="async"><span class="catalog-category">${item.category}</span></div><div class="catalog-content"><h3>${item.title}</h3><div class="card-player-info"><strong>${info.count}</strong><span>${info.mode}</span></div><button class="primary-button launch-game" aria-label="${item.action}">Main <span aria-hidden="true">→</span></button></div>`;
     const favorite = document.createElement("button");
     favorite.className = "favorite-button";
     favorite.textContent = favorites.has(item.id) ? "♥" : "♡";
@@ -73,7 +147,7 @@ function render() {
       .addEventListener("click", () => launch(item.id));
     $("gameCatalog").append(card);
   }
-  $("resultCount").textContent = `${result.total} game ditemukan`;
+  $("resultCount").textContent = `${result.total} game`;
   $("emptyLibrary").hidden = result.total !== 0;
   $("pageInfo").textContent = `Halaman ${result.page} dari ${result.pages}`;
   $("prevPage").disabled = result.page === 1;
@@ -101,8 +175,8 @@ function render() {
   $("popularGames").replaceChildren();
   if (!popular.length)
     $("popularGames").innerHTML =
-      '<div class="popular-empty"><span>✦</span><strong>Cerita pertamamu dimulai di sini.</strong><p>Mainkan game untuk melihat favoritmu di perangkat ini.</p></div>';
-  popular.forEach((g, index) => {
+      '<div class="popular-empty"><span aria-hidden="true">✦</span><p>Mainkan game untuk mengisi daftar ini.</p></div>';
+  popular.slice(0, 3).forEach((g, index) => {
     const row = document.createElement("button");
     row.className = "popular-row";
     row.innerHTML = `<span class="popular-number">0${index + 1}</span><span class="popular-icon">${g.icon}</span><span><strong>${g.title}</strong><small>${plays[g.id]} sesi dimainkan</small></span><b>→</b>`;
@@ -112,6 +186,7 @@ function render() {
 }
 export function initLibrary(onLaunch) {
   launch = onLaunch;
+  initFeatured();
   for (const category of ["Semua", ...new Set(GAMES.map((g) => g.category))]) {
     const button = document.createElement("button");
     button.textContent = category;

@@ -28,39 +28,59 @@
       </div>
     </header>
     <main id="hubScreen">
-      <section class="gaming-hero">
-        <div class="hero-copy">
-          <span class="hero-pill">✦ GOOD GAMES. GREAT TIMES.</span>
-          <h1>Tekan play.<br /><em>Lepaskan serunya!</em></h1>
-          <p>
-            Dari lautan penuh kejutan sampai duel strategi.<br />Petualangan
-            berikutnya? Kamu yang pilih.
-          </p>
-          <button id="exploreButton" class="hero-button">
-            Jelajahi game <span>→</span>
-          </button>
-          <div class="hero-stats">
-            <span><b id="libraryGameCount">10</b> game siap main</span
-            ><span><b>∞</b> kesempatan seru</span
-            ><span><b>0</b> iklan mengganggu</span>
+      <section
+        id="featuredGames"
+        class="featured-hero"
+        aria-label="Pilihan game"
+        aria-roledescription="carousel"
+      >
+        <div class="featured-copy">
+          <span class="hero-pill">✦ Pilihan game</span>
+          <div id="featuredDetails" aria-live="polite" aria-atomic="true">
+            <span id="featuredCategory" class="featured-category"></span>
+            <h1 id="featuredTitle">Memory Match</h1>
+            <p id="featuredSummary"></p>
+            <div id="featuredMeta" class="featured-meta"></div>
+          </div>
+          <div class="featured-actions">
+            <button
+              id="featuredPlay"
+              class="primary-button"
+              aria-label="Main game pilihan"
+              aria-describedby="featuredTitle"
+            >
+              Main <span aria-hidden="true">→</span>
+            </button>
+            <button id="exploreButton" class="featured-browse">
+              Semua game
+            </button>
           </div>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <span class="floating-star star-one">✦</span
-          ><span class="floating-star star-two">✧</span>
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="art-tile tile-tic">×<span>○</span></div>
-          <div class="art-tile tile-chess">♜</div>
-          <div class="controller">
-            <div class="controller-top">PAPAYU</div>
-            <div class="dpad">✚</div>
-            <div class="controller-buttons"><i></i><i></i><i></i><i></i></div>
-            <div class="controller-stick stick-one"></div>
-            <div class="controller-stick stick-two"></div>
-            <div class="controller-led"></div>
+        <div class="featured-preview">
+          <div id="featuredSwipe" class="featured-image-wrap">
+            <img
+              id="featuredImage"
+              src="/assets/games/memory-match.jpg"
+              alt="Tampilan permainan Memory Match"
+              decoding="async"
+              fetchpriority="high"
+            />
           </div>
-          <span class="hero-spark">LET'S PLAY!</span>
+          <div class="featured-controls">
+            <button id="featuredPrev" aria-label="Game pilihan sebelumnya">
+              ←
+            </button>
+            <div
+              id="featuredDots"
+              class="featured-dots"
+              role="group"
+              aria-label="Pilih pratinjau game"
+            ></div>
+            <span id="featuredCount" class="featured-count">01 / 10</span>
+            <button id="featuredNext" aria-label="Game pilihan berikutnya">
+              →
+            </button>
+          </div>
         </div>
       </section>
       <section
@@ -70,8 +90,10 @@
       >
         <div class="library-heading">
           <div>
-            <span class="eyebrow">YOUR NEXT LITTLE OBSESSION</span>
-            <h2>Temukan game favoritmu<span>✦</span></h2>
+            <span class="eyebrow"
+              ><span id="libraryGameCount">10</span> GAME SIAP MAIN</span
+            >
+            <h2>Pilih permainan</h2>
           </div>
           <span id="resultCount" role="status" aria-live="polite"></span>
         </div>
@@ -81,7 +103,7 @@
             ><input
               id="gameSearch"
               type="search"
-              placeholder="Cari game, kategori, atau mode…"
+              placeholder="Cari game…"
               aria-label="Cari game"
               autocomplete="off"
             /><kbd>/</kbd></label
@@ -135,16 +157,11 @@
       </section>
       <section id="popularSection" class="popular-section">
         <div class="popular-copy">
-          <span class="eyebrow">ON YOUR DEVICE</span>
-          <h2>Sering main?<br />Naik ke daftar atas.</h2>
-          <p>
-            Game paling sering kamu mainkan di perangkat ini. Statistik lokal,
-            tanpa perlu akun.
-          </p>
+          <span class="eyebrow">DI PERANGKAT INI</span>
+          <h2>Sering dimainkan</h2>
           <div class="session-badge">
-            <b id="totalSessions">0</b><span>pertandingan & ronde dimulai</span>
+            <b id="totalSessions">0</b><span>sesi bermain</span>
           </div>
-          <small>Ranking antar pemain akan hadir bersama sistem akun.</small>
         </div>
         <div id="popularGames" class="popular-games"></div>
       </section>

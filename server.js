@@ -10,6 +10,7 @@ const types = {
   ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".jpg": "image/jpeg",
 };
 const server = http.createServer(async (req, res) => {
   try {
@@ -39,7 +40,8 @@ const server = http.createServer(async (req, res) => {
       !vendorFile &&
       (relative.startsWith("..") ||
         (!["index.html", "styles.css"].includes(relative) &&
-          !/^src\/[^/]+\.js$/.test(relative)))
+          !/^src\/[^/]+\.js$/.test(relative) &&
+          !/^assets\/games\/[a-z0-9-]+\.jpg$/.test(relative)))
     )
       throw Error("Forbidden");
     const data = await readFile(target);

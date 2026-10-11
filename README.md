@@ -137,3 +137,7 @@ Server Node menyajikan aset statis, sedangkan aturan dan Canvas berjalan di brow
 Setelah memperbarui versi ini, jalankan `npm ci`, lalu restart `npm start` untuk mengaktifkan rute library baru pada port 4949.
 
 Validasi pengembangan: 72 tes Node lulus, termasuk 1.000 variasi gelombang hingga jutaan poin dan 300 pergantian gelombang cepat tanpa penumpukan tween. Pengujian Chromium mencakup 20k/22k/42k/102k/502k, tangkapan lengkap tiga boss, jeda yang membekukan piksel Canvas, gaya lucu/seram, reduced motion, serta portrait 320×568/390×844 dan landscape 844×390. Sampel 133 frame dengan tiga monster berkurva (gurita, naga, kepiting) menghasilkan rata-rata callback render 0,85 ms dan p95 1,50 ms di mesin pengembangan; ini bukan pengukuran FPS atau jaminan performa HP fisik. Proses server Node terukur sekitar 48 MB RSS setelah pengujian aset.
+
+## Pratinjau Gamehub
+
+Banner memiliki slider manual untuk 10 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 316 KB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.

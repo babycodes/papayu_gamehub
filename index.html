@@ -402,16 +402,21 @@
               <p id="overlayText">
                 Tahan di laut untuk turun. Geser, lalu lepaskan!
               </p>
-              <div id="fishingOptions" class="fishing-options">
-                <label for="fishingDifficulty">Pilih petualangan</label
-                ><select id="fishingDifficulty">
-                  <option value="easy">
-                    🌈 Santai · belajar sambil bermain
-                  </option>
-                  <option value="normal">
-                    ⭐ Tantangan · tarikan lebih lincah
-                  </option>
-                </select>
+              <div class="fishing-choice-grid">
+                <div id="fishingOptions" class="fishing-options">
+                  <label for="fishingDifficulty">Pilih petualangan</label
+                  ><select id="fishingDifficulty">
+                    <option value="easy">🌈 Santai · mudah</option>
+                    <option value="normal">⭐ Tantangan</option>
+                  </select>
+                </div>
+                <div id="fishingVisualOptions" class="fishing-options">
+                  <label for="fishingBossStyle">Gaya boss</label
+                  ><select id="fishingBossStyle">
+                    <option value="spooky">👾 Monster seram kartun</option>
+                    <option value="cute">🐙 Monster lucu</option>
+                  </select>
+                </div>
               </div>
               <button id="playButton" class="primary-button">
                 Mulai memancing <span>→</span></button
@@ -628,7 +633,12 @@
       </div>
     </section>
     <script type="importmap">
-      { "imports": { "chess.js": "/vendor/chess.js" } }
+      {
+        "imports": {
+          "chess.js": "/vendor/chess.js",
+          "@tweenjs/tween.js": "/vendor/tween.js"
+        }
+      }
     </script>
     <script type="module" src="/src/app.js"></script>
   </body>

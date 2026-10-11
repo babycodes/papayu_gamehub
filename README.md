@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-57 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, misi dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+61 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, misi dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -81,6 +81,8 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 - **Combo:** tangkap lagi dalam 8 detik untuk meningkatkan pengali hingga ×4.
 - **Laut Raksasa:** berlangsung **15 detik** dan mulai pertama kali pada detik ke-25. Semua ikan membesar dan poin ×2. Penghitung 15 detik berhenti selama tantangan tarikan atau kunjungan boss; gelombang berikutnya tersedia setelah interval 25 detik. Bintang besar tetap besar setelah gelombang selesai, berenang kembali di area laut sampai dikail, dan mendapat prioritas jika bertumpuk dengan ikan lain. Jika lepas, bintang kembali berenang dan bisa dicoba lagi. Timer ronde berhenti sementara saat bintang tersangkut sampai gulungan selesai.
 - **Boss berdasarkan skor:** boss pertama **Buaya ceria di 2.000 poin**, kedua **Gurita raksasa di 4.000**, lalu boss baru setiap tambahan 2.000 poin sampai boss ke-20 di **40.000 poin**. Urutan lengkap terdapat pada `src/fishing-bosses.js`, mencakup kura-kura pulau, pari, kepiting, paus, hiu, naga laut, ikan lentera, kraken, dan versi hybrid. Ikan menepi selama 2 detik sebelum boss datang. Boss menunggu tangkapan yang sedang berlangsung selesai; lonjakan skor tidak melewati urutan boss.
+- **Boss bergerak:** tentakel melambai, capit/kaki bergerak, pari mengepak, naga meliuk, dan mata mengikuti arah kail. Tween.js mengatur kedatangan, reaksi tarikan, perubahan warna laut per jenis boss, serta perayaan setelah tertangkap. Saat tarikan mencapai tahap terakhir, monster bisa membuka mata ketiga. Setelah menang, ekspresi menjadi ramah dan laut berangsur cerah. Animasi mengikuti loop game, ikut berhenti saat jeda/tab tidak aktif/menu keluar, dan dibersihkan saat kembali ke Gamehub atau main ulang.
+- **Gaya boss:** pilih **Monster seram kartun** atau **Monster lucu** sebelum mulai. Pilihan visual tidak mengubah aturan, skor, atau area tangkap. Pengaturan perangkat **reduced motion** menonaktifkan gerakan dekoratif dan langsung menyelesaikan transisi warna/kemunculan, sementara kontrol permainan tetap berfungsi.
 - **Menangkap boss:** tiga tahap **ikuti arah → tahan gulung → tunggu hijau**. Timer ronde berhenti selama peringatan dan kunjungan boss, serta saat menarik boss ke perahu. Hadiah dasar 500–975 poin sesuai boss dan +8 detik, tanpa pengali combo/frenzy untuk poin boss. Ikan kembali setelah boss tertangkap atau pergi. Boss yang sudah berkunjung tidak diulang; boss berikutnya menunggu ambang skor selanjutnya. Setelah 20 boss, ronde melanjutkan memancing biasa. Main ulang mengembalikan skor dan urutan boss ke awal.
 - **Bonus waktu:** jam bercahaya di lapisan 3 memberi +12 detik saat sampai di perahu.
 - **Misi:** tangkap 3 ikan besar, 1 buntal, dan 1 boss. Setiap misi membuka stiker; kemajuan misi dimulai ulang setiap ronde.
@@ -93,6 +95,7 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 
 ## Struktur dan pengembangan berikutnya
 
+- `src/fishing-motion.js`: clock animasi, tween transisi, pose boss, dan palet laut; memakai Tween.js dengan clock yang dijeda bersama permainan.
 - `src/fishing-bosses.js`: urutan 20 boss, bentuk/warna/hybrid, ambang skor, hadiah, dan durasi Laut Raksasa.
 - `src/engine.js`: aturan permainan, waktu, skor, spawn ikan, dan pergerakan kail; terpisah dari tampilan agar mudah dijadikan referensi untuk port Flutter.
 - `src/app.js`: gambar Canvas, input sentuh/keyboard, suara, pergantian halaman, dan menu keluar.
@@ -105,9 +108,11 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 - `src/tile-ui.js`: dadu pembuka, area bidak aktif, susunan kolom, serta kontrol seret dengan mouse/pena/sentuhan.
 - `src/catalog.js`: daftar game dan metadata mode. Untuk game berikutnya tambahkan metadata di sini dan handler peluncuran di `app.js`.
 - `index.html` / `styles.css`: lobi Gamehub dan layout responsif.
-- `server.js`: server statis Node.js. Hanya aset aplikasi dan file ESM `chess.js` yang boleh diakses; `node_modules` lain tetap ditolak.
+- `server.js`: server statis Node.js. Hanya aset aplikasi dan dua rute vendor ESM (`chess.js` dan Tween.js) yang boleh diakses; `node_modules` lain tetap ditolak.
 - `test/engine.test.js` / `test/board-engine.test.js`: tes menggunakan runner bawaan Node.js.
 - Dependency `chess.js` 1.4.0 (BSD-2-Clause) dikunci di package-lock.json untuk aturan Catur dan dihidangkan dari instalasi lokal, tanpa CDN.
+
+Dependency animasi `@tweenjs/tween.js` **25.0.0** (MIT) dikunci di package-lock.json dan disajikan lokal dari `/vendor/tween.js`, tanpa CDN atau dependency tambahan. Modul ESM berukuran sekitar **43 KB** tanpa kompresi (sekitar 7 KB jika dikompresi gzip). Canvas 2D tetap dipakai; tidak ada loop animasi tambahan, WebGL, atau video/GIF yang harus diunduh.
 
 Kesepuluh game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
 

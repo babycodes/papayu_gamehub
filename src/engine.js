@@ -378,6 +378,7 @@ export class FishingGame {
     for (const fish of [...this.fish]) {
       if (fish.boss) {
         fish.x = 0.5 + Math.sin(this.bossClock * 0.65) * 0.16;
+        fish.y = 0.64 + Math.sin(this.bossClock * 0.9) * 0.008;
         fish.direction = Math.cos(this.bossClock * 0.65) >= 0 ? 1 : -1;
       } else {
         fish.x += fish.direction * fish.speed * dt;

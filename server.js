@@ -20,14 +20,20 @@ const server = http.createServer(async (req, res) => {
       pathname.includes("\\")
     )
       throw Error("Forbidden");
-    const isChessLibrary = pathname === "/vendor/chess.js";
-    const target = isChessLibrary
-      ? path.join(root, "node_modules/chess.js/dist/esm/chess.js")
+    const vendorFiles = {
+      "/vendor/chess.js": "node_modules/chess.js/dist/esm/chess.js",
+      "/vendor/tween.js": "node_modules/@tweenjs/tween.js/dist/tween.esm.js",
+    };
+    const vendorFile = Object.hasOwn(vendorFiles, pathname)
+      ? vendorFiles[pathname]
+      : null;
+    const target = vendorFile
+      ? path.join(root, vendorFile)
       : path.resolve(root, "." + (pathname === "/" ? "/index.html" : pathname));
     const relative = path.relative(root, target);
     // Serve only application assets, never configuration, dependencies, or arbitrary repository files.
     if (
-      !isChessLibrary &&
+      !vendorFile &&
       (relative.startsWith("..") ||
         (!["index.html", "styles.css"].includes(relative) &&
           !/^src\/[^/]+\.js$/.test(relative)))

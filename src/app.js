@@ -1,3 +1,4 @@
+import { FishingMotion, mixColor, bossSea } from "./fishing-motion.js";
 import { FISHING_BOSSES } from "./fishing-bosses.js";
 import { FishingGame, fishSize } from "./engine.js";
 import { GAMES } from "./catalog.js";
@@ -45,7 +46,14 @@ try {
   best = Number(localStorage.getItem("papayu-fishing-best")) || 0;
 } catch {}
 $("bestScore").innerHTML = `${best} <small>poin</small>`;
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+let reducedMotion = motionPreference.matches;
+const fishingMotion = new FishingMotion(reducedMotion);
+motionPreference.addEventListener("change", (event) => {
+  reducedMotion = event.matches;
+  fishingMotion.setReducedMotion(reducedMotion);
+});
+let bossStyle = "spooky";
 const particles = [];
 const STICKERS = [
   ["fish", "🐠", "Ikan pertama"],
@@ -130,6 +138,15 @@ function updateFishingFight() {
 }
 function drawBossFish(fish, s) {
   const kind = fish.kind;
+  const pose = fishingMotion.pose(
+    fish,
+    game.hook.catch === fish ? game.fight : null,
+  );
+  const t = pose.time,
+    wave = pose.limb * s;
+  ctx.save();
+  ctx.rotate(pose.sway);
+  ctx.scale(pose.breathe, pose.breathe);
   if (["crocodile", "shark", "whale"].includes(kind)) drawBigFish(fish, s);
   else {
     ctx.strokeStyle = fish.accent;
@@ -143,10 +160,10 @@ function drawBossFish(fish, s) {
         ctx.bezierCurveTo(
           x,
           s * 0.42,
-          x + s * 0.17,
-          s * 0.7,
-          x + s * 0.22,
-          s * 0.48,
+          x + s * 0.17 + Math.sin(t * 2.6 + i * 0.7) * s * 0.13,
+          s * (0.7 + pose.anger * 0.07),
+          x + s * 0.22 + Math.sin(t * 2.6 + i * 0.7) * s * 0.19,
+          s * 0.48 + Math.cos(t * 2 + i) * s * 0.07,
         );
         ctx.stroke();
       }
@@ -156,17 +173,38 @@ function drawBossFish(fish, s) {
         for (let i = 0; i < 3; i++) {
           ctx.beginPath();
           ctx.moveTo(side * s * 0.35, s * (i * 0.15 - 0.05));
-          ctx.lineTo(side * s * 0.85, s * (i * 0.17 - 0.15));
+          ctx.lineTo(
+            side * s * 0.85,
+            s * (i * 0.17 - 0.15) + Math.sin(t * 3 + i + side) * s * 0.06,
+          );
           ctx.stroke();
         }
-        ellipse(side * s * 0.92, -s * 0.25, s * 0.24, s * 0.23, fish.accent);
-        ellipse(side * s * 0.97, -s * 0.31, s * 0.12, s * 0.09, fish.color);
+        ellipse(
+          side * s * 0.92,
+          -s * 0.25 + wave,
+          s * 0.24,
+          s * 0.23,
+          fish.accent,
+        );
+        ellipse(
+          side * s * 0.97,
+          -s * 0.31 + wave,
+          s * 0.12,
+          s * 0.09,
+          fish.color,
+        );
       }
       ellipse(0, 0, s * 0.7, s * 0.4, fish.color);
     } else if (kind === "turtle") {
       for (const x of [-0.5, 0.5])
         for (const y of [-0.36, 0.36])
-          ellipse(x * s, y * s, s * 0.3, s * 0.14, fish.accent);
+          ellipse(
+            x * s,
+            y * s + Math.sin(t * 2 + x + y) * s * 0.035,
+            s * 0.3,
+            s * 0.14,
+            fish.accent,
+          );
       ellipse(s * 0.9, 0, s * 0.25, s * 0.24, fish.color);
       ellipse(0, 0, s * 0.8, s * 0.48, fish.accent);
       ellipse(0, 0, s * 0.62, s * 0.37, fish.color);
@@ -182,11 +220,11 @@ function drawBossFish(fish, s) {
     } else if (kind === "ray") {
       path(
         [
-          [-s * 1.1, s * 0.05],
+          [-s * 1.1, s * 0.05 + wave],
           [-s * 0.3, -s * 0.45],
           [0, -s * 0.2],
           [s * 0.3, -s * 0.45],
-          [s * 1.1, s * 0.05],
+          [s * 1.1, s * 0.05 - wave],
           [s * 0.3, s * 0.28],
           [0, s * 0.45],
           [-s * 0.3, s * 0.28],
@@ -202,7 +240,14 @@ function drawBossFish(fish, s) {
       ctx.lineWidth = s * 0.36;
       ctx.beginPath();
       ctx.moveTo(-s, 0.2 * s);
-      ctx.bezierCurveTo(-s * 0.5, -s * 0.6, 0, s * 0.55, s * 0.7, -s * 0.05);
+      ctx.bezierCurveTo(
+        -s * 0.5,
+        -s * 0.6 + wave,
+        0,
+        s * 0.55 - wave,
+        s * 0.7,
+        -s * 0.05,
+      );
       ctx.stroke();
       ellipse(s * 0.65, -s * 0.06, s * 0.3, s * 0.3, fish.color);
       for (let i = 0; i < 4; i++)
@@ -222,16 +267,17 @@ function drawBossFish(fish, s) {
       ctx.moveTo(s * 0.1, -s * 0.4);
       ctx.quadraticCurveTo(s * 0.15, -s * 0.95, s * 0.6, -s * 0.65);
       ctx.stroke();
-      ellipse(s * 0.6, -s * 0.65, s * 0.13, s * 0.13, "#fff0a2");
+      ctx.shadowColor = "#e9ff91";
+      ctx.shadowBlur = reducedMotion ? 0 : 8;
+      ellipse(
+        s * 0.6,
+        -s * 0.65,
+        s * (0.13 + pose.limb * 0.1),
+        s * 0.13,
+        "#fff0a2",
+      );
+      ctx.shadowBlur = 0;
     }
-    const ex = kind === "turtle" ? 0.9 : kind === "serpent" ? 0.72 : 0.32;
-    ellipse(ex * s, -s * 0.12, s * 0.12, s * 0.13, "#fffaf1");
-    ellipse((ex + 0.025) * s, -s * 0.12, s * 0.055, s * 0.065, "#294d59");
-    ctx.strokeStyle = "#355654";
-    ctx.lineWidth = Math.max(1.5, s * 0.02);
-    ctx.beginPath();
-    ctx.arc(ex * s, s * 0.08, s * 0.14, 0.1, 1.8);
-    ctx.stroke();
   }
   if (fish.hybrid === "tentacles") {
     ctx.strokeStyle = fish.accent;
@@ -241,8 +287,8 @@ function drawBossFish(fish, s) {
       ctx.moveTo((i * 0.25 - 0.4) * s, s * 0.2);
       ctx.quadraticCurveTo(
         (i * 0.25 - 0.65) * s,
-        s * 0.7,
-        (i * 0.25 - 0.15) * s,
+        s * 0.7 + wave,
+        (i * 0.25 - 0.15) * s + Math.sin(t * 2 + i) * s * 0.12,
         s * 0.55,
       );
       ctx.stroke();
@@ -273,6 +319,95 @@ function drawBossFish(fish, s) {
     ctx.font = `${s * 0.25}px sans-serif`;
     for (let i = 0; i < 3; i++)
       ctx.fillText("✦", (i * 0.3 - 0.5) * s, s * 0.02);
+  }
+  drawBossFace(fish, s, pose);
+  ctx.restore();
+}
+function drawBossFace(fish, s, pose) {
+  const spooky = bossStyle === "spooky" && pose.friendly < 0.5;
+  const kind = fish.kind;
+  const center =
+    kind === "turtle"
+      ? 0.86
+      : kind === "serpent"
+        ? 0.68
+        : kind === "crocodile"
+          ? 0.46
+          : ["whale", "shark"].includes(kind)
+            ? 0.52
+            : 0.15;
+  const ey = kind === "crocodile" ? -0.24 : kind === "crab" ? -0.34 : -0.15;
+  const gaze =
+    Math.max(-1, Math.min(1, (game.hook.targetX - fish.x) * 4)) *
+    fish.direction;
+  const eyes = [
+    [center - 0.14, ey],
+    [center + 0.14, ey],
+  ];
+  if (spooky && (pose.anger > 0.5 || fish.index >= 9))
+    eyes.push([center, ey - 0.23]);
+  for (const [ex, y] of eyes) {
+    if (spooky) {
+      ctx.shadowColor = "#ffbb69";
+      ctx.shadowBlur = reducedMotion ? 0 : 8;
+    }
+    ellipse(
+      ex * s,
+      y * s,
+      s * 0.115,
+      s * 0.12 * pose.blink,
+      spooky ? "#ffe396" : "#fffaf1",
+    );
+    ctx.shadowBlur = 0;
+    ellipse(
+      (ex + gaze * 0.035) * s,
+      y * s,
+      s * (spooky ? 0.022 : 0.045),
+      s * 0.065 * pose.blink,
+      spooky ? "#70334b" : "#294d59",
+    );
+    if (spooky) {
+      ctx.strokeStyle = fish.accent;
+      ctx.lineWidth = s * 0.035;
+      ctx.beginPath();
+      ctx.moveTo((ex - 0.13) * s, (y - 0.13) * s);
+      ctx.lineTo((ex + 0.1) * s, (y - 0.08 + pose.anger * 0.025) * s);
+      ctx.stroke();
+    }
+  }
+  ctx.strokeStyle = fish.accent;
+  ctx.lineWidth = Math.max(1.5, s * 0.025);
+  ctx.beginPath();
+  ctx.arc(
+    center * s,
+    s * 0.08,
+    s * 0.14,
+    spooky ? 0.25 : 0.05,
+    spooky ? 2.85 : 2.1,
+  );
+  ctx.stroke();
+  if (spooky)
+    for (const side of [-1, 1])
+      path(
+        [
+          [(center + side * 0.07) * s, s * 0.16],
+          [(center + side * 0.045) * s, s * 0.25],
+          [(center + side * 0.015) * s, s * 0.17],
+        ],
+        "#fff2ce",
+      );
+  if (spooky) {
+    for (let i = 0; i < 3; i++)
+      path(
+        [
+          [(-0.7 + i * 0.23) * s, -s * 0.2],
+          [(-0.59 + i * 0.23) * s, -s * (0.48 + pose.anger * 0.12)],
+          [(-0.48 + i * 0.23) * s, -s * 0.19],
+        ],
+        fish.accent,
+      );
+  } else {
+    ellipse((center - 0.2) * s, s * 0.03, s * 0.055, s * 0.035, "#f0a2a4");
   }
 }
 function drawBigFish(fish, s) {
@@ -374,21 +509,23 @@ function drawBigFish(fish, s) {
       }
     }
   }
-  const ex = croc ? 0.4 : puffer ? 0.46 : 0.64,
-    ey = croc ? -0.25 : -0.1;
-  ellipse(ex * s, ey * s, s * 0.12, s * 0.13, "#fffaf1");
-  ellipse((ex + 0.035) * s, ey * s, s * 0.055, s * 0.07, "#284b58");
-  ctx.strokeStyle = "#355654";
-  ctx.lineWidth = Math.max(1.5, s * 0.025);
-  ctx.beginPath();
-  ctx.arc(
-    (croc ? 0.81 : puffer ? 0.57 : 0.79) * s,
-    s * 0.08,
-    s * 0.14,
-    0.12,
-    1.7,
-  );
-  ctx.stroke();
+  if (!fish.boss) {
+    const ex = croc ? 0.4 : puffer ? 0.46 : 0.64,
+      ey = croc ? -0.25 : -0.1;
+    ellipse(ex * s, ey * s, s * 0.12, s * 0.13, "#fffaf1");
+    ellipse((ex + 0.035) * s, ey * s, s * 0.055, s * 0.07, "#284b58");
+    ctx.strokeStyle = "#355654";
+    ctx.lineWidth = Math.max(1.5, s * 0.025);
+    ctx.beginPath();
+    ctx.arc(
+      (croc ? 0.81 : puffer ? 0.57 : 0.79) * s,
+      s * 0.08,
+      s * 0.14,
+      0.12,
+      1.7,
+    );
+    ctx.stroke();
+  }
   if (game.frenzy && !fish.boss) {
     ctx.fillStyle = "#fff3b0";
     ctx.font = `${s * 0.35}px sans-serif`;
@@ -514,6 +651,7 @@ function showOverlay(title, text, button, footnote) {
   $("playButton").innerHTML = `${button} <span>→</span>`;
   $("overlayFootnote").textContent = footnote;
   $("fishingOptions").hidden = game.mode === "paused";
+  $("fishingVisualOptions").hidden = game.mode === "paused";
   $("gameOverlay").hidden = false;
 }
 function start() {
@@ -522,6 +660,8 @@ function start() {
   else {
     fishingPointers.clear();
     spaceHeld = false;
+    fishingMotion.reset();
+    bossStyle = $("fishingBossStyle").value;
     game.reset("playing", $("fishingDifficulty").value);
     recordPlay("fishing");
     particles.length = 0;
@@ -632,6 +772,7 @@ function leaveGame() {
   fishingPointers.clear();
   spaceHeld = false;
   game.reset("ready");
+  fishingMotion.reset();
   boards.close();
   arcade.close();
   particles.length = 0;
@@ -840,6 +981,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) pause();
 });
 function onEvent(event) {
+  fishingMotion.handle(event);
   if (event.type === "catch") {
     announce(
       `+${event.points} poin · ${event.fish.name}${event.combo > 1 ? ` · Combo ×${event.combo}!` : ""}`,
@@ -962,6 +1104,12 @@ function drawFish(fish, x, y, caught = false) {
         : 1 + (Math.sin(game.elapsed * 2.2 + fish.phase) + 1) * 0.08;
   ctx.save();
   ctx.translate(x, y);
+  if (fish.boss) {
+    const present = fishingMotion.pose(fish, null).presence;
+    ctx.globalAlpha *= present;
+    const entryScale = reducedMotion ? 1 : 0.9 + present * 0.1;
+    ctx.scale(entryScale, entryScale);
+  }
   ctx.scale(fish.direction, 1);
   if (caught) ctx.rotate(-0.35);
   if (fish.bonus) {
@@ -1135,7 +1283,14 @@ function draw(t, dt) {
   ctx.clearRect(0, 0, width, height);
   const waterline = height * 0.31;
   const sky = ctx.createLinearGradient(0, 0, 0, waterline);
-  sky.addColorStop(0, "#d5e9df");
+  sky.addColorStop(
+    0,
+    mixColor(
+      "#d5e9df",
+      "#b6bbcf",
+      fishingMotion.state.sea * (bossStyle === "cute" ? 0.2 : 0.6),
+    ),
+  );
   sky.addColorStop(1, "#e7edce");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, width, waterline);
@@ -1190,11 +1345,14 @@ function draw(t, dt) {
     ctx.stroke();
   }
   const ocean = ctx.createLinearGradient(0, waterline, 0, height);
-  ocean.addColorStop(0, game.frenzy ? "#97d4b7" : "#80c7ca");
-  ocean.addColorStop(0.22, "#61b4bc");
-  ocean.addColorStop(0.48, "#4797aa");
-  ocean.addColorStop(0.73, "#37758f");
-  ocean.addColorStop(1, "#2b526e");
+  const seaColors = bossSea(fishingMotion.boss, bossStyle === "cute");
+  const blend = fishingMotion.state.sea;
+  ocean.addColorStop(
+    0,
+    mixColor(game.frenzy ? "#97d4b7" : "#80c7ca", seaColors[0], blend),
+  );
+  ocean.addColorStop(0.48, mixColor("#4797aa", seaColors[1], blend));
+  ocean.addColorStop(1, mixColor("#2b526e", seaColors[2], blend));
   ctx.fillStyle = ocean;
   ctx.fillRect(0, waterline, width, height);
   // Shafts of sunlight.
@@ -1266,18 +1424,51 @@ function draw(t, dt) {
       12 + (i % 2) * 3,
       "#285369",
     );
-  if (game.bossState === "warning")
-    ellipse(
-      width * 0.5,
-      height * 0.64,
-      width * 0.24,
-      height * 0.04,
-      "#163a5938",
-    );
+  if (game.bossState === "warning") {
+    const cx = width * 0.5,
+      cy = height * 0.64;
+    ellipse(cx, cy, width * 0.24, height * 0.055, "#0b243b80");
+    ctx.shadowColor = bossStyle === "cute" ? "#e7f6a2" : "#ffcf80";
+    ctx.shadowBlur = reducedMotion ? 0 : 12;
+    for (const side of [-1, 1])
+      ellipse(
+        cx + side * width * 0.055,
+        cy - height * 0.015,
+        width * 0.018,
+        height * 0.012,
+        "#ffe8a6",
+      );
+    ctx.shadowBlur = 0;
+  }
+  if (blend > 0.02) {
+    ctx.globalAlpha = blend * 0.45;
+    ctx.strokeStyle = bossStyle === "cute" ? "#cef6df" : "#e0a8ed";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 7; i++) {
+      const bx = width * (0.12 + i * 0.12),
+        by = height * (0.4 + ((i * 0.14 + t * 0.025) % 0.5));
+      ctx.beginPath();
+      ctx.arc(bx, by, 3 + (i % 3), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
   for (const fish of game.fish) {
     const y =
       fish.y * height + Math.sin(t * 2 + fish.phase) * (reducedMotion ? 0 : 3);
     drawFish(fish, fish.x * width, y);
+  }
+  if (fishingMotion.state.celebration > 0 && fishingMotion.boss) {
+    const life = fishingMotion.state.celebration;
+    ctx.save();
+    ctx.translate(width * 0.5, height * (0.42 - (1 - life) * 0.09));
+    ctx.globalAlpha = life;
+    ctx.scale(0.45, 0.45);
+    drawBossFish(
+      fishingMotion.boss,
+      fishSize(fishingMotion.boss, width, height),
+    );
+    ctx.restore();
   }
   ctx.restore();
   // Surface ripples.
@@ -1376,7 +1567,10 @@ function frame(now) {
     updateUI();
     lastUI = now;
   }
-  if (inGame && activeGame === "fishing") draw(frameTime, dt);
+  if (inGame && activeGame === "fishing") {
+    fishingMotion.update(dt, game.mode === "playing");
+    draw(frameTime, dt);
+  }
   if (now > announcementUntil) $("announcement").classList.remove("visible");
   requestAnimationFrame(frame);
 }

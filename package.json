@@ -12,6 +12,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@tweenjs/tween.js": "25.0.0",
     "chess.js": "1.4.0"
   }
 }

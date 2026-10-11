@@ -191,23 +191,43 @@ test("contact immediately consumes a hooked victim even before the fallback dead
   assert.equal(g.remaining, 90);
   assert.equal(prey.failures, 0);
 });
-test("distant bosses fall back to automatic consumption after eight seconds without contact", () => {
+test("distant bosses begin a physical chase after eight seconds and eat only on contact", () => {
   const g = wave();
-  g.fish[0].x = 0.02;
-  g.fish[0].y = 0.35;
-  g.fish[1].x = 0.03;
-  g.fish[1].y = 0.36;
+  g.fish[0].x = 0.18;
+  g.fish[0].y = 0.5;
+  g.fish[1].x = 0.19;
+  g.fish[1].y = 0.51;
   g.fish[0].power = g.fish[1].power = 10;
   const predator = g.fish[2];
-  predator.x = 0.92;
-  predator.y = 0.88;
+  predator.x = 0.8;
+  predator.y = 0.8;
   g.nextHuntAt = g.elapsed + 8;
   g.elapsed += 7.99;
   g.tickPredation(0.01);
   assert.equal(g.bossRemaining, 3);
   g.elapsed += 0.02;
+  const before = predator.x;
   g.tickPredation(0.01);
+  assert.equal(g.bossRemaining, 3);
+  assert.equal(g.predation.phase, "hunt");
+  assert.ok(predator.x < before);
+  const prey = g.predation.prey;
+  const radius =
+    bossEatRadius(predator, g.viewport.width, g.viewport.height) +
+    fishSize(prey, g.viewport.width, g.viewport.height) * 0.3;
+  let steps = 0;
+  while (g.predation.phase === "hunt" && steps++ < 200) {
+    g.elapsed += 0.05;
+    g.tickPredation(0.05);
+    const distance = Math.hypot(
+      (predator.x - prey.x) * g.viewport.width,
+      (predator.y - prey.y) * g.viewport.height,
+    );
+    if (g.bossRemaining === 3) assert.ok(distance > radius);
+    else assert.ok(distance <= radius + 0.001);
+  }
   assert.equal(g.bossRemaining, 2);
+  assert.equal(g.predation.phase, "bite");
   assert.equal(g.predation.predator, predator);
 });
 test("radius uses circular pixel distances in portrait and landscape, not stretched normalized coordinates", () => {
@@ -251,4 +271,46 @@ test("contact with a second victim bypasses the previous meal animation and coun
     g.drainEvents().filter((e) => e.type === "boss-eaten").length,
     2,
   );
+});
+
+test("hooking the chasing predator cancels the hunt, and a caught prey remains a moving chase target", () => {
+  const g = wave();
+  g.fish[0].x = 0.18;
+  g.fish[0].y = 0.5;
+  g.fish[1].x = 0.19;
+  g.fish[1].y = 0.51;
+  g.fish[0].power = g.fish[1].power = 10;
+  const predator = g.fish[2];
+  predator.x = 0.8;
+  predator.y = 0.8;
+  g.nextHuntAt = g.elapsed;
+  g.tickPredation(0.05);
+  assert.equal(g.predation.phase, "hunt");
+  g.pause();
+  const snap = JSON.stringify(g.predation);
+  g.tick(0.05);
+  assert.equal(JSON.stringify(g.predation), snap);
+  g.resume();
+  g.fish.splice(g.fish.indexOf(predator), 1);
+  g.hook.catch = predator;
+  g.beginFight(predator);
+  g.tickPredation(0.05);
+  assert.equal(g.predation, null);
+  assert.equal(g.bossRemaining, 3);
+  assert.equal(predator.growth, 1);
+  // Releasing the predator and hooking its prey makes it track the actual hook.
+  g.hook.catch = null;
+  g.fight = null;
+  g.fish.push(predator);
+  const prey = g.fish.shift();
+  g.hook.catch = prey;
+  g.hook.x = 0.3;
+  g.hook.y = 0.5;
+  g.beginFight(prey);
+  g.nextHuntAt = g.elapsed;
+  const x = predator.x;
+  g.tickPredation(0.05);
+  assert.equal(g.predation.phase, "hunt");
+  assert.ok(predator.x < x);
+  assert.equal(g.hook.catch, prey);
 });

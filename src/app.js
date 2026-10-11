@@ -121,7 +121,7 @@ function updateFishingFight() {
     ? `${f.stage + 1}/3 · ${Math.ceil(f.remaining)} dtk`
     : game.hook.catch.name;
   $("fightHint").textContent =
-    f.profile.level && f.type === "hold"
+    f.profile.rebellion && f.type === "hold"
       ? f.straining
         ? "Boss meronta! Lepas GULUNG agar tali aman."
         : "Gulung saat hijau. Saat MERONTA, lepas sebentar!"
@@ -819,6 +819,11 @@ function drawFish(fish, x, y, caught = false) {
         : reducedMotion
           ? 1
           : 1 + (Math.sin(game.elapsed * 2.2 + fish.phase) + 1) * 0.08;
+  if (fish.boss && game.hook.catch === fish && game.fight && !reducedMotion) {
+    const t = game.fight.total;
+    x += Math.sin(t * 13) * s * 0.07 + Math.sin(t * 6.5) * s * 0.05;
+    y += Math.sin(t * 10.5) * s * 0.035;
+  }
   const feedingState = game.predation;
   if (feedingState?.predator === fish && feedingState.phase === "bite")
     s *= 0.5;
@@ -909,11 +914,13 @@ function drawFish(fish, x, y, caught = false) {
       ),
       mouth:
         feeding?.predator === fish
-          ? feeding.phase === "bite"
-            ? 1
-            : reducedMotion
-              ? 0.2
-              : 0.2 + (Math.sin(feeding.clock * 17) + 1) * 0.2
+          ? feeding.phase === "hunt"
+            ? 0.35
+            : feeding.phase === "bite"
+              ? 1
+              : reducedMotion
+                ? 0.2
+                : 0.2 + (Math.sin(feeding.clock * 17) + 1) * 0.2
           : 0,
     },
     bossStyle === "spooky",

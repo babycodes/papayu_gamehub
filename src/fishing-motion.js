@@ -150,16 +150,21 @@ export class FishingMotion {
         : Math.sin(t * 1.8 + phase) * 0.018 +
           (fish.boss
             ? actor.recoil * 0.04 +
-              (fight ? Math.sin(fight.total * 7) * 0.12 : 0)
+              (fight
+                ? Math.sin(fight.total * 11) * 0.2 +
+                  Math.sin(fight.total * 6.3) * 0.08
+                : 0)
             : fight
               ? Math.sin(t * 11) * 0.12
               : 0),
       limb: this.reducedMotion
         ? 0
-        : Math.sin(t * (fight ? 5 : 2.4) + phase) * (fight ? 0.18 : 0.1),
+        : Math.sin(t * (fight ? (fish.boss ? 10 : 5) : 2.4) + phase) *
+          (fight ? (fish.boss ? 0.29 : 0.18) : 0.1),
       tail: this.reducedMotion
         ? 0
-        : Math.sin(t * (fish.boss ? 2.6 : 5) + phase) * 0.16,
+        : Math.sin(t * (fish.boss ? (fight ? 12 : 2.6) : 5) + phase) *
+          (fish.boss && fight ? 0.3 : 0.16),
       blink: this.reducedMotion ? 1 : (t + phase) % 4.7 < 0.13 ? 0.15 : 1,
       anger: Math.max(
         0,

@@ -22,12 +22,17 @@ export function bossCaptureProfile(fish, difficulty = "easy") {
   const easy = difficulty === "easy";
   return {
     level,
+    rebellion: !!fish.boss,
     stageSeconds: BOSS_CAPTURE[difficulty].stageSeconds.map(
       (seconds) => seconds + level * 2,
     ),
-    tolerance: (easy ? 0.17 : 0.11) - level * 0.015,
-    greenThreshold: (easy ? 0.42 : 0.62) + level * 0.03,
-    effort: 1 + level * 0.22,
+    tolerance:
+      (easy ? (fish.boss ? 0.155 : 0.17) : fish.boss ? 0.105 : 0.11) -
+      level * 0.015,
+    greenThreshold:
+      (easy ? (fish.boss ? 0.46 : 0.42) : fish.boss ? 0.65 : 0.62) +
+      level * 0.025,
+    effort: (fish.boss ? 1.15 : 1) + level * 0.22,
     redSeconds: 0.65 + level * 0.15,
   };
 }

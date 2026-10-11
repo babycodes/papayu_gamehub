@@ -325,19 +325,55 @@ export class FishingGame {
           .sort((a, b) => a.power - b.power)[0];
         if (prey) {
           this.events.push({ type: "boss-hunt", fish: predator, prey });
-          this.consumeBoss(predator, prey);
-          return;
+          this.predation = { predator, prey, phase: "hunt", clock: 0 };
+          break;
         }
       }
       this.nextHuntAt = this.elapsed + BOSS_FEEDING.cooldownSeconds;
     }
     const p = this.predation;
     if (!p) return;
-    if (!this.canFinishBoss(p.predator)) {
+    if (
+      !this.canFinishBoss(p.predator) ||
+      (p.phase === "hunt" &&
+        (!this.canFinishBoss(p.prey) || hooked === p.predator))
+    ) {
       this.predation = null;
       return;
     }
     p.clock += dt;
+    if (p.phase === "hunt") {
+      const target = hooked === p.prey ? this.hook : p.prey;
+      const dx = (target.x - p.predator.x) * this.viewport.width,
+        dy = (target.y - p.predator.y) * this.viewport.height;
+      const distance = Math.hypot(dx, dy);
+      const speed =
+        Math.min(this.viewport.width, this.viewport.height) *
+        (0.42 + 0.025 * (p.predator.tier || 0));
+      const step = Math.min(distance, speed * dt);
+      if (distance > 0.001) {
+        p.predator.x += ((dx / distance) * step) / this.viewport.width;
+        p.predator.y += ((dy / distance) * step) / this.viewport.height;
+      }
+      const size = fishSize(
+        p.predator,
+        this.viewport.width,
+        this.viewport.height,
+      );
+      const margin = (size * 1.3) / this.viewport.width;
+      p.predator.x = Math.max(margin, Math.min(1 - margin, p.predator.x));
+      p.predator.y = Math.max(
+        0.34 + size / this.viewport.height,
+        Math.min(0.975 - (size * 0.9) / this.viewport.height, p.predator.y),
+      );
+      if (Math.abs(dx) > 0.001) p.predator.direction = dx >= 0 ? 1 : -1;
+      p.predator.heading = Math.max(
+        -0.65,
+        Math.min(0.65, Math.atan2(dy, Math.abs(dx))),
+      );
+      if (touches(p.predator, p.prey)) this.consumeBoss(p.predator, p.prey);
+      return;
+    }
     if (p.phase === "bite") {
       if (p.clock >= BOSS_FEEDING.biteSeconds) {
         p.phase = "mutate";
@@ -468,12 +504,21 @@ export class FishingGame {
         0.12,
         Math.min(
           0.88,
-          f.target + Math.sin(f.total * 2.6 + (fish.phase || 0)) * 0.035,
+          f.target +
+            Math.sin(
+              f.total * (5.8 + f.profile.level * 0.6) + (fish.phase || 0),
+            ) *
+              (0.055 + f.profile.level * 0.012),
         ),
       );
       this.hook.y = Math.max(
         0.36,
-        Math.min(0.92, f.anchorY + Math.sin(f.total * 4.2) * 0.022),
+        Math.min(
+          0.92,
+          f.anchorY +
+            Math.sin(f.total * 7.5) * 0.04 +
+            Math.sin(f.total * 12.5) * 0.012,
+        ),
       );
     }
     f.meter = (Math.sin(f.elapsed * 2.2 - Math.PI / 2) + 1) / 2;
@@ -484,14 +529,14 @@ export class FishingGame {
           ? f.meter >= f.profile.greenThreshold
           : true;
     f.straining =
-      !!f.profile.level &&
+      f.profile.rebellion &&
       f.type === "hold" &&
       (f.elapsed + 2) % 3.2 < f.profile.redSeconds;
     if (f.straining) f.good = false;
-    if (f.profile.level && f.type === "hold") {
+    if (f.profile.rebellion && f.type === "hold") {
       f.tension = Math.max(
         0,
-        Math.min(1, f.tension + dt * (this.held && f.straining ? 1.25 : -0.85)),
+        Math.min(1, f.tension + dt * (this.held && f.straining ? 1.6 : -0.85)),
       );
       if (f.tension >= 1) {
         f.progress = Math.max(0, f.progress - 0.18);

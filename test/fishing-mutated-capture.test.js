@@ -42,9 +42,9 @@ test("mutation narrows aiming and timing, increases effort and grants extra time
     );
   }
 });
-test("both mutation levels remain catchable in both modes using aim, hold and release on the warning", () => {
+test("regular bosses and both mutation levels remain catchable in both modes using aim, hold and release on the warning", () => {
   for (const mode of ["easy", "normal"])
-    for (const growth of [2, 4]) {
+    for (const growth of [1, 2, 4]) {
       const g = fight(mode, growth),
         stages = new Set();
       let ticks = 0;
@@ -93,12 +93,40 @@ test("holding through rebellion sets back progress without instantly failing, an
   g.tick(0.05);
   assert.equal(JSON.stringify([g.fight, g.hook]), snapshot);
 });
-test("unmutated bosses retain the original hold mechanic without release warnings", () => {
-  const g = fight("easy", 1);
-  Object.assign(g.fight, { type: "hold", stage: 1, elapsed: 1.3 });
+test("all bosses have release warnings while ordinary whale fights retain continuous holding", () => {
+  const boss = fight("easy", 1);
+  Object.assign(boss.fight, { type: "hold", stage: 1, elapsed: 1.3 });
+  boss.held = true;
+  boss.tickFight(0.1);
+  assert.equal(boss.fight.straining, true);
+  assert.ok(boss.fight.tension > 0);
+  assert.equal(boss.fight.progress, 0);
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  g.hook.catch = { kind: "whale", boss: false, phase: 0 };
+  g.beginFight(g.hook.catch);
+  g.fight.elapsed = 1.3;
   g.held = true;
   g.tickFight(0.1);
   assert.equal(g.fight.straining, false);
   assert.equal(g.fight.tension, 0);
   assert.ok(g.fight.progress > 0);
+});
+
+test("holding through a normal boss warning also strains the line and costs progress", () => {
+  const g = fight("easy", 1);
+  Object.assign(g.fight, {
+    type: "hold",
+    stage: 1,
+    elapsed: 1.19,
+    progress: 0.6,
+  });
+  g.held = true;
+  for (let i = 0; i < 13; i++) g.tickFight(0.05);
+  assert.ok(g.fight.progress < 0.6);
+  assert.equal(
+    g.drainEvents().filter((e) => e.type === "line-strain").length,
+    1,
+  );
+  assert.equal(g.hook.catch.failures, 0);
 });

@@ -5239,3 +5239,21 @@ select {
     padding: 8px 18px;
   }
 }
+.fishing-missions {
+  flex-wrap: wrap;
+  gap: 3px 6px;
+}
+.fishing-missions .fishing-boss-track {
+  flex-basis: 100%;
+  padding: 1px 4px;
+  background: transparent;
+  text-align: center;
+  font-size: 10px;
+  color: #375c50;
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .fishing-missions .fishing-boss-track {
+    flex-basis: auto;
+    font-size: 9px;
+  }
+}

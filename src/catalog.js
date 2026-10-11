@@ -15,7 +15,7 @@ export const GAMES = [
     id: "fishing",
     title: "Petualangan Memancing",
     description:
-      "Tangkap hiu paus, rayakan Laut Raksasa, dan tantang buaya ceria!",
+      "Kejar bintang besar, rayakan Laut Raksasa, dan temui 20 boss laut!",
     icon: "⚓",
     category: "Petualangan",
     modes: ["Solo"],

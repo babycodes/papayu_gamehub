@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-53 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, misi dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+57 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, misi dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -79,11 +79,12 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 | 5       | Hiu paus langka | 180        |
 
 - **Combo:** tangkap lagi dalam 8 detik untuk meningkatkan pengali hingga ×4.
-- **Laut Raksasa:** setiap 25 detik, semua ikan biasa membesar hingga ×1,6 dan poin menjadi ×2 selama 8 detik. Bintang ajaib bernilai dasar 200 muncul di lapisan 5. Ukuran gambar dan area tangkap mengikuti ukuran layar.
-- **Buaya ceria:** mulai sekitar detik ke-48, setelah tangkapan sebelumnya selesai. Ikan menepi dan muncul bayangan selama 2 detik. Buaya besar kemudian bisa dikail; selesaikan **ikuti arah → tahan gulung → tunggu hijau**. Hadiah dasar 500 poin dan +8 detik saat sampai perahu. Ikan kembali setelah buaya tertangkap atau pergi. Buaya hanya datang sekali per ronde; selama kunjungan buaya, Laut Raksasa ditunda/dinonaktifkan.
+- **Laut Raksasa:** berlangsung **15 detik** dan mulai pertama kali pada detik ke-25. Semua ikan membesar dan poin ×2. Penghitung 15 detik berhenti selama tantangan tarikan atau kunjungan boss; gelombang berikutnya tersedia setelah interval 25 detik. Bintang besar tetap besar setelah gelombang selesai, berenang kembali di area laut sampai dikail, dan mendapat prioritas jika bertumpuk dengan ikan lain. Jika lepas, bintang kembali berenang dan bisa dicoba lagi. Timer ronde berhenti sementara saat bintang tersangkut sampai gulungan selesai.
+- **Boss berdasarkan skor:** boss pertama **Buaya ceria di 2.000 poin**, kedua **Gurita raksasa di 4.000**, lalu boss baru setiap tambahan 2.000 poin sampai boss ke-20 di **40.000 poin**. Urutan lengkap terdapat pada `src/fishing-bosses.js`, mencakup kura-kura pulau, pari, kepiting, paus, hiu, naga laut, ikan lentera, kraken, dan versi hybrid. Ikan menepi selama 2 detik sebelum boss datang. Boss menunggu tangkapan yang sedang berlangsung selesai; lonjakan skor tidak melewati urutan boss.
+- **Menangkap boss:** tiga tahap **ikuti arah → tahan gulung → tunggu hijau**. Timer ronde berhenti selama peringatan dan kunjungan boss, serta saat menarik boss ke perahu. Hadiah dasar 500–975 poin sesuai boss dan +8 detik, tanpa pengali combo/frenzy untuk poin boss. Ikan kembali setelah boss tertangkap atau pergi. Boss yang sudah berkunjung tidak diulang; boss berikutnya menunggu ambang skor selanjutnya. Setelah 20 boss, ronde melanjutkan memancing biasa. Main ulang mengembalikan skor dan urutan boss ke awal.
 - **Bonus waktu:** jam bercahaya di lapisan 3 memberi +12 detik saat sampai di perahu.
-- **Misi:** tangkap 3 ikan besar, 1 buntal, dan 1 buaya. Setiap misi membuka stiker; kemajuan misi dimulai ulang setiap ronde.
-- **Buku stiker:** enam jenis tangkapan dan tiga lencana misi tersimpan di browser perangkat dan terlihat dalam panduan memancing di Gamehub. Stiker dari tangkapan yang sudah sampai tetap tersimpan meskipun ronde berikutnya ditinggalkan.
+- **Misi:** tangkap 3 ikan besar, 1 buntal, dan 1 boss. Setiap misi membuka stiker; kemajuan misi dimulai ulang setiap ronde.
+- **Buku stiker:** enam jenis tangkapan, 19 stiker boss tambahan, dan tiga lencana misi tersimpan di browser perangkat dan terlihat dalam panduan memancing di Gamehub. Stiker dari tangkapan yang sudah sampai tetap tersimpan meskipun ronde berikutnya ditinggalkan.
 - **Level:** gelar Sahabat Laut pada 300 poin dan Kapten Teluk Ceria pada 900 poin.
 - **Jeda:** tombol jeda atau Escape. Permainan juga berhenti otomatis saat tab tidak aktif. Pilih Lanjut untuk meneruskan.
 - **Layar penuh:** game memenuhi viewport tanpa panel informasi atau scroll. Browser yang mendukung Fullscreen API juga masuk layar penuh; tombol di kanan atas dapat mengubahnya. Browser yang tidak mendukungnya (termasuk sebagian browser iPhone) tetap memakai seluruh area halaman yang tersedia.
@@ -92,6 +93,7 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 
 ## Struktur dan pengembangan berikutnya
 
+- `src/fishing-bosses.js`: urutan 20 boss, bentuk/warna/hybrid, ambang skor, hadiah, dan durasi Laut Raksasa.
 - `src/engine.js`: aturan permainan, waktu, skor, spawn ikan, dan pergerakan kail; terpisah dari tampilan agar mudah dijadikan referensi untuk port Flutter.
 - `src/app.js`: gambar Canvas, input sentuh/keyboard, suara, pergantian halaman, dan menu keluar.
 - `src/library.js`: pencarian, filter, favorit, pagination, dan statistik lokal.

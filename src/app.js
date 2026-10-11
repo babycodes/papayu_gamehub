@@ -1,3 +1,4 @@
+import { FISHING_BOSSES } from "./fishing-bosses.js";
 import { FishingGame, fishSize } from "./engine.js";
 import { GAMES } from "./catalog.js";
 import { initLibrary, recordPlay } from "./library.js";
@@ -55,7 +56,8 @@ const STICKERS = [
   ["crocodile", "🐊", "Buaya ceria"],
   ["mission-big", "🏅", "Pemburu raksasa"],
   ["mission-puffer", "🎈", "Misi buntal"],
-  ["mission-boss", "👑", "Kapten buaya"],
+  ["mission-boss", "👑", "Kapten boss"],
+  ...FISHING_BOSSES.slice(1).map((b) => [`boss-${b.id}`, b.icon, b.name]),
 ];
 let collection = new Set();
 try {
@@ -92,7 +94,7 @@ function updateFishingFight() {
   if (!f) return;
   panel.classList.toggle("good-pull", f.good);
   $("fightIcon").textContent = game.hook.catch.boss
-    ? "🐊"
+    ? game.hook.catch.icon || "🐊"
     : game.hook.catch.kind === "puffer"
       ? "🐡"
       : game.hook.catch.kind === "shark"
@@ -125,6 +127,153 @@ function updateFishingFight() {
   const progress = Math.round(f.progress * 100);
   $("fightProgress").setAttribute("aria-valuenow", String(progress));
   $("fightProgress").firstElementChild.style.width = `${progress}%`;
+}
+function drawBossFish(fish, s) {
+  const kind = fish.kind;
+  if (["crocodile", "shark", "whale"].includes(kind)) drawBigFish(fish, s);
+  else {
+    ctx.strokeStyle = fish.accent;
+    ctx.lineWidth = s * 0.12;
+    ctx.lineCap = "round";
+    if (kind === "octopus") {
+      for (let i = 0; i < 8; i++) {
+        const x = (i / 7 - 0.5) * 1.5 * s;
+        ctx.beginPath();
+        ctx.moveTo((i / 7 - 0.5) * s, s * 0.08);
+        ctx.bezierCurveTo(
+          x,
+          s * 0.42,
+          x + s * 0.17,
+          s * 0.7,
+          x + s * 0.22,
+          s * 0.48,
+        );
+        ctx.stroke();
+      }
+      ellipse(0, -s * 0.14, s * 0.65, s * 0.48, fish.color);
+    } else if (kind === "crab") {
+      for (const side of [-1, 1]) {
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.moveTo(side * s * 0.35, s * (i * 0.15 - 0.05));
+          ctx.lineTo(side * s * 0.85, s * (i * 0.17 - 0.15));
+          ctx.stroke();
+        }
+        ellipse(side * s * 0.92, -s * 0.25, s * 0.24, s * 0.23, fish.accent);
+        ellipse(side * s * 0.97, -s * 0.31, s * 0.12, s * 0.09, fish.color);
+      }
+      ellipse(0, 0, s * 0.7, s * 0.4, fish.color);
+    } else if (kind === "turtle") {
+      for (const x of [-0.5, 0.5])
+        for (const y of [-0.36, 0.36])
+          ellipse(x * s, y * s, s * 0.3, s * 0.14, fish.accent);
+      ellipse(s * 0.9, 0, s * 0.25, s * 0.24, fish.color);
+      ellipse(0, 0, s * 0.8, s * 0.48, fish.accent);
+      ellipse(0, 0, s * 0.62, s * 0.37, fish.color);
+      path(
+        [
+          [-s * 0.3, 0],
+          [0, -s * 0.24],
+          [s * 0.3, 0],
+          [0, s * 0.24],
+        ],
+        fish.accent,
+      );
+    } else if (kind === "ray") {
+      path(
+        [
+          [-s * 1.1, s * 0.05],
+          [-s * 0.3, -s * 0.45],
+          [0, -s * 0.2],
+          [s * 0.3, -s * 0.45],
+          [s * 1.1, s * 0.05],
+          [s * 0.3, s * 0.28],
+          [0, s * 0.45],
+          [-s * 0.3, s * 0.28],
+        ],
+        fish.color,
+      );
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.4, s * 0.1);
+      ctx.quadraticCurveTo(-s, s * 0.5, -s * 1.2, s * 0.4);
+      ctx.stroke();
+    } else if (kind === "serpent") {
+      ctx.strokeStyle = fish.color;
+      ctx.lineWidth = s * 0.36;
+      ctx.beginPath();
+      ctx.moveTo(-s, 0.2 * s);
+      ctx.bezierCurveTo(-s * 0.5, -s * 0.6, 0, s * 0.55, s * 0.7, -s * 0.05);
+      ctx.stroke();
+      ellipse(s * 0.65, -s * 0.06, s * 0.3, s * 0.3, fish.color);
+      for (let i = 0; i < 4; i++)
+        path(
+          [
+            [(-0.7 + i * 0.3) * s, -s * 0.08],
+            [(-0.65 + i * 0.3) * s, -s * 0.42],
+            [(-0.5 + i * 0.3) * s, -s * 0.05],
+          ],
+          fish.accent,
+        );
+    } else {
+      ellipse(0, 0, s * 0.85, s * 0.53, fish.color);
+      ctx.strokeStyle = fish.accent;
+      ctx.lineWidth = s * 0.04;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.1, -s * 0.4);
+      ctx.quadraticCurveTo(s * 0.15, -s * 0.95, s * 0.6, -s * 0.65);
+      ctx.stroke();
+      ellipse(s * 0.6, -s * 0.65, s * 0.13, s * 0.13, "#fff0a2");
+    }
+    const ex = kind === "turtle" ? 0.9 : kind === "serpent" ? 0.72 : 0.32;
+    ellipse(ex * s, -s * 0.12, s * 0.12, s * 0.13, "#fffaf1");
+    ellipse((ex + 0.025) * s, -s * 0.12, s * 0.055, s * 0.065, "#294d59");
+    ctx.strokeStyle = "#355654";
+    ctx.lineWidth = Math.max(1.5, s * 0.02);
+    ctx.beginPath();
+    ctx.arc(ex * s, s * 0.08, s * 0.14, 0.1, 1.8);
+    ctx.stroke();
+  }
+  if (fish.hybrid === "tentacles") {
+    ctx.strokeStyle = fish.accent;
+    ctx.lineWidth = s * 0.07;
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo((i * 0.25 - 0.4) * s, s * 0.2);
+      ctx.quadraticCurveTo(
+        (i * 0.25 - 0.65) * s,
+        s * 0.7,
+        (i * 0.25 - 0.15) * s,
+        s * 0.55,
+      );
+      ctx.stroke();
+    }
+  }
+  if (fish.hybrid === "horns")
+    for (const side of [-1, 1])
+      path(
+        [
+          [side * s * 0.12, -s * 0.3],
+          [side * s * 0.32, -s * 0.8],
+          [side * s * 0.45, -s * 0.3],
+        ],
+        "#f3d17e",
+      );
+  if (fish.hybrid === "fins")
+    for (const side of [-1, 1])
+      path(
+        [
+          [side * s * 0.35, s * 0.05],
+          [side * s * 1.15, -s * 0.5],
+          [side * s * 0.7, s * 0.35],
+        ],
+        fish.accent,
+      );
+  if (fish.hybrid === "stars") {
+    ctx.fillStyle = "#fff6ba";
+    ctx.font = `${s * 0.25}px sans-serif`;
+    for (let i = 0; i < 3; i++)
+      ctx.fillText("✦", (i * 0.3 - 0.5) * s, s * 0.02);
+  }
 }
 function drawBigFish(fish, s) {
   const puffer = fish.kind === "puffer",
@@ -298,14 +447,20 @@ function updateUI() {
   $("catchCount").textContent = `${game.count} IKAN`;
   $("frenzyBanner").hidden =
     !game.frenzy || game.mode !== "playing" || !!game.fight;
-  $("fishingMissions").innerHTML = game.missions
-    .map(
-      (m) =>
-        `<span class="${m.value >= m.goal ? "mission-done" : ""}">${m.value >= m.goal ? "✓" : "☆"} ${m.label} <b>${m.value}/${m.goal}</b></span>`,
-    )
-    .join("");
+  $("fishingMissions").innerHTML =
+    game.missions
+      .map(
+        (m) =>
+          `<span class="${m.value >= m.goal ? "mission-done" : ""}">${m.value >= m.goal ? "✓" : "☆"} ${m.label} <b>${m.value}/${m.goal}</b></span>`,
+      )
+      .join("") +
+    `<span class="fishing-boss-track">${game.hook.catch?.special ? "🌟 Bintang besar · waktu istirahat" : ["warning", "active"].includes(game.bossState) ? `${game.currentBoss.icon} Boss ${game.bossIndex}/20 · ${game.currentBoss.name} · waktu istirahat` : game.bossIndex < FISHING_BOSSES.length ? `${FISHING_BOSSES[game.bossIndex].icon} Boss berikutnya: ${FISHING_BOSSES[game.bossIndex].name} · ${game.nextBossScore.toLocaleString("id-ID")} poin` : "👑 Semua 20 boss sudah berkunjung!"}</span>`;
+  $("timer").title =
+    ["warning", "active"].includes(game.bossState) || game.hook.catch?.special
+      ? "Waktu berhenti sementara. Selesaikan tangkapanmu!"
+      : "Sisa waktu ronde";
   updateFishingFight();
-  $("frenzyTime").textContent = `· ${Math.ceil(8 - (game.elapsed % 25))}d`;
+  $("frenzyTime").textContent = `· ${Math.ceil(game.frenzyRemaining)}d`;
   const names = ["Penjelajah pemula", "Sahabat laut", "Kapten Teluk Ceria"];
   const level = game.score >= 900 ? 2 : game.score >= 300 ? 1 : 0;
   $("levelName").textContent = names[level];
@@ -691,7 +846,13 @@ function onEvent(event) {
     );
     $("lastCatch").innerHTML =
       `<span class="catch-illustration" style="color:${event.fish.accent}">➤</span><div><strong>${event.fish.name}</strong><p>+${event.points} poin · tangkapan ke-${game.count}</p></div>`;
-    unlockSticker(event.fish.boss ? "crocodile" : event.fish.kind);
+    unlockSticker(
+      event.fish.boss
+        ? event.fish.bossId === "crocodile"
+          ? "crocodile"
+          : `boss-${event.fish.bossId}`
+        : event.fish.kind,
+    );
     tone(event.fish.layer === 4 ? [523, 659, 784, 1047] : [523, 659, 784]);
     for (let i = 0; i < 12; i++)
       particles.push({
@@ -719,22 +880,27 @@ function onEvent(event) {
     tone([392, 523, 659, 784]);
   }
   if (event.type === "boss-warning")
-    announce("Wah, ikan-ikan menepi… siapa yang datang? 🐊", 2);
+    announce(`Ikan menepi… ${event.boss.name} datang! ${event.boss.icon}`, 2);
   if (event.type === "boss-arrived") {
-    announce("Buaya ceria datang! Arahkan kail ke buaya 🐊", 4);
+    announce(`${event.boss.name} datang! Arahkan kail ${event.boss.icon}`, 4);
     tone([262, 330, 392]);
   }
   if (event.type === "boss-left")
-    announce("Buaya pamit. Coba lagi di ronde berikutnya!", 3);
+    announce(`${event.boss.name} pamit. Sampai jumpa boss berikutnya!`, 3);
   if (event.type === "sea-return")
     announce(
-      game.bossCount
-        ? "Buaya tertangkap! +8 detik · ikan kembali 🎉"
+      event.caught
+        ? `${event.boss.name} tertangkap! +8 detik 🎉`
         : "Ikan-ikan kembali. Ayo memancing lagi!",
       3,
     );
   if (event.type === "escaped")
-    announce("Ikan lepas, tidak apa-apa. Coba lagi!", 2.5);
+    announce(
+      event.fish.special
+        ? "🌟 Bintang masih di laut! Coba lagi, yuk."
+        : "Ikan lepas, tidak apa-apa. Coba lagi!",
+      2.5,
+    );
   if (event.type === "fight-won") {
     announce("Hebat! Gulungan selesai, ikan naik!", 2);
     tone([659, 784]);
@@ -759,7 +925,7 @@ function onEvent(event) {
     $("pauseButton").disabled = true;
     showOverlay(
       record ? "Rekor baru! Hebat sekali." : "Petualangan yang seru!",
-      `${game.score.toLocaleString("id-ID")} poin · ${game.count} tangkapan · ${game.missions.filter((m) => m.value >= m.goal).length}/3 misi · ${game.bossCount} buaya`,
+      `${game.score.toLocaleString("id-ID")} poin · ${game.count} tangkapan · ${game.missions.filter((m) => m.value >= m.goal).length}/3 misi · ${game.bossCount} boss`,
       "Main lagi",
       "Setiap petualangan adalah kesempatan baru.",
     );
@@ -811,6 +977,11 @@ function drawFish(fish, x, y, caught = false) {
     ctx.lineTo(0, 0);
     ctx.lineTo(s * 0.23, 0);
     ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  if (fish.boss) {
+    drawBossFish(fish, s);
     ctx.restore();
     return;
   }

@@ -13,6 +13,7 @@ export class FishingMotion {
     this.channels.clear();
     this.time = 0;
     this.boss = null;
+    this.escapedBoss = null;
     this.actors = new Map();
     this.state = {
       sea: 0,
@@ -20,6 +21,7 @@ export class FishingMotion {
       recoil: 0,
       friendly: 0,
       celebration: 0,
+      escape: 0,
     };
   }
   transition(channel, values, duration = 700, target = this.state) {
@@ -66,7 +68,8 @@ export class FishingMotion {
     }
     if (
       (event.type === "hooked" && event.fish.boss) ||
-      event.type === "fight-stage"
+      event.type === "fight-stage" ||
+      (event.type === "boss-failed" && !event.fled)
     ) {
       this.state.recoil = 1;
       this.transition("recoil", { recoil: 0 }, 500);
@@ -91,6 +94,11 @@ export class FishingMotion {
         this.state.celebration = 1;
         this.transition("celebration", { celebration: 0 }, 1300);
       }
+    }
+    if (event.type === "boss-failed" && event.fled && !this.reducedMotion) {
+      this.escapedBoss = { ...event.fish };
+      this.state.escape = 1;
+      this.transition("escape", { escape: 0 }, 1000);
     }
     if (event.type === "sea-return") {
       for (const id of this.actors.keys()) this.removeActor(id);
@@ -126,6 +134,7 @@ export class FishingMotion {
       this.channels.clear();
       this.state.recoil = 0;
       this.state.celebration = 0;
+      this.state.escape = 0;
       for (const actor of this.actors.values()) actor.recoil = 0;
     }
   }
@@ -139,13 +148,21 @@ export class FishingMotion {
       sway: this.reducedMotion
         ? 0
         : Math.sin(t * 1.8 + phase) * 0.018 +
-          (fish.boss ? actor.recoil * 0.04 : 0),
-      limb: this.reducedMotion ? 0 : Math.sin(t * 2.4 + phase) * 0.1,
+          (fish.boss
+            ? actor.recoil * 0.04 +
+              (fight ? Math.sin(fight.total * 7) * 0.12 : 0)
+            : 0),
+      limb: this.reducedMotion
+        ? 0
+        : Math.sin(t * (fight ? 5 : 2.4) + phase) * (fight ? 0.18 : 0.1),
       tail: this.reducedMotion
         ? 0
         : Math.sin(t * (fish.boss ? 2.6 : 5) + phase) * 0.16,
       blink: this.reducedMotion ? 1 : (t + phase) % 4.7 < 0.13 ? 0.15 : 1,
-      anger: Math.max(0, Math.min(1, (fight?.stage || 0) / 2)),
+      anger: Math.max(
+        0,
+        Math.min(1, (fight?.stage || 0) / 2 + (fish.failures || 0) * 0.15),
+      ),
       friendly: fish.boss ? actor.friendly : 1,
       presence: Math.max(0, Math.min(1, actor.presence)),
     };

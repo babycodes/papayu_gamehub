@@ -2,6 +2,7 @@ import {
   BOSS_STEP,
   FRENZY_DURATION,
   STAR_DURATION,
+  BOSS_CAPTURE,
   createBossWave,
   nextBossThreshold,
 } from "./fishing-bosses.js";
@@ -73,7 +74,8 @@ export function fishSize(fish, width = 650, height = 470, giant = false) {
               ? fish.waveCount === 3
                 ? 0.14
                 : 0.21
-              : 0.45) + growth
+              : 0.28) +
+          growth * (multi ? 1 : 0.5)
         : 0.245),
     fish.size *
       scale *
@@ -277,6 +279,7 @@ export class FishingGame {
             ? "timing"
             : "hold",
       stage: 0,
+      anchorY: this.hook.y,
       aggression: fish.boss ? Math.min(5, fish.tier || 0) : 0,
       progress: 0,
       elapsed: 0,
@@ -285,7 +288,7 @@ export class FishingGame {
       target: this.hook.x,
       meter: 0,
       remaining: fish.boss
-        ? 24 + Math.min(5, fish.tier || 0) * 2
+        ? BOSS_CAPTURE[this.difficulty].stageSeconds[0]
         : this.difficulty === "easy"
           ? 16
           : 11,
@@ -307,6 +310,19 @@ export class FishingGame {
           (1 + f.aggression * 0.08),
       ) *
         0.22;
+    if (fish.boss) {
+      f.target = Math.max(
+        0.12,
+        Math.min(
+          0.88,
+          f.target + Math.sin(f.total * 2.6 + (fish.phase || 0)) * 0.035,
+        ),
+      );
+      this.hook.y = Math.max(
+        0.36,
+        Math.min(0.92, f.anchorY + Math.sin(f.total * 4.2) * 0.022),
+      );
+    }
     f.meter = (Math.sin(f.elapsed * 2.2 - Math.PI / 2) + 1) / 2;
     f.good =
       f.type === "follow"
@@ -329,6 +345,7 @@ export class FishingGame {
         f.type = ["follow", "hold", "timing"][f.stage];
         f.progress = 0;
         f.elapsed = 0;
+        f.remaining = BOSS_CAPTURE[this.difficulty].stageSeconds[f.stage];
         this.events.push({ type: "fight-stage", stage: f.stage, fish });
       } else {
         this.fight = null;
@@ -340,10 +357,30 @@ export class FishingGame {
       this.hook.catch = null;
       this.hook.state = "reeling";
       this.held = false;
-      if (fish.boss) this.finishBoss(fish, false);
-      else if (fish.special) this.fish.push(fish);
+      if (fish.boss) {
+        fish.failures = (fish.failures || 0) + 1;
+        const penalty = BOSS_CAPTURE[this.difficulty].failurePenalty;
+        this.remaining = Math.max(0, this.remaining - penalty);
+        fish.x = this.hook.x;
+        fish.y = this.hook.y;
+        const fled = fish.failures >= BOSS_CAPTURE.maxFailures;
+        if (fled) this.finishBoss(fish, false);
+        else {
+          fish.cooldownUntil = this.elapsed + 1.5;
+          this.fish.push(fish);
+        }
+        this.events.push({
+          type: "boss-failed",
+          fish,
+          stage: f.stage,
+          penalty,
+          fled,
+          failures: fish.failures,
+        });
+        if (this.remaining === 0) this.endRound();
+      } else if (fish.special) this.fish.push(fish);
       else this.spawn(fish.layer);
-      this.events.push({ type: "escaped", fish });
+      if (!fish.boss) this.events.push({ type: "escaped", fish });
     }
   }
   reward(fish) {
@@ -390,12 +427,7 @@ export class FishingGame {
       this.hook.catch?.special;
     if (!protectedTime) this.remaining = Math.max(0, this.remaining - dt);
     if (this.remaining <= 0) {
-      this.mode = "ended";
-      this.held = false;
-      this.fight = null;
-      this.hook.state = "idle";
-      this.hook.catch = null;
-      this.events.push({ type: "end" });
+      this.endRound();
       return;
     }
     if (["warning", "active"].includes(this.bossState)) {
@@ -415,18 +447,14 @@ export class FishingGame {
             speed: 0,
             phase: boss.slot * 2.1,
             expires: Infinity,
+            failures: 0,
           });
         this.events.push({
           type: "boss-arrived",
           boss: this.currentBoss,
           bosses: this.bossWave,
         });
-      } else if (
-        this.bossState === "active" &&
-        this.bossClock >= 30 &&
-        !this.hook.catch
-      )
-        this.returnFish(false);
+      }
     }
     const bossBusy = ["warning", "active"].includes(this.bossState);
     if (!bossBusy) {
@@ -458,6 +486,8 @@ export class FishingGame {
     if (this.elapsed - this.lastCatchAt > 8) this.combo = 1;
     for (const fish of [...this.fish]) {
       if (fish.boss) {
+        const oldX = fish.x,
+          oldY = fish.y;
         const multi = fish.waveCount > 1,
           slot = fish.slot || 0;
         const horizontal =
@@ -476,20 +506,33 @@ export class FishingGame {
                 ? 0.65
                 : 0.35
               : 0.5) +
-          Math.sin(swim) * (multi ? 0.025 : 0.14);
+          Math.sin(swim) * (multi ? 0.04 : 0.16);
         const margin =
           (fishSize(fish, this.viewport.width, this.viewport.height) * 1.3) /
           this.viewport.width;
         fish.x = Math.max(margin, Math.min(1 - margin, fish.x));
         fish.y =
           (horizontal ? 0.64 : multi ? centers[slot] : 0.64) +
-          Math.sin(swim * 1.4) * 0.008;
+          Math.sin(swim * 0.73 + slot) *
+            (multi ? (horizontal ? 0.05 : 0.035) : 0.12);
         const size = fishSize(fish, this.viewport.width, this.viewport.height);
         fish.y = Math.max(
           0.34 + size / this.viewport.height,
           Math.min(0.975 - (size * 0.9) / this.viewport.height, fish.y),
         );
-        fish.direction = Math.cos(swim) >= 0 ? 1 : -1;
+        const dx = fish.x - oldX,
+          dy = fish.y - oldY;
+        if (Math.abs(dx) > 1e-6) fish.direction = dx >= 0 ? 1 : -1;
+        fish.heading = Math.max(
+          -0.65,
+          Math.min(
+            0.65,
+            Math.atan2(
+              dy * this.viewport.height,
+              Math.abs(dx) * this.viewport.width,
+            ),
+          ),
+        );
       } else {
         fish.x += fish.direction * fish.speed * dt;
         if (fish.special && (fish.x > 0.84 || fish.x < 0.16)) {
@@ -514,6 +557,7 @@ export class FishingGame {
       const catchable = [...this.fish]
         .sort((a, b) => Number(!!b.special) - Number(!!a.special))
         .find((f) => {
+          if (f.cooldownUntil > this.elapsed) return false;
           const s = fishSize(f, width, height, this.frenzy);
           return (
             Math.abs(f.x - hook.x) < s / width + 0.012 &&
@@ -544,6 +588,15 @@ export class FishingGame {
         hook.state = "idle";
       }
     }
+  }
+  endRound() {
+    if (this.mode === "ended") return;
+    this.mode = "ended";
+    this.held = false;
+    this.fight = null;
+    this.hook.state = "idle";
+    this.hook.catch = null;
+    this.events.push({ type: "end" });
   }
   drainEvents() {
     const events = this.events;

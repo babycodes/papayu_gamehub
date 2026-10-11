@@ -1,6 +1,6 @@
 import { drawFishingAnimal } from "./fishing-art.js";
 import { FishingMotion, mixColor, bossSea } from "./fishing-motion.js";
-import { FISHING_BOSSES } from "./fishing-bosses.js";
+import { FISHING_BOSSES, BOSS_CAPTURE } from "./fishing-bosses.js";
 import { FishingGame, fishSize } from "./engine.js";
 import { GAMES } from "./catalog.js";
 import { initLibrary, recordPlay } from "./library.js";
@@ -115,7 +115,7 @@ function updateFishingFight() {
           ? "Hijau! Gulung sekarang!"
           : "Tunggu hijau…";
   $("fightStage").textContent = game.hook.catch.boss
-    ? `${f.stage + 1} / 3`
+    ? `${f.stage + 1}/3 · ${Math.ceil(f.remaining)} dtk`
     : game.hook.catch.name;
   $("fightHint").textContent =
     f.type === "follow"
@@ -123,6 +123,13 @@ function updateFishingFight() {
       : f.type === "hold"
         ? "Tahan tombol GULUNG sampai bar penuh."
         : "Saat hijau, tahan GULUNG. Tidak perlu ketuk cepat.";
+  $("fightDeadline").hidden = !game.hook.catch.boss;
+  if (game.hook.catch.boss) {
+    const fish = game.hook.catch;
+    $("fightDeadline").textContent =
+      `${fish.name} · gagal ${fish.failures || 0}/3 · gagal tahap: −${BOSS_CAPTURE[game.difficulty].failurePenalty} detik`;
+    $("fishingFight").classList.toggle("stage-urgent", f.remaining <= 3);
+  } else $("fishingFight").classList.remove("stage-urgent");
   $("fightLane").hidden = f.type === "hold";
   $("fightTarget").style.left =
     `${f.type === "follow" ? (f.target - (game.difficulty === "easy" ? 0.17 : 0.11)) * 100 : game.difficulty === "easy" ? 42 : 62}%`;
@@ -673,6 +680,15 @@ function onEvent(event) {
         : `Tidak apa-apa! ${event.remaining} boss masih menunggu.`,
       3,
     );
+  if (event.type === "boss-failed") {
+    announce(
+      event.fled
+        ? `${event.fish.name} kabur! 3× gagal · −${event.penalty} detik · tanpa poin`
+        : `Tahap ${event.stage + 1} habis! −${event.penalty} detik · gagal ${event.failures}/3. Kail lagi, yuk!`,
+      4,
+    );
+    tone([294, 247], 0.12);
+  }
   if (event.type === "escaped")
     announce(
       event.fish.boss
@@ -746,7 +762,8 @@ function drawFish(fish, x, y, caught = false) {
     ctx.scale(entryScale, entryScale);
   }
   ctx.scale(fish.direction, 1);
-  if (caught) ctx.rotate(-0.35);
+  if (fish.boss) ctx.rotate((fish.heading || 0) * fish.direction);
+  if (caught && !(fish.boss && game.fight)) ctx.rotate(-0.35);
   drawFishingAnimal(
     ctx,
     fish,
@@ -1052,6 +1069,27 @@ function draw(t, dt) {
     const y =
       fish.y * height + Math.sin(t * 2 + fish.phase) * (reducedMotion ? 0 : 3);
     drawFish(fish, fish.x * width, y);
+  }
+  if (fishingMotion.state.escape > 0 && fishingMotion.escapedBoss) {
+    const fish = fishingMotion.escapedBoss,
+      life = fishingMotion.state.escape,
+      travel = 1 - life;
+    ctx.save();
+    ctx.globalAlpha = life;
+    ctx.translate(
+      width * (fish.x + fish.direction * travel * 0.75),
+      height * (fish.y - travel * 0.16),
+    );
+    ctx.scale(fish.direction, 1);
+    ctx.rotate(-0.25 * fish.direction);
+    drawFishingAnimal(
+      ctx,
+      fish,
+      fishSize(fish, width, height),
+      { ...fishingMotion.pose(fish), friendly: 0 },
+      bossStyle === "spooky",
+    );
+    ctx.restore();
   }
   if (fishingMotion.state.celebration > 0 && fishingMotion.boss) {
     const life = fishingMotion.state.celebration;

@@ -5357,3 +5357,20 @@ select {
     font-size: 10px;
   }
 }
+
+.fishing-fight .fight-deadline {
+  font-size: 10px;
+  margin: 4px 0 7px;
+  color: #596978;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.fishing-fight.stage-urgent {
+  border-color: #e99256;
+}
+.fishing-fight.stage-urgent .fight-heading small {
+  background: #ffe0bd;
+  color: #8c3d32;
+  border-radius: 8px;
+  padding: 3px 5px;
+}

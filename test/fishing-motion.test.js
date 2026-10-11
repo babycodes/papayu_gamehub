@@ -142,3 +142,25 @@ test("hundreds of rapid waves keep at most three actor states and bounded tween 
   assert.equal(m.channels.size, 0);
   assert.equal(m.group.getAll().length, 0);
 });
+
+test("a fleeing boss animates independently, freezes on pause and releases its tween", () => {
+  const m = new FishingMotion();
+  const fish = { ...boss, encounterId: "escape:0", failures: 3 };
+  m.handle({ type: "boss-failed", fish, fled: true });
+  assert.equal(m.state.escape, 1);
+  advance(m, 0.2);
+  const state = m.state.escape;
+  assert.ok(state > 0 && state < 1);
+  m.update(0.05, false);
+  assert.equal(m.state.escape, state);
+  assert.equal(m.escapedBoss.encounterId, fish.encounterId);
+  advance(m, 1);
+  assert.equal(m.state.escape, 0);
+  assert.equal(m.channels.size, 0);
+  assert.equal(m.group.getAll().length, 0);
+  m.handle({ type: "boss-failed", fish, fled: true });
+  m.setReducedMotion(true);
+  assert.equal(m.state.escape, 0);
+  m.reset();
+  assert.equal(m.escapedBoss, null);
+});

@@ -1,3 +1,8 @@
+export const BOSS_CAPTURE = {
+  easy: { stageSeconds: [10, 8, 10], failurePenalty: 3 },
+  normal: { stageSeconds: [8, 6, 8], failurePenalty: 5 },
+  maxFailures: 3,
+};
 export const BOSS_STEP = 2000;
 export const RANDOM_BOSS_SCORE = 22000;
 export const LATE_BOSS_STEP = 5000;

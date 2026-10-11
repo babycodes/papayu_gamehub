@@ -2,6 +2,7 @@ import {
   FISHING_BOSSES,
   FRENZY_DURATION,
   STAR_DURATION,
+  BOSS_CAPTURE,
 } from "../src/fishing-bosses.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -244,7 +245,7 @@ test("buaya clears the ocean once, has three stages, then restores fish and rewa
   advance(game, 10);
   assert.equal(game.bossState, "waiting");
 });
-test("buaya can leave safely and escaped fish never remove earned points", () => {
+test("idle bosses wait for attempts and escaped ordinary fish never remove earned points", () => {
   const game = new FishingGame();
   game.reset();
   game.score = 80;
@@ -257,8 +258,8 @@ test("buaya can leave safely and escaped fish never remove earned points", () =>
   game.hook.state = "idle";
   game.beginBoss();
   advance(game, 33);
-  assert.equal(game.bossState, "waiting");
-  assert.ok(game.fish.length > 1);
+  assert.equal(game.bossState, "active");
+  assert.equal(game.fish.length, 1);
   assert.equal(game.score, 80);
 });
 test("replay clears challenges and independent bonus clocks", () => {
@@ -534,16 +535,22 @@ test("an escaped boss leaves its companions and allows the next one a full captu
   g.score = 22000;
   g.tick(0.05);
   advance(g, 2.1);
-  const escaped = g.fish.shift();
-  g.hook.catch = escaped;
-  g.hook.y = 0.65;
-  g.beginFight(escaped);
-  advance(g, 27);
+  const escaped = g.fish[0],
+    remaining = g.remaining;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    g.fish.splice(g.fish.indexOf(escaped), 1);
+    g.hook.catch = escaped;
+    g.hook.y = 0.65;
+    g.beginFight(escaped);
+    advance(g, 10.1);
+    assert.equal(escaped.failures, attempt + 1);
+  }
   assert.equal(g.fight, null);
   assert.equal(g.bossState, "active");
   assert.equal(g.bossRemaining, 1);
   assert.equal(g.bossCount, 0);
   assert.equal(g.score, 22000);
+  assert.equal(g.remaining, remaining - 9);
   const companion = g.fish[0];
   g.reward(companion);
   assert.equal(g.bossState, "waiting");
@@ -582,4 +589,109 @@ test("three bosses stay inside portrait and landscape canvases and pause freezes
     advance(g, 5);
     assert.equal(JSON.stringify([g.bossClock, g.fish, g.remaining]), snapshot);
   }
+});
+
+test("each boss stage gets its own fresh deadline, and a timed-out stage resets the attempt", () => {
+  for (const mode of ["easy", "normal"]) {
+    const g = new FishingGame(() => 0.5);
+    g.reset("playing", mode);
+    g.score = 2000;
+    g.tick(0.05);
+    advance(g, 2.1);
+    const boss = g.fish.shift();
+    g.hook.catch = boss;
+    g.hook.y = 0.6;
+    g.beginFight(boss);
+    for (let stage = 0; stage < 2; stage++) {
+      assert.equal(g.fight.remaining, BOSS_CAPTURE[mode].stageSeconds[stage]);
+      g.fight.progress = 0.999;
+      g.held = true;
+      g.aim(g.fight.target);
+      g.tick(0.05);
+    }
+    assert.equal(g.fight.stage, 2);
+    assert.equal(g.fight.remaining, BOSS_CAPTURE[mode].stageSeconds[2]);
+    g.release();
+    const remaining = g.remaining;
+    advance(g, BOSS_CAPTURE[mode].stageSeconds[2] + 0.1);
+    assert.equal(boss.failures, 1);
+    assert.ok(g.fish.includes(boss));
+    assert.equal(g.score, 2000);
+    assert.equal(g.remaining, remaining - BOSS_CAPTURE[mode].failurePenalty);
+    g.fish.splice(g.fish.indexOf(boss), 1);
+    g.hook.catch = boss;
+    g.beginFight(boss);
+    assert.equal(g.fight.stage, 0);
+    assert.equal(g.fight.remaining, BOSS_CAPTURE[mode].stageSeconds[0]);
+  }
+});
+test("boss failures are individual and a successful retry gives reward once", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  g.nextBossScore = 22000;
+  g.score = 22000;
+  g.tick(0.05);
+  advance(g, 2.1);
+  const [a, b] = g.fish;
+  g.fish.splice(g.fish.indexOf(a), 1);
+  g.hook.catch = a;
+  g.beginFight(a);
+  advance(g, 10.1);
+  assert.equal(a.failures, 1);
+  assert.equal(b.failures, 0);
+  assert.equal(g.bossRemaining, 2);
+  g.fish.splice(g.fish.indexOf(a), 1);
+  g.hook.catch = a;
+  g.hook.y = 0.6;
+  g.beginFight(a);
+  winFight(g);
+  advance(g, 1.2);
+  assert.equal(g.bossCount, 1);
+  assert.equal(g.bossRemaining, 1);
+  assert.equal(b.failures, 0);
+});
+test("a failure can exhaust round time immediately and a pause freezes deadline and rebellion", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  g.score = 2000;
+  g.tick(0.05);
+  advance(g, 2.1);
+  const boss = g.fish.shift();
+  g.hook.catch = boss;
+  g.hook.y = 0.6;
+  g.beginFight(boss);
+  advance(g, 0.3);
+  g.pause();
+  const snapshot = JSON.stringify([g.fight, g.hook, g.remaining]);
+  advance(g, 20);
+  assert.equal(JSON.stringify([g.fight, g.hook, g.remaining]), snapshot);
+  g.resume();
+  g.remaining = 2;
+  advance(g, 10);
+  assert.equal(g.mode, "ended");
+  assert.equal(g.remaining, 0);
+  assert.equal(g.score, 2000);
+  assert.equal(g.hook.catch, null);
+  assert.equal(g.fight, null);
+  assert.equal(g.bossCount, 0);
+  assert.equal(g.drainEvents().filter((e) => e.type === "end").length, 1);
+});
+test("boss patrol changes both axes and heading while keeping its full body in view", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  g.score = 2000;
+  g.tick(0.05);
+  advance(g, 2.1);
+  const boss = g.fish[0],
+    positions = [];
+  for (let i = 0; i < 160; i++) {
+    g.tick(0.05);
+    positions.push([boss.x, boss.y, boss.heading]);
+  }
+  for (let axis = 0; axis < 3; axis++)
+    assert.ok(
+      Math.max(...positions.map((p) => p[axis])) -
+        Math.min(...positions.map((p) => p[axis])) >
+        (axis === 1 ? 0.07 : 0.1),
+    );
 });

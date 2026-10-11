@@ -79,3 +79,21 @@ test("reduced motion finishes transitions immediately and palettes blend within 
   assert.notDeepEqual(bossSea(boss), bossSea(FISHING_BOSSES[0]));
   assert.notDeepEqual(bossSea(boss), bossSea(boss, true));
 });
+
+test("ordinary animals have distinct moving fins and tails that stop on pause and reduced motion", () => {
+  const m = new FishingMotion();
+  const fish = { kind: "fish", phase: 1.2 };
+  const before = m.pose(fish);
+  advance(m, 0.4);
+  assert.notEqual(m.pose(fish).tail, before.tail);
+  assert.notEqual(m.pose(fish).limb, before.limb);
+  assert.notEqual(m.pose(fish).tail, m.pose({ ...fish, phase: 2.5 }).tail);
+  const paused = m.pose(fish);
+  m.update(0.05, false);
+  assert.deepEqual(m.pose(fish), paused);
+  m.setReducedMotion(true);
+  const still = m.pose(fish);
+  advance(m, 0.5);
+  assert.deepEqual(m.pose(fish), still);
+  assert.equal(still.tail, 0);
+});

@@ -90,20 +90,21 @@ export class FishingMotion {
   }
   pose(fish, fight) {
     const t = this.reducedMotion ? 0 : this.time / 1000;
+    const phase = fish.phase || fish.index * 0.23 || 0;
     return {
       time: t,
-      breathe: this.reducedMotion ? 1 : 1 + Math.sin(t * 2.1) * 0.012,
+      breathe: this.reducedMotion ? 1 : 1 + Math.sin(t * 2.1 + phase) * 0.012,
       sway: this.reducedMotion
         ? 0
-        : Math.sin(t * 1.8) * 0.018 + this.state.recoil * 0.04,
-      limb: this.reducedMotion ? 0 : Math.sin(t * 2.4) * 0.1,
-      blink: this.reducedMotion
-        ? 1
-        : (t + (fish.index || 0) * 0.23) % 4.7 < 0.13
-          ? 0.15
-          : 1,
+        : Math.sin(t * 1.8 + phase) * 0.018 +
+          (fish.boss ? this.state.recoil * 0.04 : 0),
+      limb: this.reducedMotion ? 0 : Math.sin(t * 2.4 + phase) * 0.1,
+      tail: this.reducedMotion
+        ? 0
+        : Math.sin(t * (fish.boss ? 2.6 : 5) + phase) * 0.16,
+      blink: this.reducedMotion ? 1 : (t + phase) % 4.7 < 0.13 ? 0.15 : 1,
       anger: Math.max(0, Math.min(1, (fight?.stage || 0) / 2)),
-      friendly: this.state.friendly,
+      friendly: fish.boss ? this.state.friendly : 1,
       presence: Math.max(0, Math.min(1, this.state.presence)),
     };
   }

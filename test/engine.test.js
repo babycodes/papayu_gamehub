@@ -1,4 +1,8 @@
-import { FISHING_BOSSES, FRENZY_DURATION } from "../src/fishing-bosses.js";
+import {
+  FISHING_BOSSES,
+  FRENZY_DURATION,
+  STAR_DURATION,
+} from "../src/fishing-bosses.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { FishingGame, LAYERS, fishSize } from "../src/engine.js";
@@ -166,7 +170,6 @@ test("large fish use visible hit areas and require a fight before scoring", () =
   assert.equal(game.hook.state, "reeling");
   advance(game, 1);
   assert.equal(game.score, 100);
-  assert.equal(game.missions[0].value, 1);
 });
 test("whale hold and puffer green timing require input and release stops progress", () => {
   for (const layer of [2, 4]) {
@@ -233,7 +236,6 @@ test("buaya clears the ocean once, has three stages, then restores fish and rewa
   assert.equal(game.bossCount, 1);
   assert.equal(game.score, 2500);
   assert.ok(game.fish.length > 1);
-  assert.equal(game.missions[2].value, 1);
   assert.ok(game.remaining > remaining - 8);
   assert.equal(
     game.drainEvents().filter((e) => e.type === "fight-stage").length,
@@ -259,22 +261,18 @@ test("buaya can leave safely and escaped fish never remove earned points", () =>
   assert.ok(game.fish.length > 1);
   assert.equal(game.score, 80);
 });
-test("missions only complete once and replay clears all round challenges", () => {
+test("replay clears challenges and independent bonus clocks", () => {
   const game = new FishingGame();
   game.reset();
-  for (let i = 0; i < 5; i++) game.reward({ ...LAYERS[2], layer: 2 });
-  assert.equal(game.missions[0].value, 3);
-  assert.equal(game.missions[1].value, 1);
-  assert.equal(
-    game.drainEvents().filter((e) => e.type === "mission").length,
-    2,
-  );
+  advance(game, 25.1);
+  assert.ok(game.frenzyRemaining > 0 && game.starRemaining > 0);
   game.reset("playing", "normal");
   assert.equal(game.difficulty, "normal");
   assert.equal(game.bossState, "waiting");
   assert.equal(game.fight, null);
   assert.equal(game.held, false);
-  assert.ok(game.missions.every((m) => m.value === 0));
+  assert.equal(game.frenzyRemaining, 0);
+  assert.equal(game.starRemaining, 0);
 });
 test("timer ending during a fight drops the pending catch without points or future input", () => {
   const game = new FishingGame();
@@ -348,18 +346,23 @@ test("all twenty distinct bosses arrive in order with no repeats or skipped scor
   assert.equal(g.bossIndex, 0);
   assert.equal(g.nextBossScore, 2000);
 });
-test("fifteen-second giant moments pause for fights and stars remain giant and available afterwards", () => {
+test("fish frenzy lasts five seconds while star bonus lasts fifteen and the star stays available", () => {
   const g = new FishingGame(() => 0.5);
   g.reset();
   advance(g, 25.1);
-  assert.ok(g.frenzyRemaining > 14.8);
-  assert.equal(FRENZY_DURATION, 15);
+  assert.ok(g.frenzyRemaining > 4.8);
+  assert.ok(g.starRemaining > 14.8);
+  assert.equal(FRENZY_DURATION, 5);
+  assert.equal(STAR_DURATION, 15);
   const star = g.fish.find((f) => f.special);
   g.fish = [star];
   star.x = 0.83;
   star.speed = 0.4;
-  advance(g, 15.1);
+  advance(g, 5.1);
   assert.equal(g.frenzy, false);
+  assert.ok(g.starRemaining > 9 && g.starRemaining < 10);
+  advance(g, 10);
+  assert.equal(g.starRemaining, 0);
   assert.equal(g.fish.filter((f) => f.special).length, 1);
   assert.ok(star.x >= 0.16 && star.x <= 0.84);
   assert.equal(star.giant, true);
@@ -369,13 +372,13 @@ test("fifteen-second giant moments pause for fights and stars remain giant and a
   );
   advance(g, 10);
   assert.equal(g.fish.filter((f) => f.special).length, 1);
-  const frenzy = g.frenzyRemaining;
+  const starTime = g.starRemaining;
   g.hook.catch = star;
   g.fish = g.fish.filter((f) => f !== star);
   g.beginFight(star);
   const remaining = g.remaining;
   advance(g, 1);
-  assert.equal(g.frenzyRemaining, frenzy);
+  assert.equal(g.starRemaining, starTime);
   assert.equal(g.remaining, remaining);
   advance(g, 17);
   assert.ok(g.fish.includes(star));
@@ -416,4 +419,57 @@ test("a star takes priority over overlapping large fish and boss rewards cannot 
   assert.equal(g.score, 2500);
   g.tick(0.05);
   assert.equal(g.bossIndex, 1);
+});
+
+test("small fish reel automatically during frenzy and return to normal size after five seconds", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  advance(g, 25.1);
+  const small = {
+    ...LAYERS[0],
+    layer: 0,
+    x: 0.47,
+    y: 0.4,
+    direction: 1,
+    speed: 0,
+    expires: Infinity,
+  };
+  g.fish = [small];
+  g.hook.y = 0.4;
+  g.press();
+  g.tick(0.05);
+  g.release();
+  assert.equal(g.hook.state, "reeling");
+  assert.equal(g.fight, null);
+  assert.equal(small.giant, undefined);
+  advance(g, 1);
+  assert.equal(g.score, 20);
+  const largeSize = fishSize(small, 390, 600, g.frenzy);
+  advance(g, 4);
+  assert.equal(g.frenzy, false);
+  assert.ok(fishSize(small, 390, 600, g.frenzy) < largeSize);
+  assert.ok(g.starRemaining > 9);
+});
+test("star bonus awards double after fish frenzy ends and both clocks freeze for pause or boss", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  advance(g, 30.2);
+  const star = g.fish.find((f) => f.special);
+  assert.equal(g.frenzy, false);
+  assert.ok(g.starRemaining > 9);
+  g.pause();
+  const clocks = [g.frenzyRemaining, g.starRemaining];
+  advance(g, 2);
+  assert.deepEqual([g.frenzyRemaining, g.starRemaining], clocks);
+  g.resume();
+  g.score = 2000;
+  g.tick(0.05);
+  advance(g, 2.2);
+  assert.deepEqual([g.frenzyRemaining, g.starRemaining], clocks);
+  g.returnFish(false);
+  g.reward(star);
+  const event = g
+    .drainEvents()
+    .find((e) => e.type === "catch" && e.fish === star);
+  assert.equal(event.points, 400);
 });

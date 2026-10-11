@@ -223,8 +223,8 @@
             BUKU STIKER LAUT <span>KOLEKSI DI PERANGKAT INI</span>
           </div>
           <p>
-            Tangkap ikan dan selesaikan misi untuk membuka stiker! Boss baru
-            datang tiap 2.000 poin: buaya, gurita, lalu 18 kejutan lainnya.
+            Tangkap ikan dan boss untuk membuka stiker! Boss baru datang tiap
+            2.000 poin: buaya, gurita, lalu 18 kejutan lainnya.
           </p>
           <div id="fishingStickers" class="fishing-stickers"></div>
         </section>
@@ -360,17 +360,21 @@
             </svg>
           </button>
         </div>
-        <div
-          id="fishingMissions"
-          class="fishing-missions"
-          aria-label="Misi ronde"
-        ></div>
         <div class="sea-frame">
           <canvas
             id="sea"
             aria-label="Laut dengan lima lapisan ikan besar, bintang besar, dan 20 boss. Tahan Spasi atau tombol untuk turun, geser untuk mengarahkan, lalu ikuti petunjuk gulungan."
             tabindex="0"
           ></canvas>
+          <div id="bossDanger" class="boss-danger" role="alert" hidden>
+            <span aria-hidden="true">!</span>
+            <div>
+              <strong>DANGER · BOSS DATANG</strong><b id="bossDangerName"></b>
+            </div>
+          </div>
+          <div id="starBanner" class="star-banner" hidden>
+            🌟 <span id="starTime"></span>
+          </div>
           <div id="frenzyBanner" class="frenzy-banner" hidden>
             🐋 LAUT RAKSASA! POIN ×2 <span id="frenzyTime"></span>
           </div>

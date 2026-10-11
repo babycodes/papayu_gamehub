@@ -1,5 +1,6 @@
 export const BOSS_STEP = 2000;
-export const FRENZY_DURATION = 15;
+export const FRENZY_DURATION = 5;
+export const STAR_DURATION = 15;
 const roster = [
   ["crocodile", "Buaya ceria", "🐊", "crocodile", "#a5d87d", "#568942"],
   ["octopus", "Gurita raksasa", "🐙", "octopus", "#edabbf", "#b85889"],

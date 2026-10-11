@@ -15,7 +15,7 @@ export const GAMES = [
     id: "fishing",
     title: "Petualangan Memancing",
     description:
-      "Kejar bintang besar, rayakan Laut Raksasa, dan temui 20 boss laut!",
+      "Kejar bintang besar dan temui gelombang hingga 3 monster laut dengan variasi tanpa batas skor!",
     icon: "⚓",
     category: "Petualangan",
     modes: ["Solo"],

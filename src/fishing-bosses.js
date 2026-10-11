@@ -1,4 +1,6 @@
 export const BOSS_STEP = 2000;
+export const RANDOM_BOSS_SCORE = 22000;
+export const LATE_BOSS_STEP = 5000;
 export const FRENZY_DURATION = 5;
 export const STAR_DURATION = 15;
 const roster = [
@@ -87,3 +89,74 @@ export const FISHING_BOSSES = roster.map(
     boss: true,
   }),
 );
+
+export function nextBossThreshold(threshold) {
+  return threshold < RANDOM_BOSS_SCORE
+    ? threshold + BOSS_STEP
+    : threshold + LATE_BOSS_STEP;
+}
+export function bossWaveSize(threshold) {
+  return threshold >= 40000 ? 3 : threshold >= 20000 ? 2 : 1;
+}
+const palettes = [
+  ["#84ddd6", "#277c92", "Karang"],
+  ["#b2a0ef", "#614296", "Senja"],
+  ["#ef998c", "#a23b60", "Bara"],
+  ["#91c5ef", "#355b98", "Badai"],
+  ["#d7a7df", "#8e408b", "Nebula"],
+  ["#b6d995", "#417568", "Lumut"],
+  ["#eed09b", "#a77649", "Emas"],
+];
+// Only the previous wave's families are retained. Variants can continue
+// indefinitely without accumulating a history of monsters or textures.
+export function createBossWave(
+  threshold,
+  waveIndex,
+  random,
+  previousKinds = [],
+) {
+  const tier = Math.min(5, Math.floor(threshold / 20000));
+  const count = bossWaveSize(threshold),
+    used = new Set();
+  return Array.from({ length: count }, (_, slot) => {
+    const procedural = threshold >= RANDOM_BOSS_SCORE;
+    const candidates = FISHING_BOSSES.filter(
+      (b) => !used.has(b.kind) && !previousKinds.includes(b.kind),
+    );
+    const base =
+      !procedural && slot === 0
+        ? FISHING_BOSSES[Math.min(waveIndex, 9)]
+        : candidates[
+            Math.floor(
+              Math.max(0, Math.min(0.999999, random())) * candidates.length,
+            )
+          ];
+    used.add(base.kind);
+    const variant = waveIndex * 3 + slot;
+    const palette =
+      palettes[
+        (variant + Math.floor(random() * palettes.length)) % palettes.length
+      ];
+    return {
+      ...base,
+      name: procedural
+        ? `${base.name.replace(/ ceria| raksasa| pulau| pelangi| permata| bintang| mahkota| laut| bulan/g, "")} ${palette[2]}`
+        : base.name,
+      color: procedural ? palette[0] : base.color,
+      accent: procedural ? palette[1] : base.accent,
+      threshold,
+      tier,
+      waveCount: count,
+      slot,
+      encounterId: `${waveIndex}:${slot}`,
+      variant,
+      pattern: variant % 4,
+      crest: procedural ? 1 + (variant % 3) : base.hybrid ? 1 : 0,
+      // Size and aggression grow to a child-friendly cap at 100k. Waves and
+      // random appearances continue beyond that cap at every 5k threshold.
+      size: 150 + tier * 12 + (procedural ? 8 : waveIndex * 2),
+      points: procedural ? 700 + tier * 75 : base.points,
+      fierce: procedural,
+    };
+  });
+}

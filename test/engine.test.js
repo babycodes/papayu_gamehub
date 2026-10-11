@@ -322,29 +322,40 @@ test("bosses trigger at score thresholds, never from elapsed time, and wait for 
   assert.equal(g.currentBoss.id, "octopus");
   assert.equal(g.bossIndex, 2);
 });
-test("all twenty distinct bosses arrive in order with no repeats or skipped score thresholds", () => {
-  const g = new FishingGame();
+test("first ten encounters keep their order, then bosses continue beyond 40k and 100k without skipping thresholds", () => {
+  const g = new FishingGame(() => 0.5);
   g.reset();
-  assert.equal(FISHING_BOSSES.length, 20);
-  assert.equal(new Set(FISHING_BOSSES.map((b) => b.id)).size, 20);
-  for (let i = 0; i < 20; i++) {
-    g.score = (i + 1) * 2000;
+  for (let i = 0; i < 50; i++) {
+    const threshold = g.nextBossScore;
+    g.score = threshold;
     g.tick(0.05);
     assert.equal(g.bossState, "warning");
-    assert.equal(g.currentBoss.id, FISHING_BOSSES[i].id);
+    if (i < 10) assert.equal(g.currentBoss.id, FISHING_BOSSES[i].id);
+    assert.equal(g.currentBoss.threshold, threshold);
+    assert.equal(
+      g.nextBossScore,
+      threshold < 22000 ? threshold + 2000 : threshold + 5000,
+    );
     advance(g, 2.1);
-    assert.equal(g.fish[0].bossId, FISHING_BOSSES[i].id);
-    assert.ok(g.fish[0].size >= 150);
+    assert.equal(
+      g.bossRemaining,
+      threshold >= 40000 ? 3 : threshold >= 20000 ? 2 : 1,
+    );
+    assert.equal(g.fish.length, g.bossRemaining);
+    assert.equal(
+      new Set(g.fish.map((f) => f.encounterId)).size,
+      g.bossRemaining,
+    );
     g.returnFish(false);
+    assert.equal(g.bossState, "waiting");
   }
-  assert.equal(g.bossState, "done");
-  g.score = 999999;
-  advance(g, 1);
-  assert.equal(g.bossIndex, 20);
-  assert.equal(g.beginBoss(), false);
+  assert.ok(g.nextBossScore > 200000);
+  assert.equal(g.bossIndex, 50);
   g.reset();
   assert.equal(g.bossIndex, 0);
   assert.equal(g.nextBossScore, 2000);
+  assert.equal(g.bossWave.length, 0);
+  assert.equal(g.finishedBossIds.size, 0);
 });
 test("fish frenzy lasts five seconds while star bonus lasts fifteen and the star stays available", () => {
   const g = new FishingGame(() => 0.5);
@@ -415,7 +426,10 @@ test("a star takes priority over overlapping large fish and boss rewards cannot 
   g.combo = 4;
   g.lastCatchAt = g.elapsed;
   g.beginBoss();
-  g.reward({ ...FISHING_BOSSES[0], bossId: "crocodile", layer: 3 });
+  advance(g, 2.1);
+  g.combo = 4;
+  g.lastCatchAt = g.elapsed;
+  g.reward(g.fish[0]);
   assert.equal(g.score, 2500);
   g.tick(0.05);
   assert.equal(g.bossIndex, 1);
@@ -472,4 +486,100 @@ test("star bonus awards double after fish frenzy ends and both clocks freeze for
     .drainEvents()
     .find((e) => e.type === "catch" && e.fish === star);
   assert.equal(event.points, 400);
+});
+
+test("a multi-boss wave restores fish only after the last boss, with rewards counted once per boss", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  g.nextBossScore = 42000;
+  g.bossIndex = 14;
+  g.score = 42000;
+  const original = g.fish.slice();
+  g.tick(0.05);
+  advance(g, 2.1);
+  const bosses = g.fish.slice(),
+    time = g.remaining;
+  assert.equal(bosses.length, 3);
+  g.reward(bosses[0]);
+  assert.equal(g.bossState, "active");
+  assert.equal(g.bossRemaining, 2);
+  assert.equal(g.fish.length, 2);
+  assert.equal(g.bossCount, 1);
+  const score = g.score;
+  g.reward(bosses[0]);
+  assert.equal(g.score, score);
+  assert.equal(g.bossRemaining, 2);
+  g.reward(bosses[1]);
+  assert.equal(g.bossRemaining, 1);
+  advance(g, 1);
+  assert.equal(g.remaining, time + 16);
+  g.reward(bosses[2]);
+  assert.equal(g.bossRemaining, 0);
+  assert.equal(g.bossState, "waiting");
+  assert.equal(g.bossCount, 3);
+  assert.equal(g.remaining, time + 24);
+  assert.deepEqual(
+    g.fish,
+    original.filter((f) => !f.bonus),
+  );
+  assert.equal(
+    g.drainEvents().filter((e) => e.type === "sea-return").length,
+    1,
+  );
+});
+test("an escaped boss leaves its companions and allows the next one a full capture window", () => {
+  const g = new FishingGame(() => 0.5);
+  g.reset();
+  g.nextBossScore = 22000;
+  g.score = 22000;
+  g.tick(0.05);
+  advance(g, 2.1);
+  const escaped = g.fish.shift();
+  g.hook.catch = escaped;
+  g.hook.y = 0.65;
+  g.beginFight(escaped);
+  advance(g, 27);
+  assert.equal(g.fight, null);
+  assert.equal(g.bossState, "active");
+  assert.equal(g.bossRemaining, 1);
+  assert.equal(g.bossCount, 0);
+  assert.equal(g.score, 22000);
+  const companion = g.fish[0];
+  g.reward(companion);
+  assert.equal(g.bossState, "waiting");
+  assert.equal(g.bossCount, 1);
+  assert.equal(
+    g
+      .drainEvents()
+      .filter((e) => e.type === "sea-return")
+      .at(-1).caught,
+    false,
+  );
+});
+test("three bosses stay inside portrait and landscape canvases and pause freezes the whole wave", () => {
+  for (const viewport of [
+    { width: 320, height: 375 },
+    { width: 844, height: 230 },
+  ]) {
+    const g = new FishingGame(() => 0.5);
+    g.reset();
+    g.viewport = viewport;
+    g.nextBossScore = 102000;
+    g.score = 102000;
+    g.tick(0.05);
+    advance(g, 2.1);
+    advance(g, 4);
+    if (viewport.width / viewport.height > 1.6)
+      assert.ok(g.fish[2].x - g.fish[0].x > 0.5);
+    for (const b of g.fish) {
+      const s = fishSize(b, viewport.width, viewport.height);
+      assert.ok(b.x * viewport.width >= s * 1.3 - 1);
+      assert.ok((1 - b.x) * viewport.width >= s * 1.3 - 1);
+      assert.ok(b.y * viewport.height + s * 0.9 < viewport.height);
+    }
+    g.pause();
+    const snapshot = JSON.stringify([g.bossClock, g.fish, g.remaining]);
+    advance(g, 5);
+    assert.equal(JSON.stringify([g.bossClock, g.fish, g.remaining]), snapshot);
+  }
 });

@@ -97,3 +97,48 @@ test("ordinary animals have distinct moving fins and tails that stop on pause an
   assert.deepEqual(m.pose(fish), still);
   assert.equal(still.tail, 0);
 });
+
+test("capturing one boss changes its expression without changing its companions or clearing their animations", () => {
+  const m = new FishingMotion();
+  const a = { ...FISHING_BOSSES[1], encounterId: "1:0" },
+    b = { ...FISHING_BOSSES[4], encounterId: "1:1" };
+  m.handle({ type: "boss-warning", boss: a, bosses: [a, b] });
+  m.handle({ type: "boss-arrived", boss: a, bosses: [a, b] });
+  advance(m, 1);
+  m.handle({ type: "fight-won", fish: a });
+  advance(m, 0.6);
+  assert.equal(m.pose(a).friendly, 1);
+  assert.equal(m.pose(b).friendly, 0);
+  m.handle({ type: "boss-finished", fish: a, caught: true, remaining: 1 });
+  assert.equal(m.actors.size, 1);
+  assert.equal(m.pose(b).presence, 1);
+  assert.ok(m.state.celebration > 0);
+  assert.equal(m.boss, a);
+  m.handle({ type: "sea-return", caught: true, boss: b });
+  advance(m, 1.5);
+  assert.equal(m.actors.size, 0);
+  assert.equal(m.group.getAll().length, 0);
+  m.reset();
+  assert.equal(m.actors.size, 0);
+});
+
+test("hundreds of rapid waves keep at most three actor states and bounded tween channels", () => {
+  const m = new FishingMotion();
+  for (let wave = 0; wave < 300; wave++) {
+    const bosses = [0, 1, 2].map((slot) => ({
+      ...FISHING_BOSSES[slot],
+      encounterId: `${wave}:${slot}`,
+    }));
+    m.handle({ type: "boss-warning", boss: bosses[0], bosses });
+    m.handle({ type: "boss-arrived", boss: bosses[0], bosses });
+    m.handle({ type: "fight-won", fish: bosses[0] });
+    m.update(0.05, true);
+    assert.equal(m.actors.size, 3);
+    assert.ok(m.group.getAll().length <= 8);
+    assert.ok(m.channels.size <= 8);
+  }
+  m.reset();
+  assert.equal(m.actors.size, 0);
+  assert.equal(m.channels.size, 0);
+  assert.equal(m.group.getAll().length, 0);
+});

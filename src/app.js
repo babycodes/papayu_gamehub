@@ -134,16 +134,6 @@ function updateFishingFight() {
   $("fightProgress").setAttribute("aria-valuenow", String(progress));
   $("fightProgress").firstElementChild.style.width = `${progress}%`;
 }
-function drawBossFish(fish, s) {
-  drawFishingAnimal(
-    ctx,
-    fish,
-    s,
-    fishingMotion.pose(fish, game.hook.catch === fish ? game.fight : null),
-    bossStyle === "spooky",
-  );
-}
-
 function resize() {
   const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
@@ -198,7 +188,17 @@ function updateUI() {
   $("bossDanger").hidden = game.bossState !== "warning";
   $("bossDanger").style.animationPlayState =
     game.mode === "playing" ? "running" : "paused";
-  $("bossDangerName").textContent = game.currentBoss?.name || "";
+  const dangerTitle = `DANGER · ${game.bossWave.length > 1 ? game.bossWave.length + " " : ""}BOSS DATANG`;
+  const dangerName = game.bossWave.map((b) => b.name).join(" · ");
+  if ($("bossDangerTitle").textContent !== dangerTitle)
+    $("bossDangerTitle").textContent = dangerTitle;
+  if ($("bossDangerName").textContent !== dangerName)
+    $("bossDangerName").textContent = dangerName;
+  $("bossWaveStatus").hidden =
+    game.bossState !== "active" || !!game.fight || game.mode !== "playing";
+  const waveStatus = `${game.bossWaveCaught}/${game.bossWave.length} tertangkap · ${game.bossRemaining} boss tersisa`;
+  if ($("bossWaveStatus").textContent !== waveStatus)
+    $("bossWaveStatus").textContent = waveStatus;
   const starAvailable =
     game.fish.some((f) => f.special) || game.hook.catch?.special;
   $("starBanner").hidden =
@@ -602,7 +602,7 @@ function onEvent(event) {
   fishingMotion.handle(event);
   if (event.type === "catch") {
     announce(
-      `+${event.points} poin · ${event.fish.name}${event.combo > 1 ? ` · Combo ×${event.combo}!` : ""}`,
+      `+${event.points} poin · ${event.fish.name}${event.fish.boss ? (game.bossRemaining > 0 ? ` · ${game.bossRemaining} boss lagi!` : " · +8 detik 🎉") : event.combo > 1 ? ` · Combo ×${event.combo}!` : ""}`,
     );
     $("lastCatch").innerHTML =
       `<span class="catch-illustration" style="color:${event.fish.accent}">➤</span><div><strong>${event.fish.name}</strong><p>+${event.points} poin · tangkapan ke-${game.count}</p></div>`;
@@ -639,10 +639,22 @@ function onEvent(event) {
     announce("Ikan besar 5 detik · bintang 15 detik!", 3);
     tone([392, 523, 659, 784]);
   }
-  if (event.type === "boss-warning")
-    announce(`Ikan menepi… ${event.boss.name} datang! ${event.boss.icon}`, 2);
+  if (event.type === "boss-warning") {
+    announce(
+      event.bosses.length > 1
+        ? `${event.bosses.length} monster datang bersama!`
+        : `Ikan menepi… ${event.boss.name} datang! ${event.boss.icon}`,
+      2,
+    );
+    tone([147, 165, 196], 0.16);
+  }
   if (event.type === "boss-arrived") {
-    announce(`${event.boss.name} datang! Arahkan kail ${event.boss.icon}`, 4);
+    announce(
+      event.bosses.length > 1
+        ? "Pilih satu boss, lalu gulung satu per satu!"
+        : `${event.boss.name} datang! Arahkan kail ${event.boss.icon}`,
+      4,
+    );
     tone([262, 330, 392]);
   }
   if (event.type === "boss-left")
@@ -650,15 +662,24 @@ function onEvent(event) {
   if (event.type === "sea-return")
     announce(
       event.caught
-        ? `${event.boss.name} tertangkap! +8 detik 🎉`
+        ? "Semua boss tertangkap! Laut kembali cerah 🎉"
         : "Ikan-ikan kembali. Ayo memancing lagi!",
+      3,
+    );
+  if (event.type === "boss-finished" && event.remaining > 0)
+    announce(
+      event.caught
+        ? `+8 detik! Masih ada ${event.remaining} boss, ayo pilih lagi!`
+        : `Tidak apa-apa! ${event.remaining} boss masih menunggu.`,
       3,
     );
   if (event.type === "escaped")
     announce(
-      event.fish.special
-        ? "🌟 Bintang masih di laut! Coba lagi, yuk."
-        : "Ikan lepas, tidak apa-apa. Coba lagi!",
+      event.fish.boss
+        ? `Boss lepas. ${game.bossRemaining > 0 ? "Boss lainnya masih menunggu!" : "Coba lagi di gelombang berikutnya!"}`
+        : event.fish.special
+          ? "🌟 Bintang masih di laut! Coba lagi, yuk."
+          : "Ikan lepas, tidak apa-apa. Coba lagi!",
       2.5,
     );
   if (event.type === "fight-won") {
@@ -973,19 +994,45 @@ function draw(t, dt) {
       "#285369",
     );
   if (game.bossState === "warning") {
-    const cx = width * 0.5,
-      cy = height * 0.64;
-    ellipse(cx, cy, width * 0.24, height * 0.055, "#0b243b80");
+    const total = game.bossWave.length,
+      horizontal = total > 1 && width / height > 1.6;
     ctx.shadowColor = bossStyle === "cute" ? "#e7f6a2" : "#ffcf80";
     ctx.shadowBlur = reducedMotion ? 0 : 12;
-    for (const side of [-1, 1])
+    for (let slot = 0; slot < total; slot++) {
+      const cx =
+        width *
+        (horizontal
+          ? total === 3
+            ? [0.18, 0.5, 0.82][slot]
+            : [0.3, 0.7][slot]
+          : total === 1
+            ? 0.5
+            : slot % 2
+              ? 0.65
+              : 0.35);
+      const cy =
+        height *
+        (horizontal || total === 1
+          ? 0.64
+          : total === 3
+            ? [0.46, 0.65, 0.84][slot]
+            : [0.51, 0.78][slot]);
       ellipse(
-        cx + side * width * 0.055,
-        cy - height * 0.015,
-        width * 0.018,
-        height * 0.012,
-        "#ffe8a6",
+        cx,
+        cy,
+        width * (total === 1 ? 0.24 : horizontal ? 0.1 : 0.17),
+        height * 0.04,
+        "#0b243b80",
       );
+      for (const side of [-1, 1])
+        ellipse(
+          cx + side * width * (total === 1 ? 0.055 : 0.035),
+          cy - height * 0.015,
+          width * 0.018,
+          height * 0.012,
+          "#ffe8a6",
+        );
+    }
     ctx.shadowBlur = 0;
   }
   if (blend > 0.02) {
@@ -1012,9 +1059,12 @@ function draw(t, dt) {
     ctx.translate(width * 0.5, height * (0.42 - (1 - life) * 0.09));
     ctx.globalAlpha = life;
     ctx.scale(0.45, 0.45);
-    drawBossFish(
+    drawFishingAnimal(
+      ctx,
       fishingMotion.boss,
       fishSize(fishingMotion.boss, width, height),
+      { ...fishingMotion.pose(fishingMotion.boss), friendly: 1 },
+      bossStyle === "spooky",
     );
     ctx.restore();
   }

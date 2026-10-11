@@ -1,8 +1,9 @@
 import {
-  FISHING_BOSSES,
   BOSS_STEP,
   FRENZY_DURATION,
   STAR_DURATION,
+  createBossWave,
+  nextBossThreshold,
 } from "./fishing-bosses.js";
 export const LAYERS = [
   {
@@ -48,9 +49,32 @@ export const LAYERS = [
 ];
 export function fishSize(fish, width = 650, height = 470, giant = false) {
   const scale = Math.max(0.55, Math.min(1.2, width / 600, height / 430));
+  const multi = fish.boss && fish.waveCount > 1;
+  const horizontal = multi && width / height > 1.6;
+  const growth = fish.boss ? Math.min(5, fish.tier || 0) * 0.008 : 0;
   return Math.min(
-    width * (fish.boss ? 0.32 : 0.23),
-    height * (fish.boss ? 0.45 : 0.245),
+    width *
+      (fish.boss
+        ? (horizontal
+            ? fish.waveCount === 3
+              ? 0.12
+              : 0.2
+            : multi
+              ? 0.21
+              : 0.32) + growth
+        : 0.23),
+    height *
+      (fish.boss
+        ? (horizontal
+            ? fish.waveCount === 3
+              ? 0.24
+              : 0.28
+            : multi
+              ? fish.waveCount === 3
+                ? 0.14
+                : 0.21
+              : 0.45) + growth
+        : 0.245),
     fish.size *
       scale *
       ((giant || fish.giant) && !fish.bonus && !fish.boss ? 1.6 : 1),
@@ -82,6 +106,11 @@ export class FishingGame {
     this.bossIndex = 0;
     this.nextBossScore = BOSS_STEP;
     this.currentBoss = null;
+    this.bossWave = [];
+    this.bossRemaining = 0;
+    this.bossWaveCaught = 0;
+    this.previousBossKinds = [];
+    this.finishedBossIds = new Set();
     this.events = [];
     this.held = false;
     this.fight = null;
@@ -170,30 +199,74 @@ export class FishingGame {
     if (this.mode === "paused") this.mode = "playing";
   }
   beginBoss() {
-    if (
-      this.bossIndex >= FISHING_BOSSES.length ||
-      ["warning", "active"].includes(this.bossState)
-    )
+    if (this.hook.catch || ["warning", "active"].includes(this.bossState))
       return false;
-    this.currentBoss = FISHING_BOSSES[this.bossIndex++];
-    this.nextBossScore = (this.bossIndex + 1) * BOSS_STEP;
+    const threshold = this.nextBossScore;
+    this.bossWave = createBossWave(
+      threshold,
+      this.bossIndex++,
+      this.random,
+      this.previousBossKinds,
+    );
+    this.currentBoss = this.bossWave[0];
+    this.previousBossKinds = this.bossWave.map((b) => b.kind);
+    this.finishedBossIds.clear();
+    this.bossRemaining = this.bossWave.length;
+    this.bossWaveCaught = 0;
+    this.nextBossScore = nextBossThreshold(threshold);
     this.bossState = "warning";
     this.bossClock = 0;
     this.hiddenFish = this.fish;
     this.fish = [];
     this.hook.state = "idle";
     this.held = false;
-    this.events.push({ type: "boss-warning", boss: this.currentBoss });
+    this.events.push({
+      type: "boss-warning",
+      boss: this.currentBoss,
+      bosses: this.bossWave,
+    });
+    return true;
   }
   returnFish(caught) {
     this.fish = this.hiddenFish.filter((f) => !f.bonus);
     this.hiddenFish = [];
-    this.bossState =
-      this.bossIndex < FISHING_BOSSES.length ? "waiting" : "done";
+    this.bossState = "waiting";
+    this.bossRemaining = 0;
     if (!caught)
       this.events.push({ type: "boss-left", boss: this.currentBoss });
     if (!this.fish.length) this.populate();
-    this.events.push({ type: "sea-return", caught, boss: this.currentBoss });
+    this.events.push({
+      type: "sea-return",
+      caught,
+      boss: this.currentBoss,
+      caughtCount: this.bossWaveCaught,
+      total: this.bossWave.length,
+    });
+  }
+  finishBoss(fish, caught) {
+    if (!this.canFinishBoss(fish)) return;
+    this.finishedBossIds.add(fish.encounterId);
+    this.fish = this.fish.filter((f) => f.encounterId !== fish.encounterId);
+    this.bossRemaining--;
+    if (caught) this.bossWaveCaught++;
+    this.events.push({
+      type: "boss-finished",
+      fish,
+      caught,
+      remaining: this.bossRemaining,
+      total: this.bossWave.length,
+    });
+    if (this.bossRemaining === 0)
+      this.returnFish(this.bossWaveCaught === this.bossWave.length);
+    else this.bossClock = 0; // A fresh invitation for each remaining monster.
+  }
+  canFinishBoss(fish) {
+    return (
+      this.bossState === "active" &&
+      this.bossRemaining > 0 &&
+      !this.finishedBossIds.has(fish.encounterId) &&
+      this.bossWave.some((b) => b.encounterId === fish.encounterId)
+    );
   }
   beginFight(fish) {
     this.fight = {
@@ -204,13 +277,18 @@ export class FishingGame {
             ? "timing"
             : "hold",
       stage: 0,
+      aggression: fish.boss ? Math.min(5, fish.tier || 0) : 0,
       progress: 0,
       elapsed: 0,
       total: 0,
       good: false,
       target: this.hook.x,
       meter: 0,
-      remaining: fish.boss ? 24 : this.difficulty === "easy" ? 16 : 11,
+      remaining: fish.boss
+        ? 24 + Math.min(5, fish.tier || 0) * 2
+        : this.difficulty === "easy"
+          ? 16
+          : 11,
     };
     this.hook.state = "fighting";
     this.events.push({ type: "fight-start", fish });
@@ -223,7 +301,12 @@ export class FishingGame {
     f.remaining -= dt;
     f.target =
       0.5 +
-      Math.sin(f.elapsed * (this.difficulty === "easy" ? 0.9 : 1.3)) * 0.22;
+      Math.sin(
+        f.elapsed *
+          (this.difficulty === "easy" ? 0.9 : 1.3) *
+          (1 + f.aggression * 0.08),
+      ) *
+        0.22;
     f.meter = (Math.sin(f.elapsed * 2.2 - Math.PI / 2) + 1) / 2;
     f.good =
       f.type === "follow"
@@ -235,7 +318,8 @@ export class FishingGame {
     if (this.held && f.good)
       f.progress = Math.min(
         1,
-        f.progress + dt / (f.type === "hold" ? 1.8 : 1.45),
+        f.progress +
+          dt / ((f.type === "hold" ? 1.8 : 1.45) * (1 + f.aggression * 0.05)),
       );
     else if (this.held && !f.good && this.difficulty === "normal")
       f.progress = Math.max(0, f.progress - dt * 0.08);
@@ -245,7 +329,7 @@ export class FishingGame {
         f.type = ["follow", "hold", "timing"][f.stage];
         f.progress = 0;
         f.elapsed = 0;
-        this.events.push({ type: "fight-stage", stage: f.stage });
+        this.events.push({ type: "fight-stage", stage: f.stage, fish });
       } else {
         this.fight = null;
         this.hook.state = "reeling";
@@ -256,13 +340,14 @@ export class FishingGame {
       this.hook.catch = null;
       this.hook.state = "reeling";
       this.held = false;
-      if (fish.boss) this.returnFish(false);
+      if (fish.boss) this.finishBoss(fish, false);
       else if (fish.special) this.fish.push(fish);
       else this.spawn(fish.layer);
       this.events.push({ type: "escaped", fish });
     }
   }
   reward(fish) {
+    if (fish.boss && !this.canFinishBoss(fish)) return;
     if (fish.bonus) {
       this.remaining += 12;
       this.events.push({ type: "bonus", seconds: 12 });
@@ -284,7 +369,7 @@ export class FishingGame {
     if (fish.boss) {
       this.bossCount++;
       this.remaining += 8;
-      this.returnFish(true);
+      this.finishBoss(fish, true);
     }
     this.events.push({ type: "catch", fish, points, combo: this.combo });
     if (!fish.boss && !fish.special) this.spawn(fish.layer);
@@ -318,18 +403,24 @@ export class FishingGame {
       if (this.bossState === "warning" && this.bossClock >= 2) {
         this.bossState = "active";
         this.bossClock = 0;
-        this.fish.push({
-          ...this.currentBoss,
-          bossId: this.currentBoss.id,
-          layer: 3,
-          x: 0.5,
-          y: 0.64,
-          direction: 1,
-          speed: 0,
-          phase: 0,
-          expires: Infinity,
+        for (const boss of this.bossWave)
+          this.fish.push({
+            ...boss,
+            id: ++this.id,
+            bossId: boss.id,
+            layer: 3,
+            x: 0.5,
+            y: 0.64,
+            direction: 1,
+            speed: 0,
+            phase: boss.slot * 2.1,
+            expires: Infinity,
+          });
+        this.events.push({
+          type: "boss-arrived",
+          boss: this.currentBoss,
+          bosses: this.bossWave,
         });
-        this.events.push({ type: "boss-arrived", boss: this.currentBoss });
       } else if (
         this.bossState === "active" &&
         this.bossClock >= 30 &&
@@ -367,9 +458,38 @@ export class FishingGame {
     if (this.elapsed - this.lastCatchAt > 8) this.combo = 1;
     for (const fish of [...this.fish]) {
       if (fish.boss) {
-        fish.x = 0.5 + Math.sin(this.bossClock * 0.65) * 0.16;
-        fish.y = 0.64 + Math.sin(this.bossClock * 0.9) * 0.008;
-        fish.direction = Math.cos(this.bossClock * 0.65) >= 0 ? 1 : -1;
+        const multi = fish.waveCount > 1,
+          slot = fish.slot || 0;
+        const horizontal =
+          multi && this.viewport.width / this.viewport.height > 1.6;
+        const centers =
+          fish.waveCount === 3 ? [0.46, 0.65, 0.84] : [0.51, 0.78];
+        const swim =
+          this.elapsed * (0.65 + (fish.tier || 0) * 0.04) + slot * 1.9;
+        const horizontalX =
+          fish.waveCount === 3 ? [0.18, 0.5, 0.82] : [0.3, 0.7];
+        fish.x =
+          (horizontal
+            ? horizontalX[slot]
+            : multi
+              ? slot % 2
+                ? 0.65
+                : 0.35
+              : 0.5) +
+          Math.sin(swim) * (multi ? 0.025 : 0.14);
+        const margin =
+          (fishSize(fish, this.viewport.width, this.viewport.height) * 1.3) /
+          this.viewport.width;
+        fish.x = Math.max(margin, Math.min(1 - margin, fish.x));
+        fish.y =
+          (horizontal ? 0.64 : multi ? centers[slot] : 0.64) +
+          Math.sin(swim * 1.4) * 0.008;
+        const size = fishSize(fish, this.viewport.width, this.viewport.height);
+        fish.y = Math.max(
+          0.34 + size / this.viewport.height,
+          Math.min(0.975 - (size * 0.9) / this.viewport.height, fish.y),
+        );
+        fish.direction = Math.cos(swim) >= 0 ? 1 : -1;
       } else {
         fish.x += fish.direction * fish.speed * dt;
         if (fish.special && (fish.x > 0.84 || fish.x < 0.16)) {

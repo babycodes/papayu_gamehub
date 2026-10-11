@@ -13,6 +13,7 @@ export class FishingMotion {
     this.channels.clear();
     this.time = 0;
     this.boss = null;
+    this.actors = new Map();
     this.state = {
       sea: 0,
       presence: 0,
@@ -21,7 +22,7 @@ export class FishingMotion {
       celebration: 0,
     };
   }
-  transition(channel, values, duration = 700) {
+  transition(channel, values, duration = 700, target = this.state) {
     const previous = this.channels.get(channel);
     if (previous) {
       previous.stop();
@@ -29,10 +30,10 @@ export class FishingMotion {
       this.channels.delete(channel);
     }
     if (this.reducedMotion) {
-      Object.assign(this.state, values);
+      Object.assign(target, values);
       return;
     }
-    const tween = new Tween(this.state, this.group)
+    const tween = new Tween(target, this.group)
       .to(values, duration)
       .easing(Easing.Cubic.Out)
       .start(this.time);
@@ -44,6 +45,13 @@ export class FishingMotion {
   }
   handle(event) {
     if (event.type === "boss-warning") {
+      for (const id of this.actors.keys()) this.removeActor(id);
+      for (const boss of event.bosses || [event.boss])
+        this.actors.set(boss.encounterId || boss.id, {
+          presence: 0,
+          recoil: 0,
+          friendly: 0,
+        });
       this.boss = event.boss;
       this.state.friendly = 0;
       this.state.celebration = 0;
@@ -53,6 +61,8 @@ export class FishingMotion {
       this.boss = event.boss;
       this.state.presence = 0;
       this.transition("presence", { presence: 1 }, 650);
+      for (const [id, actor] of this.actors)
+        this.transition(`actor:${id}:presence`, { presence: 1 }, 650, actor);
     }
     if (
       (event.type === "hooked" && event.fish.boss) ||
@@ -60,10 +70,30 @@ export class FishingMotion {
     ) {
       this.state.recoil = 1;
       this.transition("recoil", { recoil: 0 }, 500);
+      const id = event.fish?.encounterId || event.fish?.id,
+        actor = this.actors.get(id);
+      if (actor) {
+        actor.recoil = 1;
+        this.transition(`actor:${id}:recoil`, { recoil: 0 }, 500, actor);
+      }
     }
-    if (event.type === "fight-won" && event.fish.boss)
+    if (event.type === "fight-won" && event.fish.boss) {
       this.transition("friendly", { friendly: 1 }, 500);
+      const id = event.fish.encounterId || event.fish.id,
+        actor = this.actors.get(id);
+      if (actor)
+        this.transition(`actor:${id}:friendly`, { friendly: 1 }, 500, actor);
+    }
+    if (event.type === "boss-finished") {
+      this.removeActor(event.fish.encounterId || event.fish.id);
+      if (event.caught && !this.reducedMotion) {
+        this.boss = event.fish;
+        this.state.celebration = 1;
+        this.transition("celebration", { celebration: 0 }, 1300);
+      }
+    }
     if (event.type === "sea-return") {
+      for (const id of this.actors.keys()) this.removeActor(id);
       this.transition("sea", { sea: 0 }, 1100);
       this.transition("presence", { presence: 0 }, 450);
       if (event.caught && !this.reducedMotion) {
@@ -72,6 +102,16 @@ export class FishingMotion {
       }
     }
     if (event.type === "end") this.reset();
+  }
+  removeActor(id) {
+    for (const [channel, tween] of this.channels) {
+      if (channel.startsWith(`actor:${id}:`)) {
+        tween.stop();
+        this.group.remove(tween);
+        this.channels.delete(channel);
+      }
+    }
+    this.actors.delete(id);
   }
   update(dt, playing) {
     if (!playing || !Number.isFinite(dt) || dt <= 0) return;
@@ -86,26 +126,28 @@ export class FishingMotion {
       this.channels.clear();
       this.state.recoil = 0;
       this.state.celebration = 0;
+      for (const actor of this.actors.values()) actor.recoil = 0;
     }
   }
   pose(fish, fight) {
     const t = this.reducedMotion ? 0 : this.time / 1000;
     const phase = fish.phase || fish.index * 0.23 || 0;
+    const actor = this.actors.get(fish.encounterId || fish.id) || this.state;
     return {
       time: t,
       breathe: this.reducedMotion ? 1 : 1 + Math.sin(t * 2.1 + phase) * 0.012,
       sway: this.reducedMotion
         ? 0
         : Math.sin(t * 1.8 + phase) * 0.018 +
-          (fish.boss ? this.state.recoil * 0.04 : 0),
+          (fish.boss ? actor.recoil * 0.04 : 0),
       limb: this.reducedMotion ? 0 : Math.sin(t * 2.4 + phase) * 0.1,
       tail: this.reducedMotion
         ? 0
         : Math.sin(t * (fish.boss ? 2.6 : 5) + phase) * 0.16,
       blink: this.reducedMotion ? 1 : (t + phase) % 4.7 < 0.13 ? 0.15 : 1,
       anger: Math.max(0, Math.min(1, (fight?.stage || 0) / 2)),
-      friendly: fish.boss ? this.state.friendly : 1,
-      presence: Math.max(0, Math.min(1, this.state.presence)),
+      friendly: fish.boss ? actor.friendly : 1,
+      presence: Math.max(0, Math.min(1, actor.presence)),
     };
   }
 }

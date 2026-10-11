@@ -224,7 +224,8 @@
           </div>
           <p>
             Tangkap ikan dan boss untuk membuka stiker! Boss baru datang tiap
-            2.000 poin: buaya, gurita, lalu 18 kejutan lainnya.
+            2.000 poin di awal, lalu tiap 5.000 mulai 22.000. Dua boss mulai
+            20.000, tiga mulai 40.000; variasi monster terus berlanjut!
           </p>
           <div id="fishingStickers" class="fishing-stickers"></div>
         </section>
@@ -363,15 +364,22 @@
         <div class="sea-frame">
           <canvas
             id="sea"
-            aria-label="Laut dengan lima lapisan ikan besar, bintang besar, dan 20 boss. Tahan Spasi atau tombol untuk turun, geser untuk mengarahkan, lalu ikuti petunjuk gulungan."
+            aria-label="Laut dengan lima lapisan ikan besar, bintang besar, dan gelombang satu sampai tiga boss tanpa batas skor. Tahan Spasi atau tombol untuk turun, geser untuk mengarahkan, lalu ikuti petunjuk gulungan."
             tabindex="0"
           ></canvas>
           <div id="bossDanger" class="boss-danger" role="alert" hidden>
             <span aria-hidden="true">!</span>
             <div>
-              <strong>DANGER · BOSS DATANG</strong><b id="bossDangerName"></b>
+              <strong id="bossDangerTitle">DANGER · BOSS DATANG</strong
+              ><b id="bossDangerName"></b>
             </div>
           </div>
+          <div
+            id="bossWaveStatus"
+            class="boss-wave-status"
+            aria-live="polite"
+            hidden
+          ></div>
           <div id="starBanner" class="star-banner" hidden>
             🌟 <span id="starTime"></span>
           </div>
@@ -640,7 +648,8 @@
       {
         "imports": {
           "chess.js": "/vendor/chess.js",
-          "@tweenjs/tween.js": "/vendor/tween.js"
+          "@tweenjs/tween.js": "/vendor/tween.js",
+          "perfect-freehand": "/vendor/perfect-freehand.js"
         }
       }
     </script>

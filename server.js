@@ -8,6 +8,7 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
 };
 const server = http.createServer(async (req, res) => {
@@ -23,6 +24,8 @@ const server = http.createServer(async (req, res) => {
     const vendorFiles = {
       "/vendor/chess.js": "node_modules/chess.js/dist/esm/chess.js",
       "/vendor/tween.js": "node_modules/@tweenjs/tween.js/dist/tween.esm.js",
+      "/vendor/perfect-freehand.js":
+        "node_modules/perfect-freehand/dist/esm/index.mjs",
     };
     const vendorFile = Object.hasOwn(vendorFiles, pathname)
       ? vendorFiles[pathname]

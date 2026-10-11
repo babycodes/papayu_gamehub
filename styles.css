@@ -5321,3 +5321,39 @@ select {
     font-size: 10px;
   }
 }
+
+.boss-wave-status {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 13px;
+  border: 1px solid #dbc1fa80;
+  border-radius: 22px;
+  background: #263353df;
+  color: #fff2d4;
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.boss-wave-status[hidden] {
+  display: none;
+}
+.boss-danger > div {
+  min-width: 0;
+}
+.boss-danger b {
+  max-width: 260px;
+  line-height: 1.35;
+}
+@media (max-height: 450px) {
+  .boss-wave-status {
+    top: 5px;
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+  .boss-danger b {
+    font-size: 10px;
+  }
+}

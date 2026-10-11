@@ -535,6 +535,10 @@ test("an escaped boss leaves its companions and allows the next one a full captu
   g.score = 22000;
   g.tick(0.05);
   advance(g, 2.1);
+  // Equal strength isolates the three-failure rule from the separate feeding rule.
+  g.fish.forEach((f) => {
+    f.power = 20;
+  });
   const escaped = g.fish[0],
     remaining = g.remaining;
   for (let attempt = 0; attempt < 3; attempt++) {

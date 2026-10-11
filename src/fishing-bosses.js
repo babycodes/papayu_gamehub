@@ -8,6 +8,12 @@ export const RANDOM_BOSS_SCORE = 22000;
 export const LATE_BOSS_STEP = 5000;
 export const FRENZY_DURATION = 5;
 export const STAR_DURATION = 15;
+export const BOSS_FEEDING = {
+  graceSeconds: 18,
+  cooldownSeconds: 12,
+  biteSeconds: 0.65,
+  mutationSeconds: 2,
+};
 const roster = [
   ["crocodile", "Buaya ceria", "🐊", "crocodile", "#a5d87d", "#568942"],
   ["octopus", "Gurita raksasa", "🐙", "octopus", "#edabbf", "#b85889"],
@@ -78,6 +84,33 @@ const roster = [
     "stars",
   ],
 ];
+roster.push(
+  ["seahorse", "Kuda laut kristal", "🦄", "seahorse", "#efb2dc", "#9264ab"],
+  ["kaiju", "Godzilla laut", "🦖", "kaiju", "#a3d69c", "#416d73"],
+  ["jellyfish", "Ubur-ubur kosmik", "🪼", "jellyfish", "#d5adf2", "#7966bc"],
+  ["hydra", "Hydra tiga kepala", "🐉", "hydra", "#a1d8dd", "#4e798e"],
+  ["lobster", "Lobster baja", "🦞", "crab", "#ecbb94", "#a76275", "horns"],
+  [
+    "horsekraken",
+    "Kuda laut tentakel",
+    "🦄",
+    "seahorse",
+    "#b3beee",
+    "#7465aa",
+    "tentacles",
+  ],
+  ["icekaiju", "Godzilla es", "🦖", "kaiju", "#a4deef", "#557aac", "stars"],
+  [
+    "jellydragon",
+    "Ubur naga",
+    "🪼",
+    "jellyfish",
+    "#eec6a7",
+    "#a36898",
+    "horns",
+  ],
+  ["hydramoon", "Hydra bulan", "🌙", "hydra", "#bfc8f2", "#6379aa", "stars"],
+);
 export const FISHING_BOSSES = roster.map(
   ([id, name, icon, kind, color, accent, hybrid], index) => ({
     id,
@@ -92,6 +125,7 @@ export const FISHING_BOSSES = roster.map(
     points: 500 + index * 25,
     size: 150 + index * 2,
     boss: true,
+    power: 10 + index * 2,
   }),
 );
 
@@ -162,6 +196,9 @@ export function createBossWave(
       size: 150 + tier * 12 + (procedural ? 8 : waveIndex * 2),
       points: procedural ? 700 + tier * 75 : base.points,
       fierce: procedural,
+      power: base.power + tier * 8 + Math.floor(random() * 10),
+      mutations: [],
+      growth: 1,
     };
   });
 }

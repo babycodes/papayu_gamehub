@@ -1,6 +1,6 @@
 import { getStroke } from "perfect-freehand";
 
-// A small vector rig for nine coherent silhouettes. Organic strokes are sampled
+// A small vector rig for thirteen coherent silhouettes. Organic strokes are sampled
 // with a fixed point budget, regardless of score or encounter count.
 export function drawBossCharacter(ctx, fish, size, pose, spooky) {
   const color = fish.color,
@@ -172,7 +172,123 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
     my = 0.13,
     front = false;
   const kind = fish.kind;
-  if (kind === "octopus") {
+  if (kind === "seahorse") {
+    organic(
+      [0.14, -0.25],
+      [
+        [-0.35, -0.1, -0.46, 0.5, -0.06, 0.62],
+        [0.39, 0.8, 0.49, 0.35, 0.17, 0.35],
+        [0.02, 0.35, 0.06, 0.53, 0.21, 0.5],
+      ],
+      0.32,
+      gradient(),
+      0.1,
+    );
+    flipper(-0.2, -0.05, -0.8 + wave, 0.7);
+    shape(
+      [-0.13, -0.3],
+      [
+        [-0.3, -0.76, 0.13, -0.84, 0.4, -0.57],
+        [0.57, -0.59, 0.77, -0.43, 0.69, -0.34],
+        [0.45, -0.27, 0.38, -0.27, 0.27, -0.16],
+        [0.05, -0.08, -0.08, -0.17, -0.13, -0.3],
+      ],
+      gradient(),
+    );
+    for (let i = 0; i < 4; i++)
+      horn(-0.16 + i * 0.045, -0.31 - i * 0.07, -1, 0.14);
+    horn(0.09, -0.69, -1, 0.15);
+    ex = 0.3;
+    ey = -0.48;
+    mx = 0.6;
+    my = -0.35;
+  } else if (kind === "kaiju") {
+    organic(
+      [-0.3, 0.1],
+      [[-0.7, 0.14, -0.81, 0.48, -1.13, 0.32 + wave]],
+      0.27,
+      gradient(),
+      0.42,
+    );
+    for (let i = 0; i < 5; i++)
+      horn(-0.48 + i * 0.13, -0.09 - i * 0.07, -1, 0.19 + (i % 2) * 0.09);
+    oval(-0.03, 0.1, 0.4, 0.5, gradient());
+    oval(0.09, 0.18, 0.24, 0.34, "#e6f1b970");
+    for (const side of [-1, 1]) {
+      flipper(side * 0.29, 0.34, side * 0.65 + wave, 0.7);
+      flipper(side * 0.26, -0.05, side * 0.95 - wave, 0.5);
+    }
+    shape(
+      [-0.12, -0.22],
+      [
+        [-0.31, -0.57, -0.12, -0.78, 0.2, -0.68],
+        [0.36, -0.68, 0.34, -0.4, 0.61, -0.37],
+        [0.77, -0.28, 0.68, -0.12, 0.46, -0.13],
+        [0.15, -0.03, -0.04, -0.11, -0.12, -0.22],
+      ],
+      gradient(),
+    );
+    ex = 0.24;
+    ey = -0.46;
+    mx = 0.5;
+    my = -0.22;
+  } else if (kind === "jellyfish") {
+    for (let i = 0; i < 6; i++) {
+      const x = (i - 2.5) * 0.17;
+      organic(
+        [x, 0.04],
+        [[x + 0.12, 0.3, x - 0.13 + wave, 0.59, x + wave, 0.77]],
+        0.065,
+        gradient(),
+        0.18,
+      );
+    }
+    shape(
+      [-0.68, 0.02],
+      [
+        [-0.64, -0.81, 0.63, -0.81, 0.68, 0.02],
+        [0.43, 0.23, 0.25, -0.06, 0, 0.14],
+        [-0.25, -0.06, -0.43, 0.23, -0.68, 0.02],
+      ],
+      gradient(),
+    );
+    oval(-0.23, -0.32, 0.18, 0.06, "#ffffff55");
+    ex = 0.19;
+    ey = -0.16;
+    mx = 0;
+    my = 0.04;
+    front = true;
+  } else if (kind === "hydra") {
+    organic(
+      [-0.59, 0.33],
+      [[0.1, 0.53, 0.46, 0.3, 0.09, 0.02]],
+      0.36,
+      gradient(),
+      0.3,
+    );
+    for (let i = 0; i < 3; i++) {
+      const x = (i - 1) * 0.4,
+        y = -0.48 + (i % 2) * 0.12;
+      organic(
+        [0, 0.15],
+        [[x - 0.2, -0.09, x - 0.18, y + 0.1, x, y]],
+        0.17,
+        gradient(),
+        0.08,
+      );
+      oval(x + 0.07, y, 0.19, 0.14, gradient());
+      horn(x, y - 0.1, -1, 0.17);
+      if (i !== 2) {
+        oval(x + 0.1, y - 0.03, 0.045, 0.045, "#ffe4a2");
+        oval(x + 0.12, y - 0.03, 0.013, 0.033, "#18374a");
+      }
+    }
+    flipper(-0.25, 0.24, -0.6 + wave, 0.6);
+    ex = 0.57;
+    ey = -0.51;
+    mx = 0.57;
+    my = -0.38;
+  } else if (kind === "octopus") {
     for (let i = 0; i < 8; i++) {
       const x = (i / 7 - 0.5) * 1.2,
         swing = Math.sin(t * 2.2 + i * 0.75) * 0.12;
@@ -483,6 +599,69 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         "#ffeab688",
       );
   }
+  // Inherited features make the consumed family readable on the survivor.
+  for (const trait of fish.mutations || []) {
+    if (trait === "seahorse") {
+      organic(
+        [-0.4, 0.19],
+        [
+          [-0.7, 0.32, -0.79, 0.61, -0.49, 0.65],
+          [-0.17, 0.68, -0.11, 0.42, -0.37, 0.42],
+        ],
+        0.13,
+        gradient(),
+        0.15,
+      );
+    } else if (trait === "hydra") {
+      for (const side of [-1, 1]) {
+        organic(
+          [side * 0.2, 0.05],
+          [[side * 0.5, -0.07, side * 0.48, -0.3, side * 0.5, -0.34]],
+          0.09,
+          gradient(),
+          0.08,
+        );
+        oval(side * 0.5, -0.35, 0.13, 0.1, gradient());
+        oval(side * 0.5 + 0.03, -0.37, 0.025, 0.025, "#ffdc93");
+      }
+    } else if (["octopus", "jellyfish"].includes(trait)) {
+      for (let i = 0; i < 3; i++)
+        organic(
+          [-0.32 + i * 0.23, 0.2],
+          [
+            [
+              -0.5 + i * 0.23,
+              0.43,
+              0.02 + i * 0.1,
+              0.6 + wave,
+              -0.22 + i * 0.2,
+              0.68,
+            ],
+          ],
+          0.07,
+          gradient(),
+          0.2,
+        );
+    } else if (["ray", "shark", "whale"].includes(trait)) {
+      flipper(-0.3, -0.05, -1.9 + wave, 0.9);
+      flipper(-0.28, 0.18, 0.3 - wave, 0.8);
+    } else if (trait === "turtle") {
+      oval(-0.15, -0.1, 0.29, 0.2, accent);
+      oval(-0.18, -0.13, 0.21, 0.13, "#ffe6a366");
+    } else if (trait === "crab") {
+      for (const side of [-1, 1]) {
+        line(
+          [side * 0.3, 0.14],
+          [[side * 0.48, 0.19, side * 0.64, 0.27, side * 0.69, 0.12 + wave]],
+          0.06,
+          accent,
+        );
+        oval(side * 0.69, 0.1 + wave, 0.12, 0.08, gradient());
+      }
+    } else {
+      for (let i = 0; i < 3; i++) horn(-0.37 + i * 0.18, -0.27, -1, 0.28);
+    }
+  }
   // Markings follow the silhouette, rather than adding unrelated extra limbs.
   if (fish.fierce && kind !== "turtle" && kind !== "serpent") {
     if (fish.pattern % 2 === 0)
@@ -531,7 +710,33 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
   eye(ex, ey, 0.1);
   if (front) eye(-ex, ey, 0.1);
   if (monster && fish.fierce && tier >= 3 && front) eye(0, ey - 0.19, 0.065);
-  if (monster) {
+  if ((pose.mouth || 0) > 0) {
+    const open = pose.mouth;
+    oval(mx, my, 0.13 + open * 0.27, 0.06 + open * 0.31, "#15283d");
+    oval(
+      mx,
+      my + 0.08 + open * 0.11,
+      0.08 + open * 0.14,
+      0.035 + open * 0.055,
+      "#ef93ac",
+    );
+    for (let i = -2; i <= 2; i++)
+      shape(
+        [mx + i * 0.085 - 0.026, my - 0.025 - open * 0.2],
+        [
+          [
+            mx + i * 0.085 - 0.018,
+            my + 0.07 - open * 0.16,
+            mx + i * 0.085 + 0.018,
+            my + 0.07 - open * 0.16,
+            mx + i * 0.085 + 0.026,
+            my - 0.025 - open * 0.2,
+          ],
+        ],
+        "#fff4d8",
+        false,
+      );
+  } else if (monster) {
     oval(mx, my, front ? 0.2 : 0.16, 0.075 + pose.anger * 0.02, "#182d43");
     for (const side of [-1, 1])
       shape(

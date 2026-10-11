@@ -3,6 +3,7 @@ import {
   FRENZY_DURATION,
   STAR_DURATION,
   BOSS_CAPTURE,
+  BOSS_FEEDING,
   createBossWave,
   nextBossThreshold,
 } from "./fishing-bosses.js";
@@ -78,6 +79,7 @@ export function fishSize(fish, width = 650, height = 470, giant = false) {
           growth * (multi ? 1 : 0.5)
         : 0.245),
     fish.size *
+      (fish.growth || 1) *
       scale *
       ((giant || fish.giant) && !fish.bonus && !fish.boss ? 1.6 : 1),
   );
@@ -118,6 +120,8 @@ export class FishingGame {
     this.fight = null;
     this.bossState = "waiting";
     this.bossClock = 0;
+    this.predation = null;
+    this.nextHuntAt = Infinity;
     this.hiddenFish = [];
     this.bossCount = 0;
     this.hook = {
@@ -179,8 +183,10 @@ export class FishingGame {
     if (this.mode !== "playing") return;
     if (x !== undefined) this.aim(x);
     this.held = true;
-    if (this.hook.state === "idle" && this.bossState !== "warning")
+    if (this.hook.state === "idle" && this.bossState !== "warning") {
       this.hook.state = "dropping";
+      this.events.push({ type: "cast" });
+    }
   }
   aim(x) {
     if (Number.isFinite(x))
@@ -188,8 +194,10 @@ export class FishingGame {
   }
   release() {
     this.held = false;
-    if (this.mode === "playing" && this.hook.state === "dropping")
+    if (this.mode === "playing" && this.hook.state === "dropping") {
       this.hook.state = "reeling";
+      this.events.push({ type: "reel" });
+    }
   }
   pause() {
     if (this.mode === "playing") {
@@ -216,6 +224,8 @@ export class FishingGame {
     this.bossRemaining = this.bossWave.length;
     this.bossWaveCaught = 0;
     this.nextBossScore = nextBossThreshold(threshold);
+    this.predation = null;
+    this.nextHuntAt = this.elapsed + 2 + BOSS_FEEDING.graceSeconds;
     this.bossState = "warning";
     this.bossClock = 0;
     this.hiddenFish = this.fish;
@@ -230,6 +240,8 @@ export class FishingGame {
     return true;
   }
   returnFish(caught) {
+    this.predation = null;
+    this.nextHuntAt = Infinity;
     this.fish = this.hiddenFish.filter((f) => !f.bonus);
     this.hiddenFish = [];
     this.bossState = "waiting";
@@ -261,6 +273,120 @@ export class FishingGame {
     if (this.bossRemaining === 0)
       this.returnFish(this.bossWaveCaught === this.bossWave.length);
     else this.bossClock = 0; // A fresh invitation for each remaining monster.
+  }
+  tickPredation(dt) {
+    const hooked = this.hook.catch;
+    const available = this.fish.filter((f) => f.boss && this.canFinishBoss(f));
+    if (
+      !this.predation &&
+      this.elapsed >= this.nextHuntAt &&
+      this.bossRemaining > 1
+    ) {
+      const predators = available
+        .filter((f) => f !== hooked)
+        .sort((a, b) => b.power - a.power);
+      for (const predator of predators) {
+        const prey = [...available, ...(hooked?.boss ? [hooked] : [])]
+          .filter(
+            (f) =>
+              f !== predator &&
+              f.power < predator.power &&
+              this.canFinishBoss(f),
+          )
+          .sort((a, b) => a.power - b.power)[0];
+        if (prey) {
+          this.predation = { predator, prey, phase: "hunt", clock: 0 };
+          this.events.push({ type: "boss-hunt", fish: predator, prey });
+          break;
+        }
+      }
+      this.nextHuntAt = this.elapsed + BOSS_FEEDING.cooldownSeconds;
+    }
+    const p = this.predation;
+    if (!p) return;
+    if (
+      !this.canFinishBoss(p.predator) ||
+      (p.phase !== "mutate" && !this.canFinishBoss(p.prey)) ||
+      (p.phase !== "mutate" && hooked === p.predator)
+    ) {
+      this.predation = null;
+      return;
+    }
+    p.clock += dt;
+    if (p.phase === "mutate") {
+      if (p.clock >= BOSS_FEEDING.mutationSeconds) this.predation = null;
+      return;
+    }
+    const target = hooked === p.prey ? this.hook : p.prey;
+    const dx = target.x - p.predator.x,
+      dy = target.y - p.predator.y;
+    const distance = Math.hypot(dx, dy);
+    p.predator.direction = dx >= 0 ? 1 : -1;
+    p.predator.heading = Math.max(
+      -0.65,
+      Math.min(
+        0.65,
+        Math.atan2(
+          dy * this.viewport.height,
+          Math.abs(dx) * this.viewport.width,
+        ),
+      ),
+    );
+    if (p.phase === "hunt") {
+      const step = Math.min(distance, dt * 0.22);
+      if (distance > 0.001) {
+        p.predator.x += (dx / distance) * step;
+        p.predator.y += (dy / distance) * step;
+      }
+      if (distance < 0.09) {
+        p.phase = "bite";
+        p.clock = 0;
+        this.events.push({ type: "boss-bite", fish: p.predator, prey: p.prey });
+      }
+      return;
+    }
+    if (p.clock < BOSS_FEEDING.biteSeconds) return;
+    if (hooked === p.prey) {
+      this.hook.catch = null;
+      this.fight = null;
+      this.held = false;
+      this.hook.state = "reeling";
+    }
+    // Eating is not a player's failed attempt. Consume once, without points or penalties.
+    this.finishBoss(p.prey, false);
+    p.predator.growth = (p.predator.growth || 1) * 2;
+    p.predator.power += Math.ceil(p.prey.power * 0.5);
+    p.predator.points += p.prey.points;
+    p.predator.mutations = [
+      ...new Set([
+        ...(p.predator.mutations || []),
+        p.prey.kind,
+        ...(p.prey.mutations || []),
+      ]),
+    ].slice(-2);
+    p.predator.name = `${p.predator.name.split(" + ")[0]} + ${p.prey.kind === "octopus" ? "Kraken" : p.prey.name.split(" ")[0]}`;
+    const mix = (a, b) =>
+      "#" +
+      [1, 3, 5]
+        .map((i) =>
+          Math.round(
+            (parseInt(a.slice(i, i + 2), 16) +
+              parseInt(b.slice(i, i + 2), 16)) /
+              2,
+          )
+            .toString(16)
+            .padStart(2, "0"),
+        )
+        .join("");
+    p.predator.color = mix(p.predator.color, p.prey.color);
+    for (const boss of this.fish.filter((f) => f.boss)) {
+      boss.waveCount = this.bossRemaining;
+      boss.slot = this.fish.filter((f) => f.boss).indexOf(boss);
+    }
+    p.phase = "mutate";
+    p.clock = 0;
+    this.nextHuntAt = this.elapsed + BOSS_FEEDING.cooldownSeconds;
+    this.events.push({ type: "boss-eaten", fish: p.predator, prey: p.prey });
   }
   canFinishBoss(fish) {
     return (
@@ -486,6 +612,11 @@ export class FishingGame {
     if (this.elapsed - this.lastCatchAt > 8) this.combo = 1;
     for (const fish of [...this.fish]) {
       if (fish.boss) {
+        if (
+          this.predation?.predator === fish &&
+          this.predation.phase !== "mutate"
+        )
+          continue;
         const oldX = fish.x,
           oldY = fish.y;
         const multi = fish.waveCount > 1,
@@ -545,6 +676,7 @@ export class FishingGame {
         if (!fish.bonus && !fish.special && !fish.boss) this.spawn(fish.layer);
       }
     }
+    if (this.bossState === "active") this.tickPredation(dt);
     const hook = this.hook;
     hook.x += (hook.targetX - hook.x) * Math.min(1, dt * 8);
     if (hook.state === "fighting") {
@@ -592,6 +724,8 @@ export class FishingGame {
   endRound() {
     if (this.mode === "ended") return;
     this.mode = "ended";
+    this.predation = null;
+    this.nextHuntAt = Infinity;
     this.held = false;
     this.fight = null;
     this.hook.state = "idle";

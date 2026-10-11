@@ -151,7 +151,9 @@ export class FishingMotion {
           (fish.boss
             ? actor.recoil * 0.04 +
               (fight ? Math.sin(fight.total * 7) * 0.12 : 0)
-            : 0),
+            : fight
+              ? Math.sin(t * 11) * 0.12
+              : 0),
       limb: this.reducedMotion
         ? 0
         : Math.sin(t * (fight ? 5 : 2.4) + phase) * (fight ? 0.18 : 0.1),

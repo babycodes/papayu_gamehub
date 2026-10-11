@@ -1,3 +1,4 @@
+import { fishingDaylight } from "./fishing-daylight.js";
 import { drawFishingAnimal } from "./fishing-art.js";
 import { FishingMotion, mixColor, bossSea } from "./fishing-motion.js";
 import { FISHING_BOSSES, BOSS_CAPTURE } from "./fishing-bosses.js";
@@ -127,7 +128,7 @@ function updateFishingFight() {
   if (game.hook.catch.boss) {
     const fish = game.hook.catch;
     $("fightDeadline").textContent =
-      `${fish.name} · gagal ${fish.failures || 0}/3 · gagal tahap: −${BOSS_CAPTURE[game.difficulty].failurePenalty} detik`;
+      `${fish.name} · ⚡${fish.power} · gagal ${fish.failures || 0}/3 · gagal tahap: −${BOSS_CAPTURE[game.difficulty].failurePenalty} detik`;
     $("fishingFight").classList.toggle("stage-urgent", f.remaining <= 3);
   } else $("fishingFight").classList.remove("stage-urgent");
   $("fightLane").hidden = f.type === "hold";
@@ -153,7 +154,8 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 new ResizeObserver(resize).observe(canvas);
-function tone(notes = [523, 659, 784], duration = 0.09) {
+const activeTones = new Set();
+function tone(notes = [523, 659, 784], duration = 0.09, type = "sine") {
   if (!sound) return;
   try {
     audio ||= new (window.AudioContext || window.webkitAudioContext)();
@@ -162,7 +164,13 @@ function tone(notes = [523, 659, 784], duration = 0.09) {
       const oscillator = audio.createOscillator(),
         gain = audio.createGain(),
         start = audio.currentTime + i * duration;
-      oscillator.type = "sine";
+      oscillator.type = type;
+      activeTones.add(oscillator);
+      oscillator.onended = () => {
+        activeTones.delete(oscillator);
+        oscillator.disconnect();
+        gain.disconnect();
+      };
       oscillator.frequency.value = frequency;
       gain.gain.setValueAtTime(0, start);
       gain.gain.linearRampToValueAtTime(0.045, start + 0.012);
@@ -330,6 +338,12 @@ $("soundButton").addEventListener("click", () => {
     sound ? "Matikan suara" : "Aktifkan suara",
   );
   $("soundButton").setAttribute("aria-pressed", String(!sound));
+  if (!sound)
+    for (const oscillator of activeTones) {
+      try {
+        oscillator.stop();
+      } catch {}
+    }
   if (sound) tone([523]);
 });
 initLibrary((id) => openGame(id));
@@ -635,6 +649,8 @@ function onEvent(event) {
     announce("Hore! +12 detik petualangan");
     tone([659, 784, 1047]);
   }
+  if (event.type === "cast") tone([180, 320, 480], 0.035);
+  if (event.type === "reel") tone([180, 220], 0.035);
   if (event.type === "hooked") {
     tone([330, 440], 0.06);
     if (navigator.vibrate) navigator.vibrate(30);
@@ -680,6 +696,35 @@ function onEvent(event) {
         : `Tidak apa-apa! ${event.remaining} boss masih menunggu.`,
       3,
     );
+  if (event.type === "boss-hunt") {
+    announce(
+      `${event.fish.name} berburu! ⚡${event.fish.power} > ⚡${event.prey.power}`,
+      3,
+    );
+    tone([110, 147, 110], 0.15, "triangle");
+  }
+  if (event.type === "boss-bite") {
+    announce("HAP! Boss membuka mulut…", 1);
+    tone([130, 65, 98], 0.09, "triangle");
+  }
+  if (event.type === "boss-eaten") {
+    announce(
+      `MUTASI! ${event.fish.name} · ukuran 2× · ⚡${event.fish.power}. Kail kembali, yuk!`,
+      4,
+    );
+    tone([98, 123, 98, 147, 294, 587], 0.12);
+    for (let i = 0; i < 18; i++)
+      particles.push({
+        x: event.fish.x,
+        y: event.fish.y,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: (Math.random() - 0.5) * 0.2,
+        life: 1,
+        color: i % 2 ? event.fish.color : "#dcffd2",
+      });
+  }
+  if (event.type === "fight-stage") tone([440, 554, 659], 0.08);
+  if (event.type === "miss") tone([220, 165], 0.06);
   if (event.type === "boss-failed") {
     announce(
       event.fled
@@ -753,6 +798,24 @@ function drawFish(fish, x, y, caught = false) {
         : reducedMotion
           ? 1
           : 1 + (Math.sin(game.elapsed * 2.2 + fish.phase) + 1) * 0.08;
+  const feedingState = game.predation;
+  if (
+    feedingState?.predator === fish &&
+    feedingState.phase === "mutate" &&
+    !reducedMotion
+  ) {
+    const progress = Math.min(1, feedingState.clock / 2);
+    s *= 0.55 + 0.45 * (1 - Math.pow(1 - progress, 3));
+  }
+  if (
+    feedingState?.prey === fish &&
+    feedingState.phase === "bite" &&
+    !reducedMotion
+  ) {
+    const progress = Math.min(1, feedingState.clock / 0.65);
+    x += (feedingState.predator.x * width - x) * progress;
+    y += (feedingState.predator.y * height - y) * progress;
+  }
   ctx.save();
   ctx.translate(x, y);
   if (fish.boss) {
@@ -761,14 +824,76 @@ function drawFish(fish, x, y, caught = false) {
     const entryScale = reducedMotion ? 1 : 0.9 + present * 0.1;
     ctx.scale(entryScale, entryScale);
   }
+  const feeding = game.predation;
+  if (feeding?.prey === fish && feeding.phase === "bite" && !reducedMotion) {
+    const shrink = Math.max(0.08, 1 - feeding.clock / 0.65);
+    ctx.scale(shrink, shrink);
+    ctx.globalAlpha *= shrink;
+  }
+  if (feeding?.predator === fish && feeding.phase === "mutate") {
+    const pulse = reducedMotion ? 0.5 : (Math.sin(feeding.clock * 8) + 1) / 2;
+    ctx.save();
+    ctx.globalAlpha *= 0.3 + pulse * 0.4;
+    ctx.strokeStyle = "#dcffd2";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(
+      0,
+      0,
+      s * (1 + feeding.clock * 0.12),
+      s * 0.75,
+      0,
+      0,
+      Math.PI * 2,
+    );
+    ctx.stroke();
+    ctx.restore();
+  }
+  if (fish.boss && !caught) {
+    ctx.save();
+    ctx.font = "bold 10px Nunito, sans-serif";
+    ctx.textAlign = "center";
+    const label = `⚡${fish.power}${fish.growth > 1 ? " · MUTASI " + fish.growth + "×" : ""}`;
+    const labelWidth = ctx.measureText(label).width + 14;
+    rounded(-labelWidth / 2, -s * 0.82 - 19, labelWidth, 17, 8, "#203347d9");
+    ctx.fillStyle = "#fff4c4";
+    ctx.fillText(label, 0, -s * 0.82 - 7);
+    ctx.restore();
+  }
   ctx.scale(fish.direction, 1);
   if (fish.boss) ctx.rotate((fish.heading || 0) * fish.direction);
-  if (caught && !(fish.boss && game.fight)) ctx.rotate(-0.35);
+  if (caught && !(fish.boss && game.fight))
+    ctx.rotate(
+      -0.35 +
+        (!reducedMotion && !fish.bonus
+          ? Math.sin(game.elapsed * 11) * 0.16
+          : 0),
+    );
   drawFishingAnimal(
     ctx,
     fish,
     s,
-    fishingMotion.pose(fish, game.hook.catch === fish ? game.fight : null),
+    {
+      ...fishingMotion.pose(
+        fish,
+        game.hook.catch === fish
+          ? game.fight ||
+              (!fish.boss && !fish.bonus
+                ? { total: game.elapsed, stage: 0 }
+                : null)
+          : null,
+      ),
+      mouth:
+        feeding?.predator === fish
+          ? feeding.phase === "hunt"
+            ? 0.35
+            : feeding.phase === "bite"
+              ? 1
+              : reducedMotion
+                ? 0.2
+                : 0.2 + (Math.sin(feeding.clock * 17) + 1) * 0.2
+          : 0,
+    },
     bossStyle === "spooky",
   );
   ctx.restore();
@@ -851,23 +976,64 @@ function drawBoat(t) {
   ctx.restore();
   return { x: bx + 79 * scale, y: by + (-53 + bend) * scale };
 }
+let daylight = fishingDaylight(new Date().getHours()),
+  daylightMinute = -1;
 function draw(t, dt) {
+  const minute = Math.floor(Date.now() / 60000);
+  if (game.mode !== "paused" && daylightMinute !== minute) {
+    daylight = fishingDaylight(new Date().getHours());
+    daylightMinute = minute;
+    canvas.setAttribute(
+      "aria-description",
+      `Suasana ${daylight.name.toLowerCase()} mengikuti jam perangkat.`,
+    );
+  }
   ctx.clearRect(0, 0, width, height);
   const waterline = height * 0.31;
   const sky = ctx.createLinearGradient(0, 0, 0, waterline);
   sky.addColorStop(
     0,
     mixColor(
-      "#d5e9df",
-      "#b6bbcf",
+      daylight.sky[0],
+      daylight.night ? "#342b53" : "#b6bbcf",
       fishingMotion.state.sea * (bossStyle === "cute" ? 0.2 : 0.6),
     ),
   );
-  sky.addColorStop(1, "#e7edce");
+  sky.addColorStop(1, daylight.sky[1]);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, width, waterline);
   // Sun, soft clouds and distant islands.
-  ellipse(width * 0.77, height * 0.14, 26, 26, "#f4e6b0");
+  ellipse(width * 0.77, height * 0.14, 26, 26, daylight.sun);
+  if (daylight.night) {
+    ellipse(
+      width * 0.77 + 11,
+      height * 0.14 - 7,
+      23,
+      23,
+      mixColor(
+        mixColor(
+          daylight.sky[0],
+          "#342b53",
+          fishingMotion.state.sea * (bossStyle === "cute" ? 0.2 : 0.6),
+        ),
+        daylight.sky[1],
+        0.45,
+      ),
+    );
+    for (let i = 0; i < 18; i++) {
+      const alpha = reducedMotion ? 0.6 : 0.45 + Math.sin(t * 0.8 + i) * 0.25;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ellipse(
+        width * ((i * 0.137) % 1),
+        height * (0.035 + ((i * 0.031) % 0.19)),
+        i % 3 === 0 ? 1.8 : 1,
+        i % 3 === 0 ? 1.8 : 1,
+        "#f1eaff",
+      );
+      ctx.restore();
+    }
+  }
   const sunshine = reducedMotion ? 0 : Math.sin(t * 0.7) * 2;
   ellipse(
     width * 0.77,
@@ -935,10 +1101,10 @@ function draw(t, dt) {
   const blend = fishingMotion.state.sea;
   ocean.addColorStop(
     0,
-    mixColor(game.frenzy ? "#97d4b7" : "#80c7ca", seaColors[0], blend),
+    mixColor(game.frenzy ? "#97d4b7" : daylight.sea[0], seaColors[0], blend),
   );
-  ocean.addColorStop(0.48, mixColor("#4797aa", seaColors[1], blend));
-  ocean.addColorStop(1, mixColor("#2b526e", seaColors[2], blend));
+  ocean.addColorStop(0.48, mixColor(daylight.sea[1], seaColors[1], blend));
+  ocean.addColorStop(1, mixColor(daylight.sea[2], seaColors[2], blend));
   ctx.fillStyle = ocean;
   ctx.fillRect(0, waterline, width, height);
   // Shafts of sunlight.

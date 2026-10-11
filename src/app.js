@@ -2,7 +2,7 @@ import { fishingDaylight } from "./fishing-daylight.js";
 import { drawFishingAnimal } from "./fishing-art.js";
 import { FishingMotion, mixColor, bossSea } from "./fishing-motion.js";
 import { FISHING_BOSSES, BOSS_CAPTURE } from "./fishing-bosses.js";
-import { FishingGame, fishSize } from "./engine.js";
+import { FishingGame, fishSize, bossEatRadius } from "./engine.js";
 import { GAMES } from "./catalog.js";
 import { initLibrary, recordPlay } from "./library.js";
 import { BoardGames } from "./boards.js";
@@ -100,6 +100,7 @@ function updateFishingFight() {
   panel.hidden = !f || game.mode !== "playing";
   if (!f) return;
   panel.classList.toggle("good-pull", f.good);
+  panel.classList.toggle("line-straining", f.straining);
   $("fightIcon").textContent = game.hook.catch.boss
     ? game.hook.catch.icon || "🐊"
     : game.hook.catch.kind === "puffer"
@@ -107,8 +108,9 @@ function updateFishingFight() {
       : game.hook.catch.kind === "shark"
         ? "🦈"
         : "🐋";
-  $("fightTitle").textContent =
-    f.type === "follow"
+  $("fightTitle").textContent = f.straining
+    ? "Lepas sebentar!"
+    : f.type === "follow"
       ? "Ikuti panah!"
       : f.type === "hold"
         ? "Tahan untuk gulung!"
@@ -119,25 +121,30 @@ function updateFishingFight() {
     ? `${f.stage + 1}/3 · ${Math.ceil(f.remaining)} dtk`
     : game.hook.catch.name;
   $("fightHint").textContent =
-    f.type === "follow"
-      ? "Geser di laut ke lingkaran hijau sambil menahan."
-      : f.type === "hold"
-        ? "Tahan tombol GULUNG sampai bar penuh."
-        : "Saat hijau, tahan GULUNG. Tidak perlu ketuk cepat.";
+    f.profile.level && f.type === "hold"
+      ? f.straining
+        ? "Boss meronta! Lepas GULUNG agar tali aman."
+        : "Gulung saat hijau. Saat MERONTA, lepas sebentar!"
+      : f.type === "follow"
+        ? "Geser di laut ke lingkaran hijau sambil menahan."
+        : f.type === "hold"
+          ? "Tahan tombol GULUNG sampai bar penuh."
+          : "Saat hijau, tahan GULUNG. Tidak perlu ketuk cepat.";
   $("fightDeadline").hidden = !game.hook.catch.boss;
   if (game.hook.catch.boss) {
     const fish = game.hook.catch;
     $("fightDeadline").textContent =
-      `${fish.name} · ⚡${fish.power} · gagal ${fish.failures || 0}/3 · gagal tahap: −${BOSS_CAPTURE[game.difficulty].failurePenalty} detik`;
+      `${fish.name}${f.profile.level ? " · MUTASI " + fish.growth + "×" : ""} · ⚡${fish.power} · gagal ${fish.failures || 0}/3 · gagal tahap: −${BOSS_CAPTURE[game.difficulty].failurePenalty} detik`;
     $("fishingFight").classList.toggle("stage-urgent", f.remaining <= 3);
   } else $("fishingFight").classList.remove("stage-urgent");
-  $("fightLane").hidden = f.type === "hold";
+  const tensionLane = f.type === "hold" && f.profile.level;
+  $("fightLane").hidden = f.type === "hold" && !tensionLane;
   $("fightTarget").style.left =
-    `${f.type === "follow" ? (f.target - (game.difficulty === "easy" ? 0.17 : 0.11)) * 100 : game.difficulty === "easy" ? 42 : 62}%`;
+    `${tensionLane ? 0 : f.type === "follow" ? (f.target - f.profile.tolerance) * 100 : f.profile.greenThreshold * 100}%`;
   $("fightTarget").style.width =
-    `${f.type === "follow" ? (game.difficulty === "easy" ? 34 : 22) : game.difficulty === "easy" ? 58 : 38}%`;
+    `${tensionLane ? 70 : f.type === "follow" ? f.profile.tolerance * 200 : (1 - f.profile.greenThreshold) * 100}%`;
   $("fightMarker").style.left =
-    `${(f.type === "follow" ? game.hook.x : f.meter) * 100}%`;
+    `${(tensionLane ? f.tension : f.type === "follow" ? game.hook.x : f.meter) * 100}%`;
   const progress = Math.round(f.progress * 100);
   $("fightProgress").setAttribute("aria-valuenow", String(progress));
   $("fightProgress").firstElementChild.style.width = `${progress}%`;
@@ -245,8 +252,11 @@ function updateUI() {
       : game.hook.state === "reeling"
         ? "Menggulung kail…"
         : "Kail siap beraksi";
-  $("hookHint").textContent =
-    game.hook.state === "idle"
+  $("hookHint").textContent = game.fight
+    ? game.fight.straining
+      ? "Lepas tombol agar tali aman."
+      : "Ikuti petunjuk gulungan di laut."
+    : game.hook.state === "idle"
       ? "Tahan, arahkan, lalu lepaskan."
       : game.hook.catch
         ? "Sebentar lagi sampai perahu!"
@@ -260,20 +270,27 @@ function updateUI() {
       ? "↑"
       : "↓";
   $("fishButtonLabel").textContent = fighting
-    ? game.fight.good || game.fight.type === "hold"
-      ? "Tahan · GULUNG!"
-      : game.fight.type === "follow"
-        ? "Geser ke tanda hijau"
-        : "Tunggu hijau…"
+    ? game.fight.straining
+      ? "Lepas sebentar!"
+      : game.fight.good || game.fight.type === "hold"
+        ? "Tahan · GULUNG!"
+        : game.fight.type === "follow"
+          ? "Geser ke tanda hijau"
+          : "Tunggu hijau…"
     : game.hook.state === "reeling"
       ? "Ikan naik!"
       : "Tahan untuk turun";
+  $("fishButton").classList.toggle(
+    "release-needed",
+    fighting && game.fight.straining,
+  );
   $("fishButton").classList.toggle("holding", game.held);
   $("fishButton").classList.toggle("fight-ready", fighting && game.fight.good);
   if (fighting) {
     $("hookTitle").textContent = game.hook.catch.name;
-    $("hookHint").textContent =
-      game.fight.type === "follow"
+    $("hookHint").textContent = game.fight.straining
+      ? "Lepas tombol agar tali aman."
+      : game.fight.type === "follow"
         ? "Geser di laut ke tanda hijau."
         : "Ikuti petunjuk di laut.";
   }
@@ -723,6 +740,10 @@ function onEvent(event) {
         color: i % 2 ? event.fish.color : "#dcffd2",
       });
   }
+  if (event.type === "line-strain") {
+    announce("Tali tegang! Lepas sebentar, lalu gulung lagi.", 2);
+    tone([220, 165], 0.06);
+  }
   if (event.type === "fight-stage") tone([440, 554, 659], 0.08);
   if (event.type === "miss") tone([220, 165], 0.06);
   if (event.type === "boss-failed") {
@@ -799,6 +820,8 @@ function drawFish(fish, x, y, caught = false) {
           ? 1
           : 1 + (Math.sin(game.elapsed * 2.2 + fish.phase) + 1) * 0.08;
   const feedingState = game.predation;
+  if (feedingState?.predator === fish && feedingState.phase === "bite")
+    s *= 0.5;
   if (
     feedingState?.predator === fish &&
     feedingState.phase === "mutate" &&
@@ -818,6 +841,26 @@ function drawFish(fish, x, y, caught = false) {
   }
   ctx.save();
   ctx.translate(x, y);
+  if (fish.boss && game.fish.includes(fish)) {
+    const radius = bossEatRadius(fish, width, height);
+    const alpha =
+      feedingState?.predator === fish && feedingState.phase === "mutate"
+        ? reducedMotion
+          ? 0.18
+          : 0.12 + Math.sin(feedingState.clock * 7) ** 2 * 0.12
+        : 0.1;
+    const aura = ctx.createRadialGradient(0, 0, radius * 0.3, 0, 0, radius);
+    aura.addColorStop(0, fish.color + "00");
+    aura.addColorStop(0.6, fish.color + "88");
+    aura.addColorStop(1, fish.color + "00");
+    ctx.save();
+    ctx.globalAlpha *= alpha * 3;
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
   if (fish.boss) {
     const present = fishingMotion.pose(fish, null).presence;
     ctx.globalAlpha *= present;
@@ -829,25 +872,6 @@ function drawFish(fish, x, y, caught = false) {
     const shrink = Math.max(0.08, 1 - feeding.clock / 0.65);
     ctx.scale(shrink, shrink);
     ctx.globalAlpha *= shrink;
-  }
-  if (feeding?.predator === fish && feeding.phase === "mutate") {
-    const pulse = reducedMotion ? 0.5 : (Math.sin(feeding.clock * 8) + 1) / 2;
-    ctx.save();
-    ctx.globalAlpha *= 0.3 + pulse * 0.4;
-    ctx.strokeStyle = "#dcffd2";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.ellipse(
-      0,
-      0,
-      s * (1 + feeding.clock * 0.12),
-      s * 0.75,
-      0,
-      0,
-      Math.PI * 2,
-    );
-    ctx.stroke();
-    ctx.restore();
   }
   if (fish.boss && !caught) {
     ctx.save();
@@ -885,13 +909,11 @@ function drawFish(fish, x, y, caught = false) {
       ),
       mouth:
         feeding?.predator === fish
-          ? feeding.phase === "hunt"
-            ? 0.35
-            : feeding.phase === "bite"
-              ? 1
-              : reducedMotion
-                ? 0.2
-                : 0.2 + (Math.sin(feeding.clock * 17) + 1) * 0.2
+          ? feeding.phase === "bite"
+            ? 1
+            : reducedMotion
+              ? 0.2
+              : 0.2 + (Math.sin(feeding.clock * 17) + 1) * 0.2
           : 0,
     },
     bossStyle === "spooky",
@@ -1235,6 +1257,10 @@ function draw(t, dt) {
     const y =
       fish.y * height + Math.sin(t * 2 + fish.phase) * (reducedMotion ? 0 : 3);
     drawFish(fish, fish.x * width, y);
+  }
+  if (game.predation?.phase === "bite") {
+    const prey = game.predation.prey;
+    drawFish(prey, prey.x * width, prey.y * height);
   }
   if (fishingMotion.state.escape > 0 && fishingMotion.escapedBoss) {
     const fish = fishingMotion.escapedBoss,

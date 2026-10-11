@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { FishingGame, fishSize } from "../src/engine.js";
+import { FishingGame, fishSize, bossEatRadius } from "../src/engine.js";
 import { fishingDaylight } from "../src/fishing-daylight.js";
 import { FishingMotion } from "../src/fishing-motion.js";
 import { FISHING_BOSSES } from "../src/fishing-bosses.js";
@@ -16,7 +16,9 @@ const wave = () => {
     f.x = 0.5;
     f.y = 0.65;
   });
-  g.nextHuntAt = g.elapsed;
+  g.fish[1].x = 0.05;
+  g.fish[1].y = 0.35;
+  g.nextHuntAt = Infinity;
   return g;
 };
 const feed = (g) => {
@@ -73,40 +75,41 @@ test("a hooked prey is eaten and released without a failed stage, penalty, or re
   assert.equal(g.score, 42000);
   assert.equal(g.bossRemaining, 2);
 });
-test("hooking the hunter cancels its attack and a hooked strong boss never eats", () => {
-  const g = wave();
+test("a hooked strongest boss cannot eat but other free bosses may still consume weaker prey", () => {
+  const g = wave(),
+    strongest = g.fish.pop();
+  g.hook.catch = strongest;
+  g.hook.x = strongest.x;
+  g.hook.y = strongest.y;
+  g.beginFight(strongest);
+  g.fish.forEach((f) => {
+    f.x = 0.5;
+    f.y = 0.65;
+  });
   g.tickPredation(0.05);
-  const predator = g.predation.predator;
-  g.fish.splice(g.fish.indexOf(predator), 1);
-  g.hook.catch = predator;
-  g.beginFight(predator);
-  g.tickPredation(0.05);
-  assert.equal(g.predation, null);
-  assert.equal(g.bossRemaining, 3);
-  g.nextHuntAt = g.elapsed;
-  g.tickPredation(0.05);
-  assert.notEqual(g.predation?.predator, predator);
-  assert.ok(
-    !g.predation || g.predation.prey.power < g.predation.predator.power,
-  );
+  assert.equal(strongest.growth, 1);
+  assert.notEqual(g.predation.predator, strongest);
+  assert.equal(g.hook.catch, strongest);
+  assert.equal(g.bossRemaining, 2);
 });
-test("equal power cannot eat, completed prey cannot be consumed twice and pause freezes feeding", () => {
+test("equal power cannot eat, consumed prey cannot be counted twice and pause freezes feeding", () => {
   const g = wave();
   g.fish.forEach((f) => (f.power = 10));
   feed(g);
   assert.equal(g.predation, null);
   g.fish[2].power = 30;
-  g.nextHuntAt = g.elapsed;
   g.tickPredation(0.05);
-  const before = JSON.stringify(g.predation);
+  const snapshot = JSON.stringify(g.predation),
+    remaining = g.bossRemaining;
   g.pause();
   g.tick(0.05);
-  assert.equal(JSON.stringify(g.predation), before);
+  assert.equal(JSON.stringify(g.predation), snapshot);
   g.resume();
   g.finishBoss(g.predation.prey, true);
-  g.tickPredation(0.05);
+  assert.equal(g.bossRemaining, remaining);
+  assert.equal(g.bossWaveCaught, 0);
+  for (let i = 0; i < 56; i++) g.tickPredation(0.05);
   assert.equal(g.predation, null);
-  assert.equal(g.bossRemaining, 2);
   g.reset();
   assert.equal(g.predation, null);
   assert.equal(g.nextHuntAt, Infinity);
@@ -169,17 +172,83 @@ test("two meals grow to four times, accumulate rewards and the last survivor end
   assert.equal(g.score, 42000 + reward);
 });
 
-test("normal wave startup schedules feeding after the grace period without test overrides", () => {
-  const g = new FishingGame(() => 0.5);
-  g.reset();
-  g.score = 42000;
-  g.nextBossScore = 42000;
-  g.tick(0.05);
-  assert.ok(Number.isFinite(g.nextHuntAt));
-  assert.equal(g.nextHuntAt, 20);
-  for (let i = 0; i < 398; i++) g.tick(0.05);
-  assert.equal(g.predation, null);
-  for (let i = 0; i < 4; i++) g.tick(0.05);
-  assert.ok(g.predation);
-  assert.ok(g.predation.predator.power > g.predation.prey.power);
+test("contact immediately consumes a hooked victim even before the fallback deadline", () => {
+  const g = wave(),
+    prey = g.fish.shift(),
+    predator = g.fish.at(-1);
+  g.hook.catch = prey;
+  g.hook.x = prey.x;
+  g.hook.y = prey.y;
+  g.beginFight(prey);
+  g.nextHuntAt = Infinity;
+  g.tickPredation(0.001);
+  assert.equal(g.bossRemaining, 2);
+  assert.equal(g.hook.catch, null);
+  assert.equal(g.fight, null);
+  assert.equal(g.predation.phase, "bite");
+  assert.equal(predator.growth, 2);
+  assert.equal(g.score, 42000);
+  assert.equal(g.remaining, 90);
+  assert.equal(prey.failures, 0);
+});
+test("distant bosses fall back to automatic consumption after eight seconds without contact", () => {
+  const g = wave();
+  g.fish[0].x = 0.02;
+  g.fish[0].y = 0.35;
+  g.fish[1].x = 0.03;
+  g.fish[1].y = 0.36;
+  g.fish[0].power = g.fish[1].power = 10;
+  const predator = g.fish[2];
+  predator.x = 0.92;
+  predator.y = 0.88;
+  g.nextHuntAt = g.elapsed + 8;
+  g.elapsed += 7.99;
+  g.tickPredation(0.01);
+  assert.equal(g.bossRemaining, 3);
+  g.elapsed += 0.02;
+  g.tickPredation(0.01);
+  assert.equal(g.bossRemaining, 2);
+  assert.equal(g.predation.predator, predator);
+});
+test("radius uses circular pixel distances in portrait and landscape, not stretched normalized coordinates", () => {
+  for (const [width, height] of [
+    [320, 568],
+    [844, 390],
+  ]) {
+    const g = wave();
+    g.viewport = { width, height };
+    const predator = g.fish[2],
+      prey = g.fish[0];
+    g.fish[1].power = predator.power;
+    g.fish[1].x = 0.01;
+    g.fish[1].y = 0.35;
+    const reach =
+      bossEatRadius(predator, width, height) +
+      fishSize(prey, width, height) * 0.3;
+    prey.x = predator.x;
+    prey.y = predator.y + (reach + 1) / height;
+    g.tickPredation(0.001);
+    assert.equal(g.bossRemaining, 3);
+    prey.y = predator.y + (reach - 1) / height;
+    g.tickPredation(0.001);
+    assert.equal(g.bossRemaining, 2);
+  }
+});
+test("contact with a second victim bypasses the previous meal animation and counts both exactly once", () => {
+  const g = wave();
+  g.fish.forEach((f) => {
+    f.x = 0.5;
+    f.y = 0.65;
+  });
+  g.tickPredation(0.001);
+  assert.equal(g.bossRemaining, 2);
+  g.tickPredation(0.001);
+  assert.equal(g.bossRemaining, 1);
+  assert.equal(g.fish[0].growth, 4);
+  g.tickPredation(0.001);
+  assert.equal(g.bossRemaining, 1);
+  assert.equal(
+    g.drainEvents().filter((e) => e.type === "boss-eaten").length,
+    2,
+  );
 });

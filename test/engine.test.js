@@ -637,6 +637,7 @@ test("boss failures are individual and a successful retry gives reward once", ()
   g.tick(0.05);
   advance(g, 2.1);
   const [a, b] = g.fish;
+  a.power = b.power = 20; // No eligible predator in this failure/retry scenario.
   g.fish.splice(g.fish.indexOf(a), 1);
   g.hook.catch = a;
   g.beginFight(a);

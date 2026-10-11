@@ -9,11 +9,28 @@ export const LATE_BOSS_STEP = 5000;
 export const FRENZY_DURATION = 5;
 export const STAR_DURATION = 15;
 export const BOSS_FEEDING = {
-  graceSeconds: 18,
-  cooldownSeconds: 12,
+  graceSeconds: 8,
+  cooldownSeconds: 8,
   biteSeconds: 0.65,
   mutationSeconds: 2,
 };
+// Two bounded mutation levels: harder controls, with extra time to learn them.
+export function bossCaptureProfile(fish, difficulty = "easy") {
+  const level = fish.boss
+    ? Math.min(2, Math.max(0, Math.round(Math.log2(fish.growth || 1))))
+    : 0;
+  const easy = difficulty === "easy";
+  return {
+    level,
+    stageSeconds: BOSS_CAPTURE[difficulty].stageSeconds.map(
+      (seconds) => seconds + level * 2,
+    ),
+    tolerance: (easy ? 0.17 : 0.11) - level * 0.015,
+    greenThreshold: (easy ? 0.42 : 0.62) + level * 0.03,
+    effort: 1 + level * 0.22,
+    redSeconds: 0.65 + level * 0.15,
+  };
+}
 const roster = [
   ["crocodile", "Buaya ceria", "🐊", "crocodile", "#a5d87d", "#568942"],
   ["octopus", "Gurita raksasa", "🐙", "octopus", "#edabbf", "#b85889"],

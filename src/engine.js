@@ -3,6 +3,7 @@ import {
   FRENZY_DURATION,
   STAR_DURATION,
   BOSS_CAPTURE,
+  bossCaptureProfile,
   BOSS_FEEDING,
   createBossWave,
   nextBossThreshold,
@@ -83,6 +84,10 @@ export function fishSize(fish, width = 650, height = 470, giant = false) {
       scale *
       ((giant || fish.giant) && !fish.bonus && !fish.boss ? 1.6 : 1),
   );
+}
+// Pixel geometry shared by the aura and collision; stays circular in every orientation.
+export function bossEatRadius(fish, width = 650, height = 470) {
+  return fishSize(fish, width, height) * 1.05 + Math.min(width, height) * 0.04;
 }
 export class FishingGame {
   constructor(random = Math.random) {
@@ -277,76 +282,96 @@ export class FishingGame {
   tickPredation(dt) {
     const hooked = this.hook.catch;
     const available = this.fish.filter((f) => f.boss && this.canFinishBoss(f));
+    const preyPool = [
+      ...available,
+      ...(hooked?.boss && this.canFinishBoss(hooked) ? [hooked] : []),
+    ];
+    const predators = available
+      .filter((f) => f !== hooked)
+      .sort((a, b) => b.power - a.power);
+    const touches = (predator, prey) => {
+      const target = hooked === prey ? this.hook : prey;
+      const distance = Math.hypot(
+        (target.x - predator.x) * this.viewport.width,
+        (target.y - predator.y) * this.viewport.height,
+      );
+      return (
+        distance <=
+        bossEatRadius(predator, this.viewport.width, this.viewport.height) +
+          fishSize(prey, this.viewport.width, this.viewport.height) * 0.3
+      );
+    };
+    // Contact bypasses every hunting timer, including the previous meal's animation.
+    for (const predator of predators) {
+      const prey = preyPool
+        .filter(
+          (f) =>
+            f !== predator && f.power < predator.power && touches(predator, f),
+        )
+        .sort((a, b) => a.power - b.power)[0];
+      if (prey) {
+        this.consumeBoss(predator, prey);
+        return;
+      }
+    }
     if (
       !this.predation &&
       this.elapsed >= this.nextHuntAt &&
       this.bossRemaining > 1
     ) {
-      const predators = available
-        .filter((f) => f !== hooked)
-        .sort((a, b) => b.power - a.power);
       for (const predator of predators) {
-        const prey = [...available, ...(hooked?.boss ? [hooked] : [])]
-          .filter(
-            (f) =>
-              f !== predator &&
-              f.power < predator.power &&
-              this.canFinishBoss(f),
-          )
+        const prey = preyPool
+          .filter((f) => f !== predator && f.power < predator.power)
           .sort((a, b) => a.power - b.power)[0];
         if (prey) {
-          this.predation = { predator, prey, phase: "hunt", clock: 0 };
           this.events.push({ type: "boss-hunt", fish: predator, prey });
-          break;
+          this.consumeBoss(predator, prey);
+          return;
         }
       }
       this.nextHuntAt = this.elapsed + BOSS_FEEDING.cooldownSeconds;
     }
     const p = this.predation;
     if (!p) return;
-    if (
-      !this.canFinishBoss(p.predator) ||
-      (p.phase !== "mutate" && !this.canFinishBoss(p.prey)) ||
-      (p.phase !== "mutate" && hooked === p.predator)
-    ) {
+    if (!this.canFinishBoss(p.predator)) {
       this.predation = null;
       return;
     }
     p.clock += dt;
+    if (p.phase === "bite") {
+      if (p.clock >= BOSS_FEEDING.biteSeconds) {
+        p.phase = "mutate";
+        p.clock = 0;
+      }
+      return;
+    }
     if (p.phase === "mutate") {
       if (p.clock >= BOSS_FEEDING.mutationSeconds) this.predation = null;
       return;
     }
-    const target = hooked === p.prey ? this.hook : p.prey;
-    const dx = target.x - p.predator.x,
-      dy = target.y - p.predator.y;
-    const distance = Math.hypot(dx, dy);
-    p.predator.direction = dx >= 0 ? 1 : -1;
-    p.predator.heading = Math.max(
-      -0.65,
-      Math.min(
-        0.65,
-        Math.atan2(
-          dy * this.viewport.height,
-          Math.abs(dx) * this.viewport.width,
-        ),
-      ),
-    );
-    if (p.phase === "hunt") {
-      const step = Math.min(distance, dt * 0.22);
-      if (distance > 0.001) {
-        p.predator.x += (dx / distance) * step;
-        p.predator.y += (dy / distance) * step;
-      }
-      if (distance < 0.09) {
-        p.phase = "bite";
-        p.clock = 0;
-        this.events.push({ type: "boss-bite", fish: p.predator, prey: p.prey });
-      }
+  }
+  consumeBoss(predator, prey) {
+    if (
+      this.hook.catch === predator ||
+      predator.power <= prey.power ||
+      !this.canFinishBoss(predator) ||
+      !this.canFinishBoss(prey)
+    )
       return;
-    }
-    if (p.clock < BOSS_FEEDING.biteSeconds) return;
-    if (hooked === p.prey) {
+    const p = {
+      predator,
+      prey: {
+        ...prey,
+        x: this.hook.catch === prey ? this.hook.x : prey.x,
+        y: this.hook.catch === prey ? this.hook.y : prey.y,
+      },
+      phase: "bite",
+      clock: 0,
+    };
+    this.predation = p;
+    const hooked = this.hook.catch;
+    this.events.push({ type: "boss-bite", fish: predator, prey });
+    if (hooked === prey) {
       this.hook.catch = null;
       this.fight = null;
       this.held = false;
@@ -383,8 +408,6 @@ export class FishingGame {
       boss.waveCount = this.bossRemaining;
       boss.slot = this.fish.filter((f) => f.boss).indexOf(boss);
     }
-    p.phase = "mutate";
-    p.clock = 0;
     this.nextHuntAt = this.elapsed + BOSS_FEEDING.cooldownSeconds;
     this.events.push({ type: "boss-eaten", fish: p.predator, prey: p.prey });
   }
@@ -397,6 +420,7 @@ export class FishingGame {
     );
   }
   beginFight(fish) {
+    const profile = bossCaptureProfile(fish, this.difficulty);
     this.fight = {
       type:
         fish.boss || fish.kind === "shark"
@@ -405,6 +429,9 @@ export class FishingGame {
             ? "timing"
             : "hold",
       stage: 0,
+      profile,
+      tension: 0,
+      straining: false,
       anchorY: this.hook.y,
       aggression: fish.boss ? Math.min(5, fish.tier || 0) : 0,
       progress: 0,
@@ -414,7 +441,7 @@ export class FishingGame {
       target: this.hook.x,
       meter: 0,
       remaining: fish.boss
-        ? BOSS_CAPTURE[this.difficulty].stageSeconds[0]
+        ? profile.stageSeconds[0]
         : this.difficulty === "easy"
           ? 16
           : 11,
@@ -433,7 +460,7 @@ export class FishingGame {
       Math.sin(
         f.elapsed *
           (this.difficulty === "easy" ? 0.9 : 1.3) *
-          (1 + f.aggression * 0.08),
+          (1 + f.aggression * 0.08 + f.profile.level * 0.12),
       ) *
         0.22;
     if (fish.boss) {
@@ -452,16 +479,34 @@ export class FishingGame {
     f.meter = (Math.sin(f.elapsed * 2.2 - Math.PI / 2) + 1) / 2;
     f.good =
       f.type === "follow"
-        ? Math.abs(this.hook.x - f.target) <
-          (this.difficulty === "easy" ? 0.17 : 0.11)
+        ? Math.abs(this.hook.x - f.target) < f.profile.tolerance
         : f.type === "timing"
-          ? f.meter >= (this.difficulty === "easy" ? 0.42 : 0.62)
+          ? f.meter >= f.profile.greenThreshold
           : true;
+    f.straining =
+      !!f.profile.level &&
+      f.type === "hold" &&
+      (f.elapsed + 2) % 3.2 < f.profile.redSeconds;
+    if (f.straining) f.good = false;
+    if (f.profile.level && f.type === "hold") {
+      f.tension = Math.max(
+        0,
+        Math.min(1, f.tension + dt * (this.held && f.straining ? 1.25 : -0.85)),
+      );
+      if (f.tension >= 1) {
+        f.progress = Math.max(0, f.progress - 0.18);
+        f.tension = 0.35;
+        this.events.push({ type: "line-strain", fish });
+      }
+    }
     if (this.held && f.good)
       f.progress = Math.min(
         1,
         f.progress +
-          dt / ((f.type === "hold" ? 1.8 : 1.45) * (1 + f.aggression * 0.05)),
+          dt /
+            ((f.type === "hold" ? 1.8 : 1.45) *
+              (1 + f.aggression * 0.05) *
+              f.profile.effort),
       );
     else if (this.held && !f.good && this.difficulty === "normal")
       f.progress = Math.max(0, f.progress - dt * 0.08);
@@ -471,7 +516,9 @@ export class FishingGame {
         f.type = ["follow", "hold", "timing"][f.stage];
         f.progress = 0;
         f.elapsed = 0;
-        f.remaining = BOSS_CAPTURE[this.difficulty].stageSeconds[f.stage];
+        f.tension = 0;
+        f.straining = false;
+        f.remaining = f.profile.stageSeconds[f.stage];
         this.events.push({ type: "fight-stage", stage: f.stage, fish });
       } else {
         this.fight = null;

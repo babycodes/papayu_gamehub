@@ -5374,3 +5374,16 @@ select {
   border-radius: 8px;
   padding: 3px 5px;
 }
+
+.fishing-fight.line-straining {
+  border-color: #d96637;
+  background: #fff0db;
+}
+.fishing-fight.line-straining #fightTitle {
+  color: #a73520;
+}
+#fishButton.release-needed {
+  background: #ab472d;
+  border-color: #f8c98d;
+  color: #fff7e8;
+}

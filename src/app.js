@@ -1,3 +1,4 @@
+import { matteColor } from "./matte-palette.js";
 import { FishingProgress } from "./fishing-save.js";
 import { fishingDaylight } from "./fishing-daylight.js";
 import { drawFishingAnimal } from "./fishing-art.js";
@@ -748,7 +749,7 @@ function onEvent(event) {
         vx: (Math.random() - 0.5) * 0.15,
         vy: -Math.random() * 0.2,
         life: 1,
-        color: event.fish.color,
+        color: matteColor(event.fish.color),
       });
   }
   if (event.type === "bonus") {
@@ -826,7 +827,7 @@ function onEvent(event) {
         vx: (Math.random() - 0.5) * 0.18,
         vy: (Math.random() - 0.5) * 0.2,
         life: 1,
-        color: i % 2 ? event.fish.color : "#dcffd2",
+        color: i % 2 ? matteColor(event.fish.color) : "#c6dabb",
       });
   }
   if (event.type === "line-strain") {
@@ -954,9 +955,9 @@ function drawFish(fish, x, y, caught = false) {
           : 0.12 + Math.sin(feedingState.clock * 7) ** 2 * 0.12
         : 0.1;
     const aura = ctx.createRadialGradient(0, 0, radius * 0.3, 0, 0, radius);
-    aura.addColorStop(0, fish.color + "00");
-    aura.addColorStop(0.6, fish.color + "88");
-    aura.addColorStop(1, fish.color + "00");
+    aura.addColorStop(0, matteColor(fish.color) + "00");
+    aura.addColorStop(0.6, matteColor(fish.color) + "55");
+    aura.addColorStop(1, matteColor(fish.color) + "00");
     ctx.save();
     ctx.globalAlpha *= alpha * 3;
     ctx.fillStyle = aura;
@@ -983,8 +984,8 @@ function drawFish(fish, x, y, caught = false) {
     ctx.textAlign = "center";
     const label = `⚡${fish.power}${fish.growth > 1 ? " · MUTASI " + fish.growth + "×" : ""}`;
     const labelWidth = ctx.measureText(label).width + 14;
-    rounded(-labelWidth / 2, -s * 0.82 - 19, labelWidth, 17, 8, "#203347d9");
-    ctx.fillStyle = "#fff4c4";
+    rounded(-labelWidth / 2, -s * 0.82 - 19, labelWidth, 17, 8, "#313c46d9");
+    ctx.fillStyle = "#dbd3b2";
     ctx.fillText(label, 0, -s * 0.82 - 7);
     ctx.restore();
   }
@@ -1038,16 +1039,16 @@ function drawBoat(t) {
   ctx.save();
   ctx.translate(bx, by);
   ctx.scale(scale, scale);
-  ellipse(-11, 17, 67, 5, "#326f7435");
+  ellipse(-11, 17, 67, 5, "#446a6a35");
   // Rod and line origin.
-  ctx.strokeStyle = "#756b49";
+  ctx.strokeStyle = "#706850";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(-4, -47);
   ctx.quadraticCurveTo(36, -112 + bend, 79, -53 + bend);
   ctx.stroke();
   // Fisher's legs and shirt.
-  ctx.strokeStyle = "#3e6262";
+  ctx.strokeStyle = "#4b605e";
   ctx.lineWidth = 9;
   ctx.lineCap = "round";
   ctx.beginPath();
@@ -1055,8 +1056,8 @@ function drawBoat(t) {
   ctx.lineTo(-11, -7);
   ctx.lineTo(6, -7);
   ctx.stroke();
-  rounded(-42, -66, 28, 38, 8, "#f2d7a5");
-  ctx.strokeStyle = "#d9b688";
+  rounded(-42, -66, 28, 38, 8, "#cfbd9b");
+  ctx.strokeStyle = "#bba484";
   ctx.lineWidth = 8;
   ctx.beginPath();
   ctx.moveTo(-20, -53);
@@ -1067,7 +1068,7 @@ function drawBoat(t) {
   ctx.lineTo(-5 + winding, -43);
   ctx.lineTo(8, -57 + winding);
   ctx.stroke();
-  ellipse(-27, -80, 13, 14, "#eabf99");
+  ellipse(-27, -80, 13, 14, "#c7ab90");
   path(
     [
       [-42, -82],
@@ -1075,32 +1076,32 @@ function drawBoat(t) {
       [-15, -101],
       [-7, -82],
     ],
-    "#d8b975",
+    "#baa678",
   );
-  rounded(-49, -85, 46, 7, 3, "#ecd293");
-  ellipse(-20, -78, 1.4, 1.8, "#516460");
+  rounded(-49, -85, 46, 7, 3, "#cbb98f");
+  ellipse(-20, -78, 1.4, 1.8, "#57625d");
   // Curved wooden hull.
-  ctx.fillStyle = "#af7652";
+  ctx.fillStyle = "#987259";
   ctx.beginPath();
   ctx.moveTo(-78, -7);
   ctx.quadraticCurveTo(-54, 29, 29, 13);
   ctx.quadraticCurveTo(53, 8, 63, -14);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#d39c6b";
+  ctx.fillStyle = "#b4906e";
   ctx.beginPath();
   ctx.moveTo(-78, -7);
   ctx.quadraticCurveTo(-20, 3, 63, -14);
   ctx.lineTo(57, -6);
   ctx.quadraticCurveTo(-20, 12, -72, 0);
   ctx.fill();
-  ctx.strokeStyle = "#925f493d";
+  ctx.strokeStyle = "#8260503d";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(-56, 6);
   ctx.quadraticCurveTo(0, 20, 43, 1);
   ctx.stroke();
-  rounded(-61, -16, 24, 10, 3, "#c8b789");
+  rounded(-61, -16, 24, 10, 3, "#b0a484");
   ctx.restore();
   return { x: bx + 79 * scale, y: by + (-53 + bend) * scale };
 }
@@ -1123,7 +1124,7 @@ function draw(t, dt) {
     0,
     mixColor(
       daylight.sky[0],
-      daylight.night ? "#342b53" : "#b6bbcf",
+      daylight.night ? "#3e374e" : "#a5a7b1",
       fishingMotion.state.sea * (bossStyle === "cute" ? 0.2 : 0.6),
     ),
   );
@@ -1141,7 +1142,7 @@ function draw(t, dt) {
       mixColor(
         mixColor(
           daylight.sky[0],
-          "#342b53",
+          "#3e374e",
           fishingMotion.state.sea * (bossStyle === "cute" ? 0.2 : 0.6),
         ),
         daylight.sky[1],
@@ -1157,7 +1158,7 @@ function draw(t, dt) {
         height * (0.035 + ((i * 0.031) % 0.19)),
         i % 3 === 0 ? 1.8 : 1,
         i % 3 === 0 ? 1.8 : 1,
-        "#f1eaff",
+        "#d2ccd7",
       );
       ctx.restore();
     }
@@ -1168,7 +1169,7 @@ function draw(t, dt) {
     height * 0.14,
     36 + sunshine,
     36 + sunshine,
-    "#f8eed536",
+    "#d6cfbc36",
   );
   for (const [x, y, s] of [
     [0.12, 0.13, 1],
@@ -1176,13 +1177,13 @@ function draw(t, dt) {
     [0.91, 0.23, 0.8],
   ]) {
     const drift = reducedMotion ? 0 : Math.sin(t * 0.15 + x * 5) * 12;
-    ellipse(width * x + drift, height * y, 31 * s, 7 * s, "#f7f7e777");
+    ellipse(width * x + drift, height * y, 31 * s, 7 * s, "#d7d6c977");
     ellipse(
       width * x + 13 + drift,
       height * y - 6,
       17 * s,
       10 * s,
-      "#f7f7e777",
+      "#d7d6c977",
     );
   }
   path(
@@ -1194,7 +1195,7 @@ function draw(t, dt) {
       [width * 0.23, waterline - 20],
       [width * 0.32, waterline],
     ],
-    "#a9c5b273",
+    "#9dae9f73",
   );
   path(
     [
@@ -1204,9 +1205,9 @@ function draw(t, dt) {
       [width, waterline - 20],
       [width, waterline],
     ],
-    "#a9c5b273",
+    "#9dae9f73",
   );
-  ctx.strokeStyle = "#809d8c";
+  ctx.strokeStyle = "#7d8e81";
   ctx.lineWidth = 1;
   for (const [x, y] of [
     [0.22, 0.1],
@@ -1229,7 +1230,7 @@ function draw(t, dt) {
   const blend = fishingMotion.state.sea;
   ocean.addColorStop(
     0,
-    mixColor(game.frenzy ? "#97d4b7" : daylight.sea[0], seaColors[0], blend),
+    mixColor(game.frenzy ? "#93b8a3" : daylight.sea[0], seaColors[0], blend),
   );
   ocean.addColorStop(0.48, mixColor(daylight.sea[1], seaColors[1], blend));
   ocean.addColorStop(1, mixColor(daylight.sea[2], seaColors[2], blend));
@@ -1249,12 +1250,12 @@ function draw(t, dt) {
         [x + width * 0.2, height],
         [x + width * 0.09, height],
       ],
-      "#d1f5e509",
+      "#bdd3c609",
     );
   }
   for (let layer = 1; layer < 5; layer++) {
     const y = height * (0.31 + layer * 0.128);
-    ctx.strokeStyle = "#c8eee212";
+    ctx.strokeStyle = "#b7cdc312";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 8]);
     ctx.beginPath();
@@ -1272,7 +1273,7 @@ function draw(t, dt) {
           height -
           waterline) %
           (height - waterline));
-    ctx.strokeStyle = "#b2dedb35";
+    ctx.strokeStyle = "#a6c1bc35";
     ctx.lineWidth = 0.8;
     ctx.beginPath();
     ctx.arc(x, y, 1.5 + (i % 3), 0, Math.PI * 2);
@@ -1281,7 +1282,7 @@ function draw(t, dt) {
   // Seagrass and coral on the seabed.
   for (let i = 0; i < 14; i++) {
     const x = i < 7 ? i * 13 : width - (i - 7) * 13;
-    ctx.strokeStyle = i % 2 ? "#4d888575" : "#62999060";
+    ctx.strokeStyle = i % 2 ? "#597d7975" : "#698b8260";
     ctx.lineWidth = 3;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -1302,13 +1303,13 @@ function draw(t, dt) {
       height + 4,
       25 + (i % 3) * 8,
       12 + (i % 2) * 3,
-      "#285369",
+      "#3b5560",
     );
   if (game.bossState === "warning") {
     const total = game.bossWave.length,
       horizontal = total > 1 && width / height > 1.6;
-    ctx.shadowColor = bossStyle === "cute" ? "#e7f6a2" : "#ffcf80";
-    ctx.shadowBlur = reducedMotion ? 0 : 12;
+    ctx.shadowColor = bossStyle === "cute" ? "#cbd49c" : "#d7b783";
+    ctx.shadowBlur = 0;
     for (let slot = 0; slot < total; slot++) {
       const cx =
         width *
@@ -1333,7 +1334,7 @@ function draw(t, dt) {
         cy,
         width * (total === 1 ? 0.24 : horizontal ? 0.1 : 0.17),
         height * 0.04,
-        "#0b243b80",
+        "#22303c80",
       );
       for (const side of [-1, 1])
         ellipse(
@@ -1341,14 +1342,14 @@ function draw(t, dt) {
           cy - height * 0.015,
           width * 0.018,
           height * 0.012,
-          "#ffe8a6",
+          "#daca9e",
         );
     }
     ctx.shadowBlur = 0;
   }
   if (blend > 0.02) {
     ctx.globalAlpha = blend * 0.45;
-    ctx.strokeStyle = bossStyle === "cute" ? "#cef6df" : "#e0a8ed";
+    ctx.strokeStyle = bossStyle === "cute" ? "#bbd3c2" : "#bf9bc4";
     ctx.lineWidth = 2;
     for (let i = 0; i < 7; i++) {
       const bx = width * (0.12 + i * 0.12),
@@ -1406,7 +1407,7 @@ function draw(t, dt) {
   }
   ctx.restore();
   // Surface ripples.
-  ctx.strokeStyle = "#e2f1d877";
+  ctx.strokeStyle = "#c8d0be77";
   ctx.lineWidth = 2;
   for (let i = 0; i < 10; i++) {
     const x = (i * width) / 9;
@@ -1425,18 +1426,18 @@ function draw(t, dt) {
     hookY = game.hook.y * height;
   if (game.fight?.type === "follow") {
     const target = game.fight.target * width;
-    ctx.strokeStyle = "#d1ff8b";
+    ctx.strokeStyle = "#bdd98d";
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(target, hookY, 22, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = "#204754";
+    ctx.fillStyle = "#344b51";
     ctx.font = "bold 25px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(hookX < target ? "→" : "←", (target + hookX) / 2, hookY - 28);
     ctx.textAlign = "start";
   }
-  ctx.strokeStyle = "#f9f8dbb0";
+  ctx.strokeStyle = "#d8d6c1b0";
   ctx.lineWidth = 1.1;
   ctx.beginPath();
   ctx.moveTo(rod.x, rod.y);
@@ -1449,7 +1450,7 @@ function draw(t, dt) {
       hookY + 10,
       game.hook.state !== "fighting",
     );
-  ctx.strokeStyle = "#fff3c7";
+  ctx.strokeStyle = "#dbd3b4";
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.beginPath();
@@ -1458,9 +1459,9 @@ function draw(t, dt) {
   ctx.arc(hookX + 4, hookY + 5, 4, Math.PI, 0, true);
   ctx.lineTo(hookX + 8, hookY + 1);
   ctx.stroke();
-  ellipse(hookX, height * 0.314, 3, 4, "#f1cc78");
+  ellipse(hookX, height * 0.314, 3, 4, "#cdb47d");
   if (game.hook.state === "dropping") {
-    ctx.strokeStyle = "#fff4cc30";
+    ctx.strokeStyle = "#dcd3b830";
     ctx.setLineDash([2, 5]);
     ctx.beginPath();
     ctx.moveTo(hookX, hookY + 15);

@@ -1,10 +1,11 @@
+import { matteColor } from "./matte-palette.js";
 import { getStroke } from "perfect-freehand";
 
 // A small vector rig for thirteen coherent silhouettes. Organic strokes are sampled
 // with a fixed point budget, regardless of score or encounter count.
 export function drawBossCharacter(ctx, fish, size, pose, spooky) {
-  const color = fish.color,
-    accent = fish.accent,
+  const color = matteColor(fish.color),
+    accent = matteColor(fish.accent),
     tier = fish.tier || 0;
   const monster = spooky && pose.friendly < 0.5;
   const t = pose.time,
@@ -14,12 +15,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
   ctx.rotate(pose.sway);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const gradient = (light = color, dark = accent) => {
-    const g = ctx.createLinearGradient(-0.3, -0.7, 0.3, 0.65);
-    g.addColorStop(0, light);
-    g.addColorStop(1, dark);
-    return g;
-  };
+  const paint = (light = color) => light;
   const oval = (x, y, rx, ry, fill) => {
     ctx.beginPath();
     ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
@@ -113,13 +109,13 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [-0.22, 0.03, -0.5, 0.43, -0.31, 0.43],
         [-0.06, 0.43, 0.13, 0.22, 0, 0],
       ],
-      gradient(),
+      paint(),
     );
     line(
       [-0.06, 0.07],
       [[-0.12, 0.15, -0.19, 0.26, -0.25, 0.31]],
       0.018,
-      "#ffffff50",
+      "#dddcda50",
     );
     ctx.restore();
   };
@@ -133,7 +129,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           [0, side * 0.06],
           [[-0.16, side * 0.15, -0.52, side * 0.38 + wave, -0.55, side * 0.2]],
           0.09,
-          gradient(),
+          paint(),
           0.18,
         );
       ctx.restore();
@@ -146,7 +142,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [-0.49, -0.1, -0.49, 0.1, -0.55, 0.33],
         [-0.5, 0.5, -0.23, 0.04, 0, 0],
       ],
-      gradient(),
+      paint(),
     );
     ctx.restore();
   };
@@ -164,7 +160,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         ],
         [x + side * 0.08, y - height * 0.55, x + side * 0.07, y - 0.05, x, y],
       ],
-      gradient("#ffecc0", accent),
+      paint("#dbcdaf"),
     );
   let ex = 0.57,
     ey = -0.12,
@@ -181,7 +177,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.02, 0.35, 0.06, 0.53, 0.21, 0.5],
       ],
       0.32,
-      gradient(),
+      paint(),
       0.1,
     );
     flipper(-0.2, -0.05, -0.8 + wave, 0.7);
@@ -193,7 +189,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.45, -0.27, 0.38, -0.27, 0.27, -0.16],
         [0.05, -0.08, -0.08, -0.17, -0.13, -0.3],
       ],
-      gradient(),
+      paint(),
     );
     for (let i = 0; i < 4; i++)
       horn(-0.16 + i * 0.045, -0.31 - i * 0.07, -1, 0.14);
@@ -207,13 +203,13 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
       [-0.3, 0.1],
       [[-0.7, 0.14, -0.81, 0.48, -1.13, 0.32 + wave]],
       0.27,
-      gradient(),
+      paint(),
       0.42,
     );
     for (let i = 0; i < 5; i++)
       horn(-0.48 + i * 0.13, -0.09 - i * 0.07, -1, 0.19 + (i % 2) * 0.09);
-    oval(-0.03, 0.1, 0.4, 0.5, gradient());
-    oval(0.09, 0.18, 0.24, 0.34, "#e6f1b970");
+    oval(-0.03, 0.1, 0.4, 0.5, paint());
+    oval(0.09, 0.18, 0.24, 0.34, "#cad0aa70");
     for (const side of [-1, 1]) {
       flipper(side * 0.29, 0.34, side * 0.65 + wave, 0.7);
       flipper(side * 0.26, -0.05, side * 0.95 - wave, 0.5);
@@ -226,7 +222,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.77, -0.28, 0.68, -0.12, 0.46, -0.13],
         [0.15, -0.03, -0.04, -0.11, -0.12, -0.22],
       ],
-      gradient(),
+      paint(),
     );
     ex = 0.24;
     ey = -0.46;
@@ -239,7 +235,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [x, 0.04],
         [[x + 0.12, 0.3, x - 0.13 + wave, 0.59, x + wave, 0.77]],
         0.065,
-        gradient(),
+        paint(),
         0.18,
       );
     }
@@ -250,9 +246,9 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.43, 0.23, 0.25, -0.06, 0, 0.14],
         [-0.25, -0.06, -0.43, 0.23, -0.68, 0.02],
       ],
-      gradient(),
+      paint(),
     );
-    oval(-0.23, -0.32, 0.18, 0.06, "#ffffff55");
+    oval(-0.23, -0.32, 0.18, 0.06, "#dddcda55");
     ex = 0.19;
     ey = -0.16;
     mx = 0;
@@ -263,7 +259,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
       [-0.59, 0.33],
       [[0.1, 0.53, 0.46, 0.3, 0.09, 0.02]],
       0.36,
-      gradient(),
+      paint(),
       0.3,
     );
     for (let i = 0; i < 3; i++) {
@@ -273,14 +269,14 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0, 0.15],
         [[x - 0.2, -0.09, x - 0.18, y + 0.1, x, y]],
         0.17,
-        gradient(),
+        paint(),
         0.08,
       );
-      oval(x + 0.07, y, 0.19, 0.14, gradient());
+      oval(x + 0.07, y, 0.19, 0.14, paint());
       horn(x, y - 0.1, -1, 0.17);
       if (i !== 2) {
-        oval(x + 0.1, y - 0.03, 0.045, 0.045, "#ffe4a2");
-        oval(x + 0.12, y - 0.03, 0.013, 0.033, "#18374a");
+        oval(x + 0.1, y - 0.03, 0.045, 0.045, "#d9c79b");
+        oval(x + 0.12, y - 0.03, 0.013, 0.033, "#2d3f49");
       }
     }
     flipper(-0.25, 0.24, -0.6 + wave, 0.6);
@@ -296,10 +292,10 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [x * 1.12, 0.33, x * 1.35 + swing, 0.8, x * 1.1 + swing, 0.6],
         [x * 1.04 + swing, 0.43, x * 0.8 + swing, 0.5, x * 0.78 + swing, 0.55],
       ];
-      const points = organic([x * 0.6, 0.08], curves, 0.16, gradient(), 0.3);
+      const points = organic([x * 0.6, 0.08], curves, 0.16, paint(), 0.3);
       for (const j of [4, 7, 10]) {
         const p = points[j];
-        oval(p[0] + 0.025, p[1], 0.018, 0.014, "#ffe9d594");
+        oval(p[0] + 0.025, p[1], 0.018, 0.014, "#dacbbc94");
       }
     }
     shape(
@@ -309,15 +305,15 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.55, -0.8, 0.76, -0.4, 0.56, 0.08],
         [0.28, 0.29, -0.28, 0.29, -0.56, 0.08],
       ],
-      gradient(),
+      paint(),
     );
-    oval(-0.19, -0.47, 0.19, 0.065, "#ffffff2f");
+    oval(-0.19, -0.47, 0.19, 0.065, "#dddcda2f");
     if (fish.crest)
       line(
         [-0.32, -0.48],
         [[-0.08, -0.6, 0.18, -0.6, 0.35, -0.48]],
         0.04,
-        "#fff4ba80",
+        "#dbd3ac80",
       );
     if (fish.hybrid === "horns") {
       horn(-0.2, -0.63, -1, 0.18);
@@ -373,7 +369,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           [0.04, -0.1, 0.07, -0.22, 0.2, -0.27],
           [0.4, -0.1, 0.29, 0.18, 0.06, 0.2],
         ],
-        gradient(),
+        paint(),
       );
       ctx.restore();
     }
@@ -384,7 +380,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.32, -0.49, 0.7, -0.39, 0.63, 0.04],
         [0.55, 0.36, -0.55, 0.36, -0.63, 0.04],
       ],
-      gradient(),
+      paint(),
     );
     for (const side of [-1, 1])
       line(
@@ -401,10 +397,10 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
   } else if (kind === "turtle") {
     for (const side of [-1, 1]) {
       flipper(side * 0.48, 0.17, side * (0.8 + wave), 0.8);
-      oval(side * 0.44, -0.26, 0.23, 0.12, gradient());
+      oval(side * 0.44, -0.26, 0.23, 0.12, paint());
     }
     oval(0, 0, 0.7, 0.44, accent);
-    oval(-0.03, -0.04, 0.61, 0.36, gradient());
+    oval(-0.03, -0.04, 0.61, 0.36, paint());
     ctx.save();
     ctx.beginPath();
     ctx.ellipse(-0.03, -0.04, 0.56, 0.32, 0, 0, Math.PI * 2);
@@ -421,17 +417,17 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
         }
         ctx.closePath();
-        ctx.strokeStyle = "#fff2b555";
+        ctx.strokeStyle = "#dbd2a955";
         ctx.lineWidth = 0.018;
         ctx.stroke();
       }
     ctx.restore();
-    oval(0.72, -0.02, 0.3, 0.24, gradient());
+    oval(0.72, -0.02, 0.3, 0.24, paint());
     ex = 0.78;
     ey = -0.06;
     mx = 0.85;
     my = 0.11;
-    if (fish.crest) oval(-0.03, -0.09, 0.14, 0.11, gradient("#fff2c1", color));
+    if (fish.crest) oval(-0.03, -0.09, 0.14, 0.11, paint("#dbd2b0"));
   } else if (kind === "ray") {
     organic(
       [-0.44, 0.03],
@@ -448,21 +444,21 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [-0.57, 0.12, -0.81, 0.65, -0.53, 0.7 + wave],
         [0.02, 0.43, 0.32, 0.2, 0.83, 0],
       ],
-      gradient(),
+      paint(),
     );
     line(
       [-0.47, -0.49],
       [[-0.2, -0.28, 0.12, -0.22, 0.46, -0.07]],
       0.025,
-      "#fff4c150",
+      "#dbd3b050",
     );
     line(
       [-0.47, 0.49],
       [[-0.2, 0.28, 0.12, 0.22, 0.46, 0.07]],
       0.025,
-      "#fff4c150",
+      "#dbd3b050",
     );
-    oval(0.07, 0, 0.34, 0.14, "#ffffff18");
+    oval(0.07, 0, 0.34, 0.14, "#dddcda18");
     ex = 0.48;
     ey = -0.07;
     mx = 0.58;
@@ -475,18 +471,18 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [-0.96, 0.22, -0.69, -0.34, -0.96, -0.34 + wave],
       ],
       0.3,
-      gradient(),
+      paint(),
       0.5,
     );
     for (const i of [4, 8, 12, 16, 20])
-      oval(spine[i][0], spine[i][1], 0.027, 0.018, "#fff2b57a");
+      oval(spine[i][0], spine[i][1], 0.027, 0.018, "#dbd2a97a");
     shape(
       [0.18, -0.08],
       [
         [0.32, -0.39, 0.69, -0.41, 0.88, -0.12],
         [0.9, 0.17, 0.42, 0.22, 0.18, -0.08],
       ],
-      gradient(),
+      paint(),
     );
     horn(0.43, -0.29, -1, 0.31);
     horn(0.63, -0.3, 1, 0.3);
@@ -505,7 +501,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.67, -0.52, 0.81, -0.14, 0.66, 0.15],
         [0.44, 0.54, -0.45, 0.58, -0.62, 0.02],
       ],
-      gradient(),
+      paint(),
     );
     line(
       [0.15, -0.48],
@@ -513,9 +509,9 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
       0.038,
       accent,
     );
-    oval(0.7, -0.67 + wave, 0.19, 0.19, "#ffe5a91f");
-    oval(0.7, -0.67 + wave, 0.12, 0.12, gradient("#fff9d7", "#efc368"));
-    oval(0.67, -0.7 + wave, 0.025, 0.025, "#ffffff");
+    oval(0.7, -0.67 + wave, 0.19, 0.19, "#dac89f1f");
+    oval(0.7, -0.67 + wave, 0.12, 0.12, paint("#dcd7bf"));
+    oval(0.67, -0.7 + wave, 0.025, 0.025, "#dddcda");
     ex = 0.4;
     ey = -0.15;
     mx = 0.51;
@@ -534,9 +530,9 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [1.28, 0.05, 1.17, 0.19, 0.93, 0.19],
         [0.39, 0.36, -0.76, 0.35, -1, 0],
       ],
-      gradient(),
+      paint(),
     );
-    oval(0.44, -0.18, 0.18, 0.17, gradient());
+    oval(0.44, -0.18, 0.18, 0.17, paint());
     oval(0.96, -0.02, 0.03, 0.02, accent);
     line([0.62, 0.13], [[0.76, 0.17, 0.98, 0.16, 1.1, 0.09]], 0.025, accent);
     ex = 0.46;
@@ -552,7 +548,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [-0.2, -0.33, -0.02, -0.76, 0.08, -0.68],
         [0.09, -0.43, 0.27, -0.24, 0.4, -0.21],
       ],
-      gradient(),
+      paint(),
     );
     shape(
       [-1, 0],
@@ -562,14 +558,14 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [0.9, 0.45, 0.16, 0.5, -0.46, 0.3],
         [-0.78, 0.19, -0.9, 0.07, -1, 0],
       ],
-      gradient(),
+      paint(),
     );
-    oval(0.12, 0.19, 0.73, whale ? 0.2 : 0.15, "#edf8ff5e");
+    oval(0.12, 0.19, 0.73, whale ? 0.2 : 0.15, "#d1d6d85e");
     flipper(-0.19, 0.12, -0.22 + wave, whale ? 1 : 0.8);
     if (whale)
       for (let row = 0; row < 3; row++)
         for (let i = 0; i < 6; i++)
-          oval(i * 0.22 - 0.66, row * 0.14 - 0.28, 0.025, 0.018, "#f8fff89c");
+          oval(i * 0.22 - 0.66, row * 0.14 - 0.28, 0.025, 0.018, "#d9dcd59c");
     else
       for (let i = 0; i < 3; i++)
         line(
@@ -596,7 +592,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
         [-0.12, -0.38],
         [[0, -0.43, 0.14, -0.4, 0.27, -0.32]],
         0.035,
-        "#ffeab688",
+        "#dacca888",
       );
   }
   // Inherited features make the consumed family readable on the survivor.
@@ -609,7 +605,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           [-0.17, 0.68, -0.11, 0.42, -0.37, 0.42],
         ],
         0.13,
-        gradient(),
+        paint(),
         0.15,
       );
     } else if (trait === "hydra") {
@@ -618,11 +614,11 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           [side * 0.2, 0.05],
           [[side * 0.5, -0.07, side * 0.48, -0.3, side * 0.5, -0.34]],
           0.09,
-          gradient(),
+          paint(),
           0.08,
         );
-        oval(side * 0.5, -0.35, 0.13, 0.1, gradient());
-        oval(side * 0.5 + 0.03, -0.37, 0.025, 0.025, "#ffdc93");
+        oval(side * 0.5, -0.35, 0.13, 0.1, paint());
+        oval(side * 0.5 + 0.03, -0.37, 0.025, 0.025, "#d8c190");
       }
     } else if (["octopus", "jellyfish"].includes(trait)) {
       for (let i = 0; i < 3; i++)
@@ -639,7 +635,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
             ],
           ],
           0.07,
-          gradient(),
+          paint(),
           0.2,
         );
     } else if (["ray", "shark", "whale"].includes(trait)) {
@@ -647,7 +643,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
       flipper(-0.28, 0.18, 0.3 - wave, 0.8);
     } else if (trait === "turtle") {
       oval(-0.15, -0.1, 0.29, 0.2, accent);
-      oval(-0.18, -0.13, 0.21, 0.13, "#ffe6a366");
+      oval(-0.18, -0.13, 0.21, 0.13, "#dac99c66");
     } else if (trait === "crab") {
       for (const side of [-1, 1]) {
         line(
@@ -656,7 +652,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           0.06,
           accent,
         );
-        oval(side * 0.69, 0.1 + wave, 0.12, 0.08, gradient());
+        oval(side * 0.69, 0.1 + wave, 0.12, 0.08, paint());
       }
     } else {
       for (let i = 0; i < 3; i++) horn(-0.37 + i * 0.18, -0.27, -1, 0.28);
@@ -671,7 +667,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
           -0.22 + Math.sin(i) * 0.05,
           0.033,
           0.02,
-          "#ffe9be85",
+          "#dacbad85",
         );
     else
       for (let i = 0; i < 3; i++)
@@ -688,17 +684,17 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
             ],
           ],
           0.025,
-          "#fff6c455",
+          "#dcd5b355",
         );
   }
   const eye = (x, y, r) => {
     const h = r * pose.blink;
     oval(x, y, r * 1.18, h * 1.2, accent);
-    oval(x, y, r, h, monster ? "#ffd47e" : "#fffdf1");
+    oval(x, y, r, h, monster ? "#d7bb82" : "#dddad0");
     const gaze = Math.sin(t * 0.5 + (fish.slot || 0)) * 0.012;
-    oval(x + 0.014 + gaze, y, r * (monster ? 0.22 : 0.43), h * 0.74, "#172f48");
+    oval(x + 0.014 + gaze, y, r * (monster ? 0.22 : 0.43), h * 0.74, "#2b3946");
     if (pose.blink > 0.5)
-      oval(x - 0.02, y - h * 0.25, 0.018, 0.018, "#ffffffd9");
+      oval(x - 0.02, y - h * 0.25, 0.018, 0.018, "#dddcdad9");
     if (monster)
       line(
         [x - r * 0.95, y - r * 0.95],
@@ -712,13 +708,13 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
   if (monster && fish.fierce && tier >= 3 && front) eye(0, ey - 0.19, 0.065);
   if ((pose.mouth || 0) > 0) {
     const open = pose.mouth;
-    oval(mx, my, 0.13 + open * 0.27, 0.06 + open * 0.31, "#15283d");
+    oval(mx, my, 0.13 + open * 0.27, 0.06 + open * 0.31, "#29343e");
     oval(
       mx,
       my + 0.08 + open * 0.11,
       0.08 + open * 0.14,
       0.035 + open * 0.055,
-      "#ef93ac",
+      "#c68b98",
     );
     for (let i = -2; i <= 2; i++)
       shape(
@@ -733,11 +729,11 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
             my - 0.025 - open * 0.2,
           ],
         ],
-        "#fff4d8",
+        "#dcd3bf",
         false,
       );
   } else if (monster) {
-    oval(mx, my, front ? 0.2 : 0.16, 0.075 + pose.anger * 0.02, "#182d43");
+    oval(mx, my, front ? 0.2 : 0.16, 0.075 + pose.anger * 0.02, "#2b3843");
     for (const side of [-1, 1])
       shape(
         [mx + side * 0.095 - 0.022, my - 0.047],
@@ -751,7 +747,7 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
             my - 0.047,
           ],
         ],
-        "#fff3d7",
+        "#dcd3bf",
         false,
       );
   } else {
@@ -759,9 +755,9 @@ export function drawBossCharacter(ctx, fish, size, pose, spooky) {
       [mx - 0.09, my],
       [[mx - 0.04, my + 0.075, mx + 0.06, my + 0.075, mx + 0.12, my]],
       0.025,
-      "#39526a",
+      "#465461",
     );
-    oval(ex - 0.035, ey + 0.14, 0.085, 0.035, "#fcb7be60");
+    oval(ex - 0.035, ey + 0.14, 0.085, 0.035, "#d3a6a860");
   }
   ctx.restore();
 }

@@ -530,7 +530,7 @@ export class ArcadeGames {
     }
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = "#17213b";
+    ctx.fillStyle = "#292f3c";
     ctx.fillRect(0, 0, r.width, r.height);
     const rotated = r.width > r.height * 1.2,
       scale = Math.min(
@@ -587,9 +587,9 @@ export class ArcadeGames {
       "Geser pemukul · panah / WASD di PC · dua sentuhan untuk duel lokal";
     $("arcadeStatus").textContent =
       `Cetak ${g.goal} gol untuk menang${g.serveRemaining ? " · bersiap!" : ""}`;
-    ctx.fillStyle = "#1d3045";
+    ctx.fillStyle = "#2f3a45";
     ctx.fillRect(0, 0, 600, 900);
-    ctx.strokeStyle = "#6b91a6";
+    ctx.strokeStyle = "#6e8590";
     ctx.lineWidth = 5;
     ctx.strokeRect(5, 5, 590, 890);
     ctx.setLineDash([10, 14]);
@@ -602,7 +602,7 @@ export class ArcadeGames {
     ctx.arc(300, 450, 75, 0, Math.PI * 2);
     ctx.stroke();
     const colors = this.players.map((p) =>
-      p.team === "blue" ? "#72caff" : "#ff84a7",
+      p.team === "blue" ? "#7ab0cf" : "#cf8094",
     );
     ctx.fillStyle = colors[1];
     ctx.fillRect(200, 0, 200, 12);
@@ -610,13 +610,13 @@ export class ArcadeGames {
     ctx.fillRect(200, 888, 200, 12);
     for (const [i, p] of g.paddles.entries()) {
       ctx.shadowColor = colors[i];
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 0;
       ctx.fillStyle = colors[i];
       ctx.beginPath();
       ctx.arc(p.x, p.y, 34, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.fillStyle = "#20364a";
+      ctx.fillStyle = "#323f49";
       ctx.beginPath();
       ctx.arc(p.x, p.y, 17, 0, Math.PI * 2);
       ctx.fill();
@@ -624,15 +624,15 @@ export class ArcadeGames {
       ctx.lineWidth = 3;
       ctx.stroke();
     }
-    ctx.fillStyle = "#fff2c1";
-    ctx.shadowColor = "#fff2c1";
-    ctx.shadowBlur = 12;
+    ctx.fillStyle = "#dbd2b0";
+    ctx.shadowColor = "#dbd2b0";
+    ctx.shadowBlur = 0;
     ctx.beginPath();
     ctx.arc(g.puck.x, g.puck.y, 16, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
     if (g.serveRemaining) {
-      ctx.fillStyle = "#eef5dd";
+      ctx.fillStyle = "#d1d4c2";
       ctx.font = "bold 38px Arial";
       ctx.textAlign = "center";
       ctx.fillText("SIAP?", 300, 405);
@@ -779,12 +779,12 @@ export class ArcadeGames {
     $("arcadeHint").textContent =
       "Geser / panah kiri-kanan · ⭐ poin · 🌟 bonus · 💣 hindari · ⏳ +waktu";
     const gradient = ctx.createLinearGradient(0, 0, 0, r.height);
-    gradient.addColorStop(0, g.frenzy ? "#433253" : "#202542");
-    gradient.addColorStop(1, "#233e58");
+    gradient.addColorStop(0, g.frenzy ? "#493d4f" : "#303242");
+    gradient.addColorStop(1, "#354553");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, r.width, r.height);
     for (let i = 0; i < 24; i++) {
-      ctx.fillStyle = i % 3 ? "#7a86a4" : "#cbd6b8";
+      ctx.fillStyle = i % 3 ? "#777d8e" : "#b6bba6";
       ctx.beginPath();
       ctx.arc(
         (((i * 97) % 101) / 101) * r.width,
@@ -809,7 +809,7 @@ export class ArcadeGames {
       w = r.width * 0.18,
       h = Math.max(14, Math.min(32, r.height * 0.08));
     ctx.fillStyle =
-      this.players[g.turn].team === "blue" ? "#89d6ee" : "#f8a1ad";
+      this.players[g.turn].team === "blue" ? "#8abac6" : "#ce959b";
     ctx.beginPath();
     ctx.moveTo(x - w / 2, y - h / 2);
     ctx.lineTo(x + w / 2, y - h / 2);
@@ -817,7 +817,7 @@ export class ArcadeGames {
     ctx.lineTo(x - w * 0.38, y + h / 2);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = "#f9edb6";
+    ctx.strokeStyle = "#d7cea8";
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.beginPath();
@@ -826,7 +826,7 @@ export class ArcadeGames {
     ctx.font = "bold 18px Arial";
     for (const b of this.starBursts || []) {
       ctx.globalAlpha = b.life;
-      ctx.fillStyle = b.type === "bomb" ? "#ffa0af" : "#e6f5af";
+      ctx.fillStyle = b.type === "bomb" ? "#d2959c" : "#cbd3a4";
       ctx.fillText(b.text, b.x * r.width, r.height * 0.8 - (1 - b.life) * 55);
     }
     ctx.globalAlpha = 1;

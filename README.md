@@ -142,7 +142,7 @@ Validasi pengembangan: 72 tes Node lulus, termasuk 1.000 variasi gelombang hingg
 
 ## Pratinjau Gamehub
 
-Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 423 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
+Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 405 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
 
 
 ## Bom Bom
@@ -167,8 +167,17 @@ Simpanan bersifat lokal pada browser, profil, perangkat, dan alamat situs yang s
 Validasi: 111 tes Node, termasuk serialisasi ronde biasa, tarikan aktif, peringatan boss, gelombang, perburuan, mangsa yang dikail, mutasi, data rusak, pembersihan checkpoint dan kegagalan penyimpanan. Pengujian browser mencakup tangkapan sungguhan, tab tertutup lalu dibuka, reload saat melawan boss mutasi, pemulihan dalam jeda, Quit/batal keluar, rekor, serta pembersihan saat ronde selesai.
 
 
-## Warna Gamehub dan Bom Bom
+## Palet doff untuk seluruh Gamehub
 
-Gamehub menggunakan palet terang krem, mint, teal, kuning dan koral, termasuk banner, pencarian, filter, kartu, favorit, pagination, statistik lokal dan panduan. Pratinjau tetap menggunakan tangkapan layar game sebenarnya. Palet game lain dipertahankan. Bom Bom memakai kotak biru langit, kotak aman kuning, serta bom koral, dengan border hijau untuk giliran aktif. Papan berisi **6 kolom × 4 baris**; kedua papan tetap terlihat dalam satu frame dan giliran berpindah otomatis. Masing-masing pemain memasang **5 bom**, mendapat **5 hati**, dan kehilangan satu hati per bom. Hati kosong berbentuk outline dan jumlah nyawa juga memiliki label pembaca layar. Animasi bintang, hati hilang, dan getaran ringan panel dinonaktifkan saat reduced motion. Tidak ada library atau aset animasi tambahan.
+Seluruh library dan **11 game** memakai palet doff yang sama: kertas hangat, denim, sage, mustard, terracotta, dan rose redup. Warna tiap game dan kartu tetap bervariasi; permukaan, tombol, dialog, pilihan karakter, statistik, papan dan kontrol memakai warna datar tanpa kilau/neon. Giliran aktif tetap memakai border hijau tua, nyawa memakai hati rose, serta peringatan memakai terracotta dengan teks/ikon yang jelas. Catur tetap membedakan bidak putih/hitam, pilihan langkah, langkah terakhir dan skak; Balap Reaksi tetap membedakan tunggu dan mulai lewat warna serta tulisan. Pengaturan reduced motion tetap berlaku.
+
+Canvas Air Hockey dan Tangkap Bintang, langit/laut berdasarkan jam, ikan, monster, gambar Puzzle Geser, serta potret Mahjong ikut disesuaikan. Ilustrasi hewan memakai bidang warna datar dan outline; glow Canvas dihapus. Warna ikan/boss yang berasal dari data ronde lama dikonversi **hanya saat digambar** lewat `src/matte-palette.js`, dengan cache maksimal 384 warna. Data permainan, progres tersimpan dan aturan tidak berubah. Tidak ada filter saturasi seluruh halaman, dependency, aset animasi, timer, atau proses server baru. Semua pratinjau JPEG di `assets/games` diperbarui dari tampilan permainan yang sebenarnya.
+
+Bom Bom tetap memiliki **24 kotak (6×4), 5 bom, dan 5 hati** per pemain, dua papan dalam satu frame, giliran otomatis, serta penolakan klik di luar giliran. Perubahan tema tidak mengubah mekanisme game.
 
 Validasi pembaruan: 112 tes Node, termasuk batas lima bom, pemakaian sel ke-24, lima nyawa, kekalahan pada bom kelima, bot yang tidak membaca posisi bom, dan 100 pertandingan penuh. Pengujian Chromium meliputi HP 320×568/390×844, landscape 844×390, tablet 768×1024/1024×768, desktop, perpindahan otomatis, klik di luar giliran, pause, replay, konfirmasi keluar, tema Gamehub dan fungsi pencarian/filter/favorit/pagination.
+
+
+Pemeriksaan tema doff: 112 tes Node tetap lulus. Chromium menguji peluncuran seluruh 11 game, gambar pratinjau, layout portrait/landscape/desktop, serta jeda, konfirmasi keluar dan lanjut. Pemulihan progres memancing dan pertandingan Bom Bom hingga lima nyawa habis juga diuji ulang. Warna adalah perubahan presentasi; tidak ada migrasi data atau penghapusan progres.
+
+Pengujian tema juga memeriksa kontras sampel judul, deskripsi, tombol, metadata kartu dan nama/kubu pemain (minimal 4,5:1), status skak Catur, serta formulir Mahjong di landscape. Formulir pemilihan mode berada di atas area bidak agar tombol Mulai tetap dapat ditekan pada tablet/HP landscape.

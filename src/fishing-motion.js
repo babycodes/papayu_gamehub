@@ -184,17 +184,17 @@ export function mixColor(from, to, amount) {
   return `rgb(${mix(16)}, ${mix(8)}, ${mix(0)})`;
 }
 export function bossSea(boss, cute = false) {
-  if (cute) return ["#83caba", "#4b9da9", "#496b91"];
+  if (cute) return ["#85b0a4", "#5a8d92", "#53687d"];
   const palettes = {
-    crocodile: ["#507f72", "#245c59", "#173843"],
-    octopus: ["#9269a5", "#593e7d", "#282443"],
-    crab: ["#b87567", "#795462", "#392c43"],
-    turtle: ["#6c9587", "#37615d", "#203a45"],
-    ray: ["#7797af", "#4a5d8e", "#242b50"],
-    whale: ["#758eab", "#465585", "#252842"],
-    shark: ["#678899", "#3b5268", "#1e2f42"],
-    serpent: ["#ad727e", "#705273", "#352a48"],
-    angler: ["#758b8b", "#435e69", "#263b4c"],
+    crocodile: ["#5a766c", "#395b56", "#2c4044"],
+    octopus: ["#84698c", "#59476c", "#353142"],
+    crab: ["#9e7267", "#70585e", "#413844"],
+    turtle: ["#6f887c", "#465f5a", "#324146"],
+    ray: ["#778a97", "#535d7a", "#33374b"],
+    whale: ["#758393", "#4f5773", "#343442"],
+    shark: ["#6b7e86", "#475460", "#303943"],
+    serpent: ["#967075", "#6a5669", "#3e3647"],
+    angler: ["#74817e", "#4e5e62", "#36424b"],
   };
   return palettes[boss?.kind] || palettes.whale;
 }

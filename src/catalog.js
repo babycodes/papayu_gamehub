@@ -1,5 +1,17 @@
 export const GAMES = [
   {
+    id: "bom-bom",
+    title: "Bom Bom",
+    description:
+      "Sembunyikan 3 bom di papan 4 × 4! Buka kotak lawan, kumpulkan poin, dan hindari 3 ledakan.",
+    icon: "💣",
+    category: "Arcade",
+    modes: ["2 pemain", "Lawan bot"],
+    duration: "2–5 menit",
+    tag: "BOOM & PLAY",
+    action: "Main Bom Bom",
+  },
+  {
     id: "memory-match",
     title: "Memory Match",
     description:

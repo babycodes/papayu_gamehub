@@ -1,6 +1,6 @@
 # Papayu GameHub
 
-Gamehub untuk penjelajah kecil. Sepuluh game, termasuk **Memory Match**, **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Mahjong Anak**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
+Gamehub untuk penjelajah kecil. Sebelas game, termasuk **Bom Bom**, **Memory Match**, **Petualangan Memancing — Teluk Ceria**, **Tic Tac Toe**, **Catur**, dan **Mahjong Anak**, dibuat dengan JavaScript dan Canvas agar bisa dimainkan lewat browser HP maupun desktop.
 
 ## Menjalankan
 
@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-72 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, timer frenzy ikan/bintang yang terpisah dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+100 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, timer frenzy ikan/bintang yang terpisah dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -122,7 +122,7 @@ Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang s
 
 Dependency animasi `@tweenjs/tween.js` **25.0.0** (MIT) dikunci di package-lock.json dan disajikan lokal dari `/vendor/tween.js`, tanpa CDN atau dependency tambahan. Modul ESM berukuran sekitar **43 KB** tanpa kompresi (sekitar 7 KB jika dikompresi gzip). Canvas 2D tetap dipakai; tidak ada loop animasi tambahan, WebGL, atau video/GIF yang harus diunduh.
 
-Kesepuluh game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
+Kesebelas game dapat dimainkan. Akun, ranking antar pemain, multiplayer online, dan versi Flutter/native APK belum dibuat.
 
 ## Privasi dan file rahasia
 
@@ -140,4 +140,15 @@ Validasi pengembangan: 72 tes Node lulus, termasuk 1.000 variasi gelombang hingg
 
 ## Pratinjau Gamehub
 
-Banner memiliki slider manual untuk 10 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 316 KB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
+Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 334 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
+
+
+## Bom Bom
+
+Mode **lawan bot** atau **dua pemain satu perangkat**, dengan nama dan pilihan kubu. Masing-masing pemain mempunyai 16 kotak (4 × 4) dan wajib menyembunyikan tepat 3 bom supaya aturan kalah setelah terkena tiga bom selalu dapat tercapai. Ketuk lagi untuk memindahkan pilihan sebelum menekan siap. Pada mode lokal, layar serah perangkat menutup papan sebelum setiap penempatan dan pergantian giliran. Posisi bom yang belum dibuka tidak dikirim ke elemen papan/label aksesibilitas saat menyerang.
+
+Pemain bergantian membuka satu kotak lawan: kotak aman memberi **1 poin**, bom menambah hitungan terkena bom tanpa poin. Kotak bom berkedip singkat, lalu tetap merah; reduced motion memakai penanda statis. Pemain pertama yang terkena **3 bom kalah**, berapa pun skornya. Panel hasil satu langkah memberi waktu membaca sebelum melanjutkan giliran. Bot memilih acak hanya dari kotak yang belum dibuka, tanpa melihat posisi bom. Tidak ada timer. Main lagi mempertahankan mode, nama, dan kubu serta mengganti pemain pertama untuk mode lokal. Jeda menyembunyikan papan penempatan; keluar/ganti mode meminta konfirmasi seperti game arcade lain. Semua posisi hanya berada dalam memori ronde, tanpa penyimpanan di localStorage atau layanan tambahan.
+
+Validasi Bom Bom: tes aturan penempatan, privasi fase serah, giliran dan skor, kalah pada bom ketiga, replay, pilihan bot tanpa membaca bom, serta 100 simulasi pertandingan penuh. Pemeriksaan Chromium mencakup 320×568, 390×844, 844×390, desktop, jeda, konfirmasi keluar/ganti mode, dan permainan lokal hingga selesai. Panel hasil berpindah ke samping papan saat HP landscape.
+
+Jika aplikasi dijalankan lewat PM2, setelah `git pull` jalankan `pm2 restart <nama-app>` dan refresh browser untuk memuat versi terbaru.

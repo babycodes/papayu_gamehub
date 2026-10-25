@@ -53,6 +53,7 @@ function playerInfo(game) {
   };
 }
 const summaries = {
+  "bom-bom": "Sembunyikan bom, buka kotak lawan, dan hindari ledakan!",
   "memory-match": "Buka kartu dan temukan pasangan gambarnya.",
   fishing: "Jelajahi laut, tangkap ikan, dan taklukkan monster!",
   "tic-tac-toe": "Susun tiga simbol berurutan untuk menang.",

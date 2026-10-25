@@ -1,3 +1,5 @@
+import { BomBom } from "./bomb-engine.js";
+import { renderBomb, bombAction } from "./bomb-ui.js";
 import { GAMES } from "./catalog.js";
 import { localPlayers, TEAM_NAMES } from "./players.js";
 import { MemoryMatch, MEMORY_THEMES } from "./memory-engine.js";
@@ -7,6 +9,7 @@ import { ReactionRace } from "./reaction-engine.js";
 import { SlidingPuzzle, PUZZLE_ART } from "./puzzle-engine.js";
 import { CatchStars } from "./stars-engine.js";
 export const ARCADE_IDS = new Set([
+  "bom-bom",
   "memory-match",
   "connect-four",
   "air-hockey",
@@ -125,6 +128,8 @@ export class ArcadeGames {
   }
   instructions() {
     return {
+      "bom-bom":
+        "Sembunyikan 3 bom di papan 4 × 4 milikmu. Bergantian buka kotak lawan: aman +1 poin, kena 3 bom berarti kalah. Pilih tepat 3 bom agar permainan adil.",
       "memory-match":
         "Temukan dua gambar yang sama. Pasangan cocok memberi poin dan giliran tambahan!",
       "connect-four":
@@ -140,6 +145,7 @@ export class ArcadeGames {
     }[this.id];
   }
   setupFields() {
+    if (this.id === "bom-bom") return "";
     const difficulty =
       '<label>Level bot<select id="arcadeDifficulty"><option value="normal">Pintar</option><option value="easy">Santai</option></select></label>';
     if (this.id === "memory-match")
@@ -233,42 +239,47 @@ export class ArcadeGames {
     this.puzzleHint = null;
     this.botDelay = 0;
     this.engine =
-      this.id === "catch-stars"
-        ? new CatchStars({
-            duration: this.settings.duration,
-            local: this.settings.opponent === "local",
+      this.id === "bom-bom"
+        ? new BomBom({
+            bot: this.settings.opponent === "bot",
             firstPlayer: this.firstPlayer,
           })
-        : this.id === "sliding-puzzle"
-          ? new SlidingPuzzle({
-              size: this.settings.size,
-              steps:
-                this.settings.difficulty === "easy"
-                  ? 12
-                  : this.settings.size === 4
-                    ? 60
-                    : 30,
+        : this.id === "catch-stars"
+          ? new CatchStars({
+              duration: this.settings.duration,
+              local: this.settings.opponent === "local",
+              firstPlayer: this.firstPlayer,
             })
-          : this.id === "reaction-race"
-            ? new ReactionRace({
-                rounds: this.settings.rounds,
-                bot: this.settings.opponent === "bot",
-                easy: this.settings.difficulty === "easy",
+          : this.id === "sliding-puzzle"
+            ? new SlidingPuzzle({
+                size: this.settings.size,
+                steps:
+                  this.settings.difficulty === "easy"
+                    ? 12
+                    : this.settings.size === 4
+                      ? 60
+                      : 30,
               })
-            : this.id === "air-hockey"
-              ? new AirHockey({
-                  goal: this.settings.goal,
+            : this.id === "reaction-race"
+              ? new ReactionRace({
+                  rounds: this.settings.rounds,
                   bot: this.settings.opponent === "bot",
                   easy: this.settings.difficulty === "easy",
                 })
-              : this.id === "connect-four"
-                ? new ConnectFour(this.firstPlayer)
-                : new MemoryMatch({
-                    theme: this.settings.theme,
-                    pairs: this.settings.pairs,
-                    local: this.settings.opponent === "local",
-                    firstPlayer: this.firstPlayer,
-                  });
+              : this.id === "air-hockey"
+                ? new AirHockey({
+                    goal: this.settings.goal,
+                    bot: this.settings.opponent === "bot",
+                    easy: this.settings.difficulty === "easy",
+                  })
+                : this.id === "connect-four"
+                  ? new ConnectFour(this.firstPlayer)
+                  : new MemoryMatch({
+                      theme: this.settings.theme,
+                      pairs: this.settings.pairs,
+                      local: this.settings.opponent === "local",
+                      firstPlayer: this.firstPlayer,
+                    });
     this.mode = "playing";
     this.onStart(this.id);
     this.renderShell();
@@ -281,13 +292,32 @@ export class ArcadeGames {
   }
   loop() {
     cancelAnimationFrame(this.frame);
-    if (this.id === "sliding-puzzle") return;
+    if (
+      this.id === "sliding-puzzle" ||
+      (this.id === "bom-bom" && !this.engine.bot)
+    )
+      return;
     this.last = performance.now();
     const tick = (now) => {
       if (this.mode !== "playing") return;
       const dt = Math.min(0.05, (now - this.last) / 1000);
       this.last = now;
-      if (this.id === "catch-stars") {
+      if (this.id === "bom-bom") {
+        if (
+          this.engine.bot &&
+          this.engine.turn === 1 &&
+          this.engine.phase === "attack"
+        ) {
+          this.botDelay += dt;
+          if (this.botDelay >= 0.8) {
+            this.botDelay = 0;
+            if (this.engine.open(this.engine.botChoice())) {
+              this.onMove();
+              this.renderBoard();
+            }
+          }
+        }
+      } else if (this.id === "catch-stars") {
         this.starKeys(dt);
         this.engine.tick(dt);
         for (const e of this.engine.drainEvents()) {
@@ -365,7 +395,7 @@ export class ArcadeGames {
     const play = $("arcadePlay"),
       focused = document.activeElement;
     const restore = play.contains(focused);
-    const key = ["card", "puzzle", "column", "action"].find(
+    const key = ["card", "puzzle", "column", "bomb", "action"].find(
       (k) => focused?.dataset?.[k] !== undefined,
     );
     const value = key ? focused.dataset[key] : null;
@@ -388,6 +418,7 @@ export class ArcadeGames {
     if (!this.engine || !$("arcadePlay")) return;
     this.root.querySelector('[data-action="pause"]').disabled =
       this.mode !== "playing";
+    if (this.id === "bom-bom") return renderBomb(this);
     if (this.id === "connect-four") return this.renderConnect();
     if (this.id === "air-hockey") return this.renderHockey();
     if (this.id === "reaction-race") return this.renderReaction();
@@ -686,6 +717,8 @@ export class ArcadeGames {
     if (this.engine.winner !== null) this.finish("Gambarnya lengkap! Hebat!");
   }
   resultDetail() {
+    if (this.id === "bom-bom")
+      return `${this.engine.scores[0]} – ${this.engine.scores[1]} poin · Kena bom ${this.engine.hits[0]}/3 – ${this.engine.hits[1]}/3`;
     if (this.id === "catch-stars")
       return this.settings.opponent === "local"
         ? `${this.engine.scores[0]} – ${this.engine.scores[1]} poin`
@@ -819,6 +852,7 @@ export class ArcadeGames {
       return this.start();
     }
     if (this.mode !== "playing") return;
+    if (this.id === "bom-bom") return bombAction(this, button);
     if (action === "next-round") {
       if (this.engine.nextRound()) {
         this.starBursts = [];

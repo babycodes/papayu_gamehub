@@ -50,7 +50,7 @@ export const GAMES = [
     id: "mahjong",
     title: "Mahjong Anak",
     description:
-      "Mahjong anak: buka ubin campuran dan lengkapi koleksi buah atau hewan!",
+      "Pilih Shinchan, SpongeBob, Super Mario, buah, atau hewan. Susun 24 bidak dalam 6 kelompok!",
     icon: "🍎",
     category: "Arcade",
     modes: ["2 pemain", "Lawan bot"],

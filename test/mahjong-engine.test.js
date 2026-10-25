@@ -1,17 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TileDuel } from "../src/mahjong-engine.js";
+import { TileDuel, TILE_THEMES } from "../src/mahjong-engine.js";
 
 test("tile duel deals two mixed boards and exactly four of every picture", () => {
   const game = new TileDuel({ random: () => 0.37 });
   assert.deepEqual(
     game.boards.map((board) => board.length),
-    [16, 16],
+    [24, 24],
   );
   for (const board of game.boards)
     assert.equal(new Set(board.map((tile) => tile.theme)).size, 2);
   for (const theme of ["fruit", "animal"])
-    for (let picture = 0; picture < 4; picture++)
+    for (let picture = 0; picture < 6; picture++)
       assert.equal(
         game.boards
           .flat()
@@ -52,7 +52,7 @@ test("opponent tiles immediately switch the turn and become available to their o
   const saved = JSON.stringify(game);
   assert.equal(game.draw(0, 0), null);
   assert.equal(game.draw(1, -1), null);
-  assert.equal(game.draw(1, 16), null);
+  assert.equal(game.draw(1, 24), null);
   assert.equal(game.draw(1, 1.5), null);
   assert.equal(JSON.stringify(game), saved);
 });
@@ -63,7 +63,7 @@ test("players can use the other board after their own board empties", () => {
   game.boards[0].forEach((tile) => (tile.revealed = true));
   game.turn = 0;
   assert.equal(game.availableBoard(), 1);
-  assert.equal(game.choices().length, 16);
+  assert.equal(game.choices().length, 24);
   assert.equal(game.draw(0, 0), null);
   assert.equal(game.draw(1, 0).sender, 0);
 });
@@ -88,8 +88,8 @@ test("a full duel conserves tiles and ends at the first complete collection", ()
       );
       assert.ok(game.collections.flat().every((count) => count <= 4));
     }
-    assert.ok(reveals <= 31);
-    assert.deepEqual(game.collections[game.winner], [4, 4, 4, 4]);
+    assert.ok(reveals <= 47);
+    assert.deepEqual(game.collections[game.winner], [4, 4, 4, 4, 4, 4]);
     const saved = JSON.stringify(game);
     assert.deepEqual(game.choices(), []);
     assert.equal(game.draw(0, 0), null);
@@ -102,7 +102,7 @@ test("new rounds preserve chosen themes and reset collections", () => {
   assert.deepEqual(game.themes, ["animal", "fruit"]);
   assert.equal(game.turn, 1);
   assert.equal(game.availableBoard(), 1);
-  assert.deepEqual(game.collections, [Array(4).fill(0), Array(4).fill(0)]);
+  assert.deepEqual(game.collections, [Array(6).fill(0), Array(6).fill(0)]);
   assert.equal(game.winner, null);
   assert.throws(() => new TileDuel({ firstTheme: "unknown" }));
 });
@@ -113,7 +113,7 @@ test("pending automatic transfers and wrong columns cannot duplicate tiles or ad
   const move = game.draw(0, index);
   let saved = JSON.stringify(game);
   assert.deepEqual(game.choices(), []);
-  assert.equal(game.draw(0, (index + 1) % 16), null);
+  assert.equal(game.draw(0, (index + 1) % 24), null);
   assert.equal(game.place(1, move.picture), false);
   assert.equal(JSON.stringify(game), saved);
   assert.equal(game.place(1, move.picture), false);
@@ -134,7 +134,7 @@ test("own tiles go to the owner's tray and victory waits for arranging the final
   const game = new TileDuel({ random: () => 0.37 });
   const index = game.boards[0].findIndex((tile) => tile.theme === "fruit");
   const picture = game.boards[0][index].picture;
-  game.collections[0] = [4, 4, 4, 4];
+  game.collections[0] = [4, 4, 4, 4, 4, 4];
   game.collections[0][picture] = 3;
   game.draw(0, index);
   assert.equal(game.pending.stage, "arrange");
@@ -213,7 +213,7 @@ test("dice block opening tiles until both roll; the higher value starts", () => 
   assert.equal(game.awaitingDice, false);
   assert.equal(game.turn, 1);
   assert.equal(game.roll(0), null);
-  assert.equal(game.choices().length, 16);
+  assert.equal(game.choices().length, 24);
 });
 
 test("equal dice require a fresh pair of rolls, including on a new round", () => {
@@ -236,4 +236,56 @@ test("equal dice require a fresh pair of rolls, including on a new round", () =>
   assert.deepEqual(next.dice, [null, null]);
   assert.deepEqual(next.diceHistory, []);
   assert.equal(next.awaitingDice, true);
+});
+
+test("every character pairing uses only those two themes and can finish all six groups", () => {
+  for (const firstTheme of Object.keys(TILE_THEMES)) {
+    assert.equal(TILE_THEMES[firstTheme].pictures.length, 6);
+    assert.equal(TILE_THEMES[firstTheme].labels.length, 6);
+    assert.equal(new Set(TILE_THEMES[firstTheme].pictures).size, 6);
+    for (const secondTheme of Object.keys(TILE_THEMES)) {
+      if (firstTheme === secondTheme) {
+        assert.throws(() => new TileDuel({ firstTheme, secondTheme }));
+        continue;
+      }
+      const g = new TileDuel({ firstTheme, secondTheme, random: () => 0.37 });
+      assert.deepEqual(g.themes, [firstTheme, secondTheme]);
+      assert.deepEqual(
+        g.boards.map((board) => board.length),
+        [24, 24],
+      );
+      for (const theme of g.themes)
+        for (let picture = 0; picture < 6; picture++)
+          assert.equal(
+            g.boards
+              .flat()
+              .filter((t) => t.theme === theme && t.picture === picture).length,
+            4,
+          );
+      let moves = 0;
+      while (g.winner === null) {
+        const choice = g.choices()[0];
+        g.draw(choice.board, choice.index);
+        const p = g.pending;
+        if (p.stage === "pickup") g.pickup(p.owner);
+        assert.ok(g.place(p.owner, g.columnFor(p.owner, p.picture)));
+        assert.ok(++moves <= 47);
+      }
+      assert.deepEqual(g.collections[g.winner], [4, 4, 4, 4, 4, 4]);
+    }
+  }
+});
+test("the sixth collection column accepts a new picture and enforces matching placement", () => {
+  const g = new TileDuel({
+    firstTheme: "shinchan",
+    secondTheme: "mario",
+    random: () => 0.37,
+  });
+  const own = g.boards[0].findIndex((t) => t.theme === "shinchan");
+  const picture = g.boards[0][own].picture;
+  g.draw(0, own);
+  assert.equal(g.place(0, 6), false);
+  assert.ok(g.place(0, 5));
+  assert.equal(g.columns[0][5], picture);
+  assert.equal(g.columnFor(0, picture), 5);
 });

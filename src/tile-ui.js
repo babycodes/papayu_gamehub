@@ -1,4 +1,4 @@
-import { TILE_THEMES } from "./mahjong-engine.js";
+import { TILE_THEMES, TILES_PER_PLAYER } from "./mahjong-engine.js";
 let cancelDrag = null;
 const $ = (id) => document.getElementById(id);
 const node = (tag, className, text) => {
@@ -7,6 +7,33 @@ const node = (tag, className, text) => {
   if (text !== undefined) element.textContent = text;
   return element;
 };
+
+function pictureNode(tag, className, themeId, picture) {
+  const element = node(tag, className);
+  const theme = TILE_THEMES[themeId],
+    source = theme.pictures[picture];
+  if (source.startsWith("data:image/svg+xml,")) {
+    const image = node("img", "tile-picture");
+    image.src = source;
+    image.alt = theme.labels[picture];
+    image.draggable = false;
+    element.append(image);
+  } else element.textContent = source;
+  return element;
+}
+export function renderTileThemePreview() {
+  for (const [select, target] of [
+    ["tileTheme", "tileThemePreview"],
+    ["tileOpponentTheme", "tileOpponentThemePreview"],
+  ]) {
+    const themeId = $(select).value;
+    $(target).replaceChildren(
+      ...TILE_THEMES[themeId].pictures.map((_, i) =>
+        pictureNode("span", "theme-preview-picture", themeId, i),
+      ),
+    );
+  }
+}
 
 // Pointer gestures work with mouse, pen, and touch, including scrolling a small screen.
 function movable(button, game, action) {
@@ -71,6 +98,8 @@ function movable(button, game, action) {
       Math.hypot(gesture.x - gesture.startX, gesture.y - gesture.startY) > 7
     ) {
       gesture.ghost = node("div", "tile-drag-ghost", button.textContent);
+      const picture = button.querySelector(".tile-picture");
+      if (picture) gesture.ghost.replaceChildren(picture.cloneNode(true));
       gesture.ghost.setAttribute("aria-hidden", "true");
       $("gameScreen").append(gesture.ghost);
       gesture.frame = requestAnimationFrame(frame);
@@ -205,10 +234,11 @@ export function renderTileDuel(game) {
     ),
   );
   if (pending?.stage === "pickup") {
-    const button = node(
+    const button = pictureNode(
       "button",
       "pickup-tile tray-tile",
-      TILE_THEMES[pending.theme].pictures[pending.picture],
+      pending.theme,
+      pending.picture,
     );
     button.disabled = game.mode !== "playing" || game.isBotTurn();
     button.setAttribute(
@@ -273,7 +303,7 @@ export function renderTileDuel(game) {
       node(
         "span",
         "tile-progress",
-        `${duel.collections[player].reduce((sum, n) => sum + n, 0)}/16`,
+        `${duel.collections[player].reduce((sum, n) => sum + n, 0)}/${TILES_PER_PLAYER}`,
       ),
       node("b", "", status),
     );
@@ -310,10 +340,11 @@ export function renderTileDuel(game) {
     const holds = pending?.stage === "arrange" && pending.owner === player;
     if (holds) {
       const action = pending.stage;
-      const button = node(
+      const button = pictureNode(
         "button",
         `tray-tile ${game.selectedTile ? "selected-tray-tile" : ""}`,
-        TILE_THEMES[pending.theme].pictures[pending.picture],
+        pending.theme,
+        pending.picture,
       );
       button.disabled = game.mode !== "playing" || game.isBotTurn();
       button.setAttribute(
@@ -336,7 +367,7 @@ export function renderTileDuel(game) {
       node(
         "span",
         "",
-        `TERSUSUN ${duel.collections[player].reduce((sum, n) => sum + n, 0)}/16`,
+        `TERSUSUN ${duel.collections[player].reduce((sum, n) => sum + n, 0)}/${TILES_PER_PLAYER}`,
       ),
     );
     const columns = node("div", "collection-columns");
@@ -359,23 +390,22 @@ export function renderTileDuel(game) {
         "aria-label",
         `Kolom ${column + 1} ${game.tileName(player)}, ${picture === null ? "kosong" : theme.labels[picture] + " " + count + " dari 4"}`,
       );
-      button.append(
-        node(
-          "span",
-          "column-title",
-          picture === null
-            ? "Pilih gambar"
-            : `${theme.pictures[picture]} ${count}/4`,
-        ),
-      );
-      for (let slot = 0; slot < 4; slot++)
+      const title = node("span", "column-title");
+      if (picture === null) title.textContent = "Pilih";
+      else title.textContent = `${count}/4`;
+      button.append(title);
+      for (let slot = 0; slot < 4; slot++) {
         button.append(
-          node(
-            "span",
-            `collection-slot ${slot < count ? "filled-slot" : ""}`,
-            slot < count ? theme.pictures[picture] : "·",
-          ),
+          slot < count
+            ? pictureNode(
+                "span",
+                "collection-slot filled-slot",
+                duel.themes[player],
+                picture,
+              )
+            : node("span", "collection-slot", "·"),
         );
+      }
       button.addEventListener("click", () => {
         if (game.selectedTile) game.placeTile(player, column);
       });

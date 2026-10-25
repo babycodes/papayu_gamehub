@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-101 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, timer frenzy ikan/bintang yang terpisah dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+103 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, timer frenzy ikan/bintang yang terpisah dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -52,16 +52,18 @@ Pilih game dari library, lalu pilih **Lawan bot** atau **2 pemain lokal** (berga
 
 ## Mahjong Anak
 
-Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang sama dengan game papan; pemain 1 memilih tema buah atau hewan, pemain 2 mendapat tema lainnya. Bot memilih ubin tertutup secara acak tanpa melihat isinya.
+Mainkan melawan bot atau dua pemain lokal. Nama dan kubu memakai formulir yang sama dengan game papan; masing-masing pemain memilih tema berbeda: **Shinchan**, **SpongeBob**, **Super Mario**, **Buah**, atau **Hewan**. Pilihan karakter menampilkan enam potret vektor berbeda per seri, dengan pratinjau sebelum bermain. Bot memilih ubin tertutup secara acak tanpa melihat isinya.
 
-- Ada **32 ubin**: empat jenis buah dan empat jenis hewan, masing-masing empat salinan. Ubin diacak ke **dua papan**, masing-masing 16 ubin campuran.
+- Ada **48 bidak** dari dua tema yang dipilih: enam gambar per tema, masing-masing empat salinan. Bidak diacak ke **dua papan**, masing-masing **24 bidak campuran, 6 kolom × 4 baris**.
 - Di awal setiap ronde, masing-masing pemain **melempar dadu**. Nilai tertinggi mulai duluan; jika seri, keduanya melempar ulang. Pemain membuka **satu ubin dari papan sendiri**. Jika bidak milik lawan, **giliran langsung pindah ke lawan** dan bidak otomatis tersedia di area tengah. Lawan bisa menyeretnya langsung ke susunan atau mengetuk untuk mengambilnya. Bidak sendiri langsung masuk tangan sendiri. Selesaikan penyusunan sebelum membuka bidak berikutnya. Jika mendapat bidak sendiri, pemain terus bermain. Setelah bidak lawan disusun, penerima melanjutkan membuka bidaknya.
 - Jika papan sendiri habis, pemain membuka ubin dari papan lawan. Panel giliran ditandai border hijau dan label **GILIRANMU**.
 - **Urutan:** untuk gambar yang belum ada, pilih kolom kosong mana saja. Setelah kolom mempunyai gambar, semua bidak dengan gambar yang sama wajib disusun menurun di kolom tersebut; gambar lain tidak boleh bercampur.
 - **Kontrol:** seret bidak dengan mouse, pena, atau sentuhan ke tujuan. Di HP, kedua zona pemain dan tujuan penyusunan tetap terlihat tanpa scroll. Alternatif: ketuk bidak, lalu tujuannya; ketuk bidak di area tengah untuk mengambilnya. Salah kolom ditolak tanpa kehilangan bidak.
-- Pemain pertama yang selesai **menyusun** empat kolom (masing-masing 4 ubin, total 16) menang. Bidak yang masih di tangan atau area tengah belum dihitung. Tempat bidak yang sudah diambil ditandai centang.
+- Pemain pertama yang selesai **menyusun** enam kolom (masing-masing 4 bidak, total 24) menang. Bidak yang masih di tangan atau area tengah belum dihitung. Tempat bidak yang sudah diambil ditandai centang.
 - **Main lagi** mengacak ulang semua ubin dengan nama, tema, kubu, dan mode yang sama; kedua pemain melempar dadu lagi untuk menentukan giliran awal.
 - **Akhiri / mode**, menu jeda, dan peringatan keluar berlaku seperti pada Tic Tac Toe/Catur. Di HP, kedua zona pemain dan area bidak aktif selalu terlihat tanpa scroll. Pemain utama berada di bawah dan lawan/bot di atas; dalam landscape pemain utama berada di kanan. Zona aktif menampilkan papan saat membuka bidak, lalu kolom koleksi saat menyusun. Progres selalu terlihat di nama pemain; dadu hanya tampil di awal ronde. Dalam posisi landscape kedua zona tampil berdampingan.
+
+Potret karakter merupakan ilustrasi SVG kecil yang dibundel di `src/tile-characters.js`, tanpa layanan gambar, CDN, atau dependency tambahan. Bidak di tangan, susunan koleksi, pratinjau, dan bayangan drag menggunakan gambar yang sama; label karakter tetap tersedia untuk pembaca layar. Rematch mempertahankan kedua tema dan mengosongkan kembali seluruh 24 slot koleksi.
 
 ## Cara bermain memancing
 
@@ -140,7 +142,7 @@ Validasi pengembangan: 72 tes Node lulus, termasuk 1.000 variasi gelombang hingg
 
 ## Pratinjau Gamehub
 
-Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 359 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
+Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 403 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
 
 
 ## Bom Bom

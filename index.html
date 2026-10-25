@@ -552,12 +552,32 @@
                         <option value="easy">Santai</option>
                       </select></label
                     >
-                    <label id="tileThemeField" hidden
-                      >Tema pemain 1<select id="tileTheme">
-                        <option value="fruit">Buah 🍎</option>
-                        <option value="animal">Hewan 🐱</option>
-                      </select></label
-                    >
+                    <div id="tileThemeField" class="tile-theme-settings" hidden>
+                      <label
+                        >Karakter / tema pemain utama<select id="tileTheme">
+                          <option value="fruit">Buah</option>
+                        </select></label
+                      >
+                      <div
+                        id="tileThemePreview"
+                        class="tile-theme-preview"
+                        aria-label="Gambar pemain utama"
+                      ></div>
+                      <label
+                        >Karakter / tema lawan<select id="tileOpponentTheme">
+                          <option value="animal">Hewan</option>
+                        </select></label
+                      >
+                      <div
+                        id="tileOpponentThemePreview"
+                        class="tile-theme-preview"
+                        aria-label="Gambar lawan"
+                      ></div>
+                      <small
+                        >24 bidak per pemain · 6 gambar × 4 bidak. Pilih tema
+                        yang berbeda.</small
+                      >
+                    </div>
                     <div id="localPlayers" class="local-player-fields" hidden>
                       <p class="local-setup-hint" id="localSetupHint">
                         Nama boleh dikosongkan. Pilih kubu; pemain 1 mulai

@@ -57,7 +57,7 @@ const summaries = {
   "memory-match": "Buka kartu dan temukan pasangan gambarnya.",
   fishing: "Jelajahi laut, tangkap ikan, dan taklukkan monster!",
   "tic-tac-toe": "Susun tiga simbol berurutan untuk menang.",
-  mahjong: "Temukan bidakmu dan lengkapi semua kelompok gambar.",
+  mahjong: "Pilih karakter favorit dan susun 24 bidak gambarmu.",
   chess: "Atur strategi dan lindungi rajamu.",
   "connect-four": "Hubungkan empat keping sebelum lawanmu.",
   "air-hockey": "Dorong puck dan cetak gol ke gawang lawan.",

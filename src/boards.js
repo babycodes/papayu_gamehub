@@ -1,7 +1,12 @@
 import { Chess, ticResult, ticBot, chessBot } from "./board-engine.js";
 import { localPlayers, playerForRole, TEAM_NAMES } from "./players.js";
-import { TileDuel } from "./mahjong-engine.js";
-import { renderTileDuel } from "./tile-ui.js";
+import {
+  TileDuel,
+  TILE_THEMES,
+  TILE_COLUMNS,
+  TILES_PER_PLAYER,
+} from "./mahjong-engine.js";
+import { renderTileDuel, renderTileThemePreview } from "./tile-ui.js";
 const $ = (id) => document.getElementById(id);
 const PIECES = {
   w: { p: "♙", n: "♘", b: "♗", r: "♖", q: "♕", k: "♔" },
@@ -21,6 +26,30 @@ export class BoardGames {
     this.onMove = onMove;
     this.mode = "ready";
     this.botTimer = null;
+    for (const [id, initial] of [
+      ["tileTheme", "fruit"],
+      ["tileOpponentTheme", "animal"],
+    ]) {
+      const select = $(id);
+      select.replaceChildren(
+        ...Object.entries(TILE_THEMES).map(([value, theme]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = theme.name;
+          return option;
+        }),
+      );
+      select.value = initial;
+      select.addEventListener("change", () => {
+        const other = $(id === "tileTheme" ? "tileOpponentTheme" : "tileTheme");
+        if (other.value === select.value)
+          other.value = Object.keys(TILE_THEMES).find(
+            (value) => value !== select.value,
+          );
+        renderTileThemePreview();
+      });
+    }
+    renderTileThemePreview();
     $("boardStart").addEventListener("click", () =>
       this.mode === "paused" ? this.resume() : this.start(),
     );
@@ -77,7 +106,8 @@ export class BoardGames {
           ...$("boardGrid").querySelectorAll("button:not(:disabled)"),
         ],
         i = buttons.indexOf(document.activeElement),
-        step = this.id === "chess" ? 8 : this.id === "mahjong" ? 4 : 3;
+        step =
+          this.id === "chess" ? 8 : this.id === "mahjong" ? TILE_COLUMNS : 3;
       const offset = {
         ArrowLeft: -1,
         ArrowRight: 1,
@@ -114,7 +144,7 @@ export class BoardGames {
           : "Silang atau lingkaran?";
     $("boardSetupText").textContent =
       this.id === "mahjong"
-        ? "Lempar dadu; nilai tertinggi mulai duluan. Terus buka bidak selama mendapat gambarmu sendiri. Bidak lawan otomatis tersedia untuk lawan; ia langsung mengambil dan menyusunnya. Gambar yang sama wajib satu kolom."
+        ? "Pilih tema karaktermu. Masing-masing mendapat 24 bidak, 6 kolom × 4 baris. Lempar dadu untuk mulai. Susun gambar yang sama dalam satu kolom; bidak lawan otomatis tersedia untuk diambil lawan."
         : this.id === "chess"
           ? "Pilih lawanmu. Kamu bermain dengan bidak putih saat melawan bot."
           : "Susun 3 simbol berbaris. Kamu bermain sebagai X saat melawan bot.";
@@ -137,7 +167,7 @@ export class BoardGames {
     $("tileThemeField").hidden = this.id !== "mahjong";
     $("localSetupHint").textContent =
       this.id === "mahjong"
-        ? "Nama boleh dikosongkan. Pilih kubu dan tema pemain 1; pemain 2 mendapat tema lainnya."
+        ? "Nama boleh dikosongkan. Pilih kubu dan dua tema yang berbeda untuk masing-masing pemain."
         : "Nama boleh dikosongkan. Pilih kubu; pemain 1 mulai sebagai X / putih.";
     $("localPlayers").hidden = !local;
     $("boardSetupError").hidden = true;
@@ -157,6 +187,7 @@ export class BoardGames {
     if (this.id === "mahjong")
       this.tileGame = new TileDuel({
         firstTheme: this.tileTheme || $("tileTheme").value,
+        secondTheme: this.tileOpponentTheme || $("tileOpponentTheme").value,
         firstPlayer: this.firstPlayer || 0,
         requireRoll: true,
       });
@@ -181,8 +212,10 @@ export class BoardGames {
     this.firstPlayer = 0;
     if (this.id === "mahjong") {
       this.tileTheme = $("tileTheme").value;
+      this.tileOpponentTheme = $("tileOpponentTheme").value;
       this.tileGame = new TileDuel({
         firstTheme: this.tileTheme,
+        secondTheme: this.tileOpponentTheme,
         requireRoll: true,
       });
     }
@@ -207,6 +240,7 @@ export class BoardGames {
     if (this.id === "mahjong")
       this.tileGame = new TileDuel({
         firstTheme: this.tileTheme,
+        secondTheme: this.tileOpponentTheme,
         firstPlayer: this.firstPlayer,
         requireRoll: true,
       });
@@ -395,7 +429,7 @@ export class BoardGames {
     if (this.tileGame.winner !== null) {
       const winner = this.tileGame.winner;
       this.finish(
-        `${this.tileName(winner)} menang! Koleksi lengkap: 16/16.`,
+        `${this.tileName(winner)} menang! Koleksi lengkap: ${TILES_PER_PLAYER}/${TILES_PER_PLAYER}.`,
         this.tileRole(winner),
       );
     } else {

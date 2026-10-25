@@ -1,39 +1,56 @@
+import { CHARACTER_THEMES } from "./tile-characters.js";
+export const TILE_COLUMNS = 6,
+  TILE_ROWS = 4;
+export const TILES_PER_PLAYER = TILE_COLUMNS * TILE_ROWS;
 export const TILE_THEMES = {
   fruit: {
     name: "Buah",
-    pictures: ["🍎", "🍌", "🍇", "🍊"],
-    labels: ["Apel", "Pisang", "Anggur", "Jeruk"],
+    pictures: ["🍎", "🍌", "🍇", "🍊", "🍓", "🍍"],
+    labels: ["Apel", "Pisang", "Anggur", "Jeruk", "Stroberi", "Nanas"],
   },
   animal: {
     name: "Hewan",
-    pictures: ["🐱", "🐶", "🐰", "🐼"],
-    labels: ["Kucing", "Anjing", "Kelinci", "Panda"],
+    pictures: ["🐱", "🐶", "🐰", "🐼", "🐸", "🐵"],
+    labels: ["Kucing", "Anjing", "Kelinci", "Panda", "Katak", "Monyet"],
   },
+  ...CHARACTER_THEMES,
 };
 
-// Children's collection duel: two mixed boards, four copies of each picture.
+// Children's collection duel: two mixed boards, six pictures per theme, four copies of each picture.
 export class TileDuel {
   constructor({
     firstTheme = "fruit",
+    secondTheme = firstTheme === "fruit" ? "animal" : "fruit",
     firstPlayer = 0,
     random = Math.random,
     requireRoll = false,
   } = {}) {
-    if (!TILE_THEMES[firstTheme] || ![0, 1].includes(firstPlayer))
+    if (
+      !Object.hasOwn(TILE_THEMES, firstTheme) ||
+      !Object.hasOwn(TILE_THEMES, secondTheme) ||
+      firstTheme === secondTheme ||
+      ![0, 1].includes(firstPlayer)
+    )
       throw new Error("Tema atau giliran awal tidak valid.");
-    this.themes = [firstTheme, firstTheme === "fruit" ? "animal" : "fruit"];
+    this.themes = [firstTheme, secondTheme];
     this.turn = firstPlayer;
     this.random = random;
     this.awaitingDice = requireRoll;
     this.dice = [null, null];
     this.diceHistory = [];
-    this.collections = [Array(4).fill(0), Array(4).fill(0)];
-    this.columns = [Array(4).fill(null), Array(4).fill(null)];
+    this.collections = [
+      Array(TILE_COLUMNS).fill(0),
+      Array(TILE_COLUMNS).fill(0),
+    ];
+    this.columns = [
+      Array(TILE_COLUMNS).fill(null),
+      Array(TILE_COLUMNS).fill(null),
+    ];
     this.winner = null;
     this.last = null;
     this.pending = null;
-    const tiles = Object.keys(TILE_THEMES).flatMap((theme) =>
-      Array.from({ length: 16 }, (_, i) => ({
+    const tiles = this.themes.flatMap((theme) =>
+      Array.from({ length: TILES_PER_PLAYER }, (_, i) => ({
         theme,
         picture: Math.floor(i / 4),
         revealed: false,
@@ -43,14 +60,17 @@ export class TileDuel {
       const j = Math.floor(random() * (i + 1));
       [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
     }
-    this.boards = [tiles.slice(0, 16), tiles.slice(16)];
+    this.boards = [
+      tiles.slice(0, TILES_PER_PLAYER),
+      tiles.slice(TILES_PER_PLAYER),
+    ];
     // Even an extreme shuffle must leave both themes on each board.
     if (
       this.boards[0].every((tile) => tile.theme === this.boards[0][0].theme)
     ) {
-      [this.boards[0][15], this.boards[1][0]] = [
+      [this.boards[0][TILES_PER_PLAYER - 1], this.boards[1][0]] = [
         this.boards[1][0],
-        this.boards[0][15],
+        this.boards[0][TILES_PER_PLAYER - 1],
       ];
     }
   }
@@ -73,7 +93,7 @@ export class TileDuel {
       this.pending ||
       !Number.isInteger(index) ||
       index < 0 ||
-      index >= 16 ||
+      index >= TILES_PER_PLAYER ||
       board !== this.availableBoard()
     )
       return null;
@@ -139,7 +159,7 @@ export class TileDuel {
       this.pending.owner !== player ||
       !Number.isInteger(column) ||
       column < 0 ||
-      column > 3
+      column >= TILE_COLUMNS
     )
       return false;
     const picture = this.pending.picture;

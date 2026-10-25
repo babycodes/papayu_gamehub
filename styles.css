@@ -6123,3 +6123,87 @@ select {
     font-size: 9px;
   }
 }
+
+/* Mahjong Anak: six groups of four, with local vector character portraits. */
+.tile-board {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: min(100%, 380px);
+}
+.tile-collection .collection-columns {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.tile-picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+.tray-tile {
+  padding: 3px;
+}
+.collection-slot .tile-picture {
+  max-width: 36px;
+  max-height: 36px;
+  border-radius: 4px;
+}
+.tile-drag-ghost .tile-picture {
+  width: 52px;
+  height: 52px;
+}
+.tile-theme-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.tile-theme-settings[hidden] {
+  display: none;
+}
+.tile-theme-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tile-theme-settings small {
+  color: #d0cbe4;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.tile-theme-preview {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.theme-preview-picture {
+  aspect-ratio: 1;
+  max-height: 54px;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  border: 1px solid #6b6888;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #252d48;
+}
+@media (max-width: 900px) {
+  .tile-duel .drawing-panel .tile-board {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .tile-collection .collection-columns {
+    gap: 4px;
+  }
+  .collection-column {
+    padding: 2px;
+  }
+  .collection-slot .tile-picture {
+    max-width: 30px;
+    max-height: 30px;
+  }
+}
+.tile-collection .collection-column:disabled {
+  opacity: 1;
+}

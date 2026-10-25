@@ -6207,3 +6207,58 @@ select {
 .tile-collection .collection-column:disabled {
   opacity: 1;
 }
+.saved-fishing-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  margin-bottom: 22px;
+  border: 1px solid #87bd91;
+  border-radius: 18px;
+  background: linear-gradient(110deg, #243e48, #292c4b);
+}
+.saved-fishing-banner[hidden] {
+  display: none;
+}
+.saved-fishing-banner > span {
+  font-size: 30px;
+}
+.saved-fishing-banner > div {
+  flex: 1;
+}
+.saved-fishing-banner strong {
+  color: #f2ffe8;
+  font-size: 17px;
+}
+.saved-fishing-banner p {
+  margin: 5px 0 0;
+  color: #ddd9eb;
+  font-size: 14px;
+}
+.saved-fishing-banner button {
+  min-height: 46px;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .saved-fishing-banner {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px;
+  }
+  .saved-fishing-banner strong {
+    font-size: 15px;
+  }
+  .saved-fishing-banner button {
+    width: 100%;
+  }
+}
+.fishing-save-notice {
+  padding: 8px 12px;
+  background: #fff1cd;
+  color: #61491c;
+  font-size: 12px;
+  text-align: center;
+}
+.fishing-save-notice[hidden] {
+  display: none;
+}

@@ -29,6 +29,21 @@
     </header>
     <main id="hubScreen">
       <section
+        id="savedFishingBanner"
+        class="saved-fishing-banner"
+        aria-label="Petualangan tersimpan"
+        hidden
+      >
+        <span aria-hidden="true">⚓</span>
+        <div>
+          <strong>Lanjutkan petualangan memancing</strong>
+          <p id="savedFishingSummary"></p>
+        </div>
+        <button id="resumeSavedFishing" class="primary-button">
+          Lanjut memancing →
+        </button>
+      </section>
+      <section
         id="featuredGames"
         class="featured-hero"
         aria-label="Pilihan game"
@@ -358,11 +373,20 @@
         </div>
       </header>
       <div id="fishingView" class="game-column">
+        <div
+          id="fishingSaveNotice"
+          class="fishing-save-notice"
+          role="status"
+          hidden
+        >
+          Progres belum tersimpan. Biarkan halaman terbuka agar permainanmu
+          tidak hilang.
+        </div>
         <div class="scoreboard">
           <div class="stat">
             <span class="stat-icon star">✦</span>
             <div>
-              <small>SKOR KAMU</small
+              <small>SKOR · REKOR <span id="liveFishingBest">0</span></small
               ><strong id="score">0 <span>poin</span></strong>
             </div>
           </div>

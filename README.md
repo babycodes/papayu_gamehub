@@ -17,7 +17,7 @@ Server berjalan pada **port 4949**, bind ke `0.0.0.0`. Untuk mengganti port guna
 npm test
 ```
 
-103 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, timer frenzy ikan/bintang yang terpisah dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
+111 tes memeriksa pencarian/filter/pagination library, hasil Tic Tac Toe dan bot yang tidak kalah, langkah Catur legal, rokade/en passant/promosi, skakmat dan bot, siklus ronde memancing, ukuran ikan dan area sentuh, tantangan tarikan, jeda saat menarik, tiga tahap buaya, pemulihan laut, timer frenzy ikan/bintang yang terpisah dan reset ronde, pemilihan nama/kubu serta pergantian pemain pada rematch, dan distribusi ubin, perpindahan otomatis ke lawan, pengambilan bidak, pilihan urutan kolom, pengelompokan gambar yang sama, giliran beruntun, dadu pembuka/seri, serta kemenangan setelah penyusunan Mahjong Anak. Tes juga memeriksa pasangan Memory Match, kemenangan/bot Connect Four, fisika/gol Air Hockey, start palsu dan waktu reaksi, puzzle yang selalu bisa diselesaikan, serta combo, bonus waktu, dan pergantian ronde Tangkap Bintang. Tidak ada langkah build: server menyajikan modul JavaScript langsung.
 
 ## Game library
 
@@ -98,8 +98,8 @@ Potret karakter merupakan ilustrasi SVG kecil yang dibundel di `src/tile-charact
 - **Level:** gelar Sahabat Laut pada 300 poin dan Kapten Teluk Ceria pada 900 poin.
 - **Jeda:** tombol jeda atau Escape. Permainan juga berhenti otomatis saat tab tidak aktif. Pilih Lanjut untuk meneruskan.
 - **Layar penuh:** game memenuhi viewport tanpa panel informasi atau scroll. Browser yang mendukung Fullscreen API juga masuk layar penuh; tombol di kanan atas dapat mengubahnya. Browser yang tidak mendukungnya (termasuk sebagian browser iPhone) tetap memakai seluruh area halaman yang tersedia.
-- **Keluar:** tombol **Gamehub** membawa kembali ke lobi. Ronde aktif atau dijeda meminta konfirmasi; batal akan mengembalikan keadaan sebelumnya, termasuk jeda. Skor ronde yang ditinggalkan tidak disimpan sebagai rekor. Tombol Back browser juga memakai peringatan ini; refresh/menutup tab memakai peringatan bawaan browser bila didukung.
-- **Rekor:** disimpan di browser perangkat, tanpa akun atau pengiriman data. Suara dapat dimatikan.
+- **Keluar:** tombol **Gamehub** membawa kembali ke lobi. Ronde aktif atau dijeda meminta konfirmasi; batal akan mengembalikan keadaan sebelumnya, termasuk jeda. Rekor tertinggi yang sudah dicapai tetap disimpan; progres ronde dihapus hanya setelah keluar dikonfirmasi. Tombol Back browser juga memakai peringatan ini; refresh/menutup tab memancing menyimpan progres otomatis; game lain tetap memakai peringatan bawaan browser bila didukung.
+- **Rekor:** disimpan segera ketika skor bertambah, termasuk saat ronde belum selesai, dan tetap ada setelah Quit. Rekor terlihat di HUD memancing dan panduan Gamehub. Penyimpanan hanya di browser perangkat, tanpa akun atau pengiriman data. Suara dapat dimatikan.
 
 ## Struktur dan pengembangan berikutnya
 
@@ -154,3 +154,14 @@ Pemain bergantian membuka satu kotak lawan: kotak aman memberi **1 poin**, bom m
 Validasi Bom Bom: tes aturan penempatan, privasi fase serah, giliran dan skor, kalah pada bom ketiga, replay, pilihan bot tanpa membaca bom, serta 100 simulasi pertandingan penuh. Pemeriksaan Chromium mencakup 320×568, 390×844, tablet 768×1024/1024×768, 844×390, desktop, dua papan dalam satu layar, perpindahan otomatis, penolakan klik di luar giliran, jeda sebelum hasil akhir, konfirmasi keluar/ganti mode, dan permainan lokal hingga selesai.
 
 Jika aplikasi dijalankan lewat PM2, setelah `git pull` jalankan `pm2 restart <nama-app>` dan refresh browser untuk memuat versi terbaru.
+
+
+## Simpan otomatis Petualangan Memancing
+
+Ronde aktif atau dijeda disimpan ke `papayu-fishing-progress-v1` di localStorage setiap satu detik, setelah tangkapan/perubahan penting, saat jeda, ketika halaman tersembunyi, dan saat halaman ditutup. Tab/browser yang ditutup tanpa Quit dapat dipulihkan melalui **Lanjut memancing** di Gamehub atau dengan membuka game memancing. Pemulihan selalu dalam keadaan jeda: waktu tidak berkurang selama offline, dan pemain harus menekan Lanjut. Seluruh ikan, skor, combo, sisa waktu, frenzy/bintang, urutan gelombang, mutasi, predator/mangsa, boss yang sudah selesai, serta tahap dan timer tarikan dipertahankan. Tombol/pointer tidak dianggap sedang ditekan setelah pulih.
+
+Hanya **Quit/Keluar ke Gamehub yang dikonfirmasi** atau ronde yang berakhir yang menghapus progres tersebut. Membatalkan keluar tetap menyimpan ronde; keluar dari game lain tidak menghapus simpanan memancing. Rekor lama `papayu-fishing-best` tetap digunakan dan diperbarui ketika skor naik. Nama versi, batas ukuran dan validasi simpanan mencegah data rusak menghalangi pemuatan Gamehub. Jika browser menolak penyimpanan, permainan tetap berjalan dan menampilkan pesan bahwa progres belum tersimpan.
+
+Simpanan bersifat lokal pada browser, profil, perangkat, dan alamat situs yang sama; belum ada akun atau sinkronisasi ke perangkat lain. Menghapus data situs juga menghapus simpanan lokal. Pada penutupan paksa proses/perangkat, progres kembali ke checkpoint terakhir (biasanya paling lama satu detik); event penutupan normal menyimpan keadaan terbaru. Animasi kosmetik dimulai kembali, sementara keadaan permainan dipertahankan. Format mempertahankan referensi objek yang sama pada boss serta nilai waktu Infinity; JSON biasa tidak cukup untuk keduanya. Tidak ada database, permintaan jaringan, dependency baru, atau proses server tambahan.
+
+Validasi: 111 tes Node, termasuk serialisasi ronde biasa, tarikan aktif, peringatan boss, gelombang, perburuan, mangsa yang dikail, mutasi, data rusak, pembersihan checkpoint dan kegagalan penyimpanan. Pengujian browser mencakup tangkapan sungguhan, tab tertutup lalu dibuka, reload saat melawan boss mutasi, pemulihan dalam jeda, Quit/batal keluar, rekor, serta pembersihan saat ronde selesai.

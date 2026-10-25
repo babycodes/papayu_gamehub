@@ -1,3 +1,4 @@
+import { FishingProgress } from "./fishing-save.js";
 import { fishingDaylight } from "./fishing-daylight.js";
 import { drawFishingAnimal } from "./fishing-art.js";
 import { FishingMotion, mixColor, bossSea } from "./fishing-motion.js";
@@ -43,11 +44,46 @@ const session = () =>
       : boards;
 const gameScreen = $("gameScreen"),
   exitDialog = $("exitDialog");
-let best = 0;
+let fishingStorage;
 try {
-  best = Number(localStorage.getItem("papayu-fishing-best")) || 0;
+  fishingStorage = localStorage;
 } catch {}
-$("bestScore").innerHTML = `${best} <small>poin</small>`;
+const fishingProgress = new FishingProgress(fishingStorage);
+let best = fishingProgress.best(),
+  roundBestAtStart = best,
+  lastFishingSave = 0;
+function syncFishingBest() {
+  best = Math.max(best, fishingProgress.best(game.score));
+  $("bestScore").innerHTML =
+    `${best.toLocaleString("id-ID")} <small>poin</small>`;
+  $("liveFishingBest").textContent = best.toLocaleString("id-ID");
+}
+function updateSavedFishing() {
+  const save = fishingProgress.load();
+  $("savedFishingBanner").hidden = !save;
+  if (save)
+    $("savedFishingSummary").textContent =
+      `${save.game.score.toLocaleString("id-ID")} poin · ${Math.ceil(save.game.remaining)} detik tersisa`;
+}
+function checkpointFishing() {
+  if (
+    !inGame ||
+    activeGame !== "fishing" ||
+    !["playing", "paused"].includes(game.mode)
+  )
+    return;
+  syncFishingBest();
+  const saved = fishingProgress.save(game, {
+    bossStyle,
+    sound,
+    roundBest: roundBestAtStart,
+  });
+  $("fishingSaveNotice").hidden = saved;
+  lastFishingSave = performance.now();
+}
+syncFishingBest();
+updateSavedFishing();
+$("resumeSavedFishing").addEventListener("click", () => openGame("fishing"));
 const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
 let reducedMotion = motionPreference.matches;
 const fishingMotion = new FishingMotion(reducedMotion);
@@ -312,6 +348,7 @@ function start() {
     spaceHeld = false;
     fishingMotion.reset();
     bossStyle = $("fishingBossStyle").value;
+    roundBestAtStart = best;
     game.reset("playing", $("fishingDifficulty").value);
     recordPlay("fishing");
     particles.length = 0;
@@ -322,6 +359,7 @@ function start() {
   $("fishButton").disabled = false;
   $("pauseButton").disabled = false;
   updateUI();
+  checkpointFishing();
   tone([392, 523, 659]);
   canvas.focus({ preventScroll: true });
 }
@@ -344,6 +382,7 @@ function pause() {
     "Tarik napas, lalu lanjutkan petualangan.",
   );
   updateUI();
+  checkpointFishing();
 }
 $("playButton").addEventListener("click", start);
 $("pauseButton").addEventListener("click", pause);
@@ -399,12 +438,46 @@ function openGame(id, pushHistory = true, fullscreen = true) {
   document.body.classList.add("in-game");
   document.title = `${item.title} • Papayu`;
   if (id === "fishing") {
-    showOverlay(
-      "Lautnya sudah siap. Kamu juga?",
-      "Tahan untuk turun. Geser kail, lalu ikuti petunjuk untuk ikan besar!",
-      "Mulai memancing",
-      "90 detik, lima kedalaman, banyak kejutan.",
-    );
+    const saved = fishingProgress.load();
+    if (saved) {
+      const viewport = game.viewport;
+      Object.assign(game, saved.game, { viewport });
+      bossStyle = saved.settings.bossStyle;
+      sound = saved.settings.sound;
+      roundBestAtStart = saved.settings.roundBest;
+      $("fishingDifficulty").value = game.difficulty;
+      $("fishingBossStyle").value = bossStyle;
+      $("soundButton").textContent = sound ? "♫" : "♪̸";
+      $("soundButton").setAttribute(
+        "aria-label",
+        sound ? "Matikan suara" : "Aktifkan suara",
+      );
+      $("soundButton").setAttribute("aria-pressed", String(!sound));
+      fishingPointers.clear();
+      spaceHeld = false;
+      particles.length = 0;
+      fishingMotion.reset();
+      if (["warning", "active"].includes(game.bossState)) {
+        fishingMotion.boss = game.currentBoss;
+        fishingMotion.state.sea = 1;
+        fishingMotion.state.presence = 1;
+      }
+      frameTime = game.elapsed;
+      syncFishingBest();
+      showOverlay(
+        "Petualanganmu masih menunggu!",
+        `${game.score.toLocaleString("id-ID")} poin · ${Math.ceil(game.remaining)} detik tersisa. Waktu berhenti selama kamu pergi.`,
+        "Lanjut memancing",
+        "Progres tersimpan di browser dan perangkat ini.",
+      );
+    } else {
+      showOverlay(
+        "Lautnya sudah siap. Kamu juga?",
+        "Tahan untuk turun. Geser kail, lalu ikuti petunjuk untuk ikan besar!",
+        "Mulai memancing",
+        "Progres otomatis disimpan di browser dan perangkat ini.",
+      );
+    }
     $("fishButton").disabled = true;
     $("pauseButton").disabled = true;
     resize();
@@ -424,6 +497,11 @@ function openGame(id, pushHistory = true, fullscreen = true) {
 }
 function leaveGame() {
   if (!exitDialog.hidden) closeExitDialog();
+  if (activeGame === "fishing") {
+    syncFishingBest();
+    fishingProgress.clear();
+    updateSavedFishing();
+  }
   inGame = false;
   fishingPointers.clear();
   spaceHeld = false;
@@ -550,6 +628,10 @@ window.addEventListener("popstate", () => {
   } else leaveGame();
 });
 window.addEventListener("beforeunload", (event) => {
+  if (inGame && activeGame === "fishing") {
+    checkpointFishing();
+    return;
+  }
   if (inGame && ["playing", "paused"].includes(session().mode)) {
     event.preventDefault();
     event.returnValue = "";
@@ -634,7 +716,14 @@ window.addEventListener("keyup", (event) => {
 });
 window.addEventListener("blur", pause);
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) pause();
+  if (document.hidden) {
+    pause();
+    checkpointFishing();
+  }
+});
+window.addEventListener("pagehide", () => {
+  pause();
+  checkpointFishing();
 });
 function onEvent(event) {
   fishingMotion.handle(event);
@@ -769,15 +858,10 @@ function onEvent(event) {
     tone([659, 784]);
   }
   if (event.type === "end") {
-    const record = game.score > best;
-    if (record) {
-      best = game.score;
-      try {
-        localStorage.setItem("papayu-fishing-best", String(best));
-      } catch {}
-    }
-    $("bestScore").innerHTML =
-      `${best.toLocaleString("id-ID")} <small>poin</small>`;
+    const record = game.score > roundBestAtStart;
+    syncFishingBest();
+    fishingProgress.clear();
+    updateSavedFishing();
     $("fishButton").disabled = true;
     $("pauseButton").disabled = true;
     showOverlay(
@@ -788,6 +872,21 @@ function onEvent(event) {
     );
     tone([784, 659, 523], 0.15);
   }
+  if (
+    [
+      "catch",
+      "bonus",
+      "fight-start",
+      "fight-stage",
+      "fight-won",
+      "boss-warning",
+      "boss-arrived",
+      "boss-eaten",
+      "boss-failed",
+      "boss-finished",
+    ].includes(event.type)
+  )
+    checkpointFishing();
 }
 function ellipse(x, y, rx, ry, color) {
   ctx.fillStyle = color;
@@ -1398,6 +1497,7 @@ function frame(now) {
     frameTime += dt;
   if (inGame && activeGame === "fishing") game.tick(dt);
   game.drainEvents().forEach(onEvent);
+  if (now - lastFishingSave >= 1000) checkpointFishing();
   if (inGame && activeGame === "fishing" && now - lastUI >= 100) {
     updateUI();
     lastUI = now;

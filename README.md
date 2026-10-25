@@ -142,7 +142,7 @@ Validasi pengembangan: 72 tes Node lulus, termasuk 1.000 variasi gelombang hingg
 
 ## Pratinjau Gamehub
 
-Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 405 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
+Banner memiliki slider manual untuk 11 game (panah, tombol pilihan, keyboard, dan swipe). Gambar di `assets/games/*.jpg` merupakan tangkapan layar permainan asli; total sekitar 415 KiB, tanpa CDN atau library baru. Kartu menampilkan nama, jumlah pemain, pilihan lawan, dan tombol Main. Pencarian, kategori, favorit, pagination, statistik lokal, dan panduan memancing tetap tersedia. Server mengizinkan hanya gambar JPEG pada direktori pratinjau tersebut; file konfigurasi dan secret tetap ditolak. Restart `npm start` pada port 4949 setelah memperbarui untuk mengaktifkan rute gambar.
 
 
 ## Bom Bom
@@ -167,9 +167,9 @@ Simpanan bersifat lokal pada browser, profil, perangkat, dan alamat situs yang s
 Validasi: 111 tes Node, termasuk serialisasi ronde biasa, tarikan aktif, peringatan boss, gelombang, perburuan, mangsa yang dikail, mutasi, data rusak, pembersihan checkpoint dan kegagalan penyimpanan. Pengujian browser mencakup tangkapan sungguhan, tab tertutup lalu dibuka, reload saat melawan boss mutasi, pemulihan dalam jeda, Quit/batal keluar, rekor, serta pembersihan saat ronde selesai.
 
 
-## Palet doff untuk seluruh Gamehub
+## Palet pastel cerah dan doff untuk seluruh Gamehub
 
-Seluruh library dan **11 game** memakai palet doff yang sama: kertas hangat, denim, sage, mustard, terracotta, dan rose redup. Warna tiap game dan kartu tetap bervariasi; permukaan, tombol, dialog, pilihan karakter, statistik, papan dan kontrol memakai warna datar tanpa kilau/neon. Giliran aktif tetap memakai border hijau tua, nyawa memakai hati rose, serta peringatan memakai terracotta dengan teks/ikon yang jelas. Catur tetap membedakan bidak putih/hitam, pilihan langkah, langkah terakhir dan skak; Balap Reaksi tetap membedakan tunggu dan mulai lewat warna serta tulisan. Pengaturan reduced motion tetap berlaku.
+Seluruh library dan **11 game** memakai palet doff yang lebih cerah: krem, denim muda, sage cerah, kuning lembut, peach, dan rose. Latar, papan, kartu, gambar karakter, dan Canvas lebih terang; tinta teks, garis, dan kontrol utama tetap pekat agar terbaca. Warna tiap game dan kartu tetap bervariasi; permukaan, tombol, dialog, pilihan karakter, statistik, papan dan kontrol memakai warna datar tanpa kilau/neon. Giliran aktif tetap memakai border hijau tua, nyawa memakai hati rose, serta peringatan memakai terracotta dengan teks/ikon yang jelas. Catur tetap membedakan bidak putih/hitam, pilihan langkah, langkah terakhir dan skak; Balap Reaksi tetap membedakan tunggu dan mulai lewat warna serta tulisan. Pengaturan reduced motion tetap berlaku.
 
 Canvas Air Hockey dan Tangkap Bintang, langit/laut berdasarkan jam, ikan, monster, gambar Puzzle Geser, serta potret Mahjong ikut disesuaikan. Ilustrasi hewan memakai bidang warna datar dan outline; glow Canvas dihapus. Warna ikan/boss yang berasal dari data ronde lama dikonversi **hanya saat digambar** lewat `src/matte-palette.js`, dengan cache maksimal 384 warna. Data permainan, progres tersimpan dan aturan tidak berubah. Tidak ada filter saturasi seluruh halaman, dependency, aset animasi, timer, atau proses server baru. Semua pratinjau JPEG di `assets/games` diperbarui dari tampilan permainan yang sebenarnya.
 

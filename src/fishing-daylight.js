@@ -3,31 +3,31 @@ export function fishingDaylight(hour) {
   if (hour >= 5 && hour < 11)
     return {
       name: "Pagi",
-      sky: ["#a7c0ba", "#dbcdaf"],
-      sun: "#d8bf8f",
-      sea: ["#85b1b2", "#578892", "#3c5463"],
+      sky: ["#b5ccc6", "#e3d6bb"],
+      sun: "#e1ca9f",
+      sea: ["#98c0c1", "#578892", "#3c5463"],
       night: false,
     };
   if (hour >= 11 && hour < 16)
     return {
       name: "Siang",
-      sky: ["#99bbc7", "#cad3c0"],
-      sun: "#dbd0a3",
-      sea: ["#82aead", "#578892", "#3c5463"],
+      sky: ["#a9c8d3", "#d3dbca"],
+      sun: "#e2d9b0",
+      sea: ["#96bdbc", "#578892", "#3c5463"],
       night: false,
     };
   if (hour >= 16 && hour < 19)
     return {
       name: "Sore",
-      sky: ["#9990ab", "#cea893"],
-      sun: "#d4a580",
-      sea: ["#8f9ca3", "#687790", "#435067"],
+      sky: ["#aca4bc", "#d9b7a4"],
+      sun: "#dfb593",
+      sea: ["#a2aeb4", "#687790", "#435067"],
       night: false,
     };
   return {
     name: "Malam",
     sky: ["#2a3440", "#4e5969"],
-    sun: "#cbcdd7",
+    sun: "#d4d6df",
     sea: ["#547481", "#425665", "#303d4c"],
     night: true,
   };

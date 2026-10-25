@@ -7,12 +7,12 @@ export function matteColor(value) {
   if (cache.has(value)) return cache.get(value);
   const rgb = [1, 3, 5].map((i) => parseInt(value.slice(i, i + 2), 16));
   const grey = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
-  const dust = [148, 140, 123];
+  const dust = [200, 199, 176];
   const result =
     "#" +
     rgb
       .map((c, i) =>
-        Math.round((c * 0.68 + grey * 0.16 + dust[i] * 0.16) * 0.93)
+        Math.round(c * 0.76 + grey * 0.12 + dust[i] * 0.12)
           .toString(16)
           .padStart(2, "0"),
       )

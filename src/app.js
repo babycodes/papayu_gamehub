@@ -827,7 +827,7 @@ function onEvent(event) {
         vx: (Math.random() - 0.5) * 0.18,
         vy: (Math.random() - 0.5) * 0.2,
         life: 1,
-        color: i % 2 ? matteColor(event.fish.color) : "#c6dabb",
+        color: i % 2 ? matteColor(event.fish.color) : "#cfe1c5",
       });
   }
   if (event.type === "line-strain") {
@@ -985,7 +985,7 @@ function drawFish(fish, x, y, caught = false) {
     const label = `⚡${fish.power}${fish.growth > 1 ? " · MUTASI " + fish.growth + "×" : ""}`;
     const labelWidth = ctx.measureText(label).width + 14;
     rounded(-labelWidth / 2, -s * 0.82 - 19, labelWidth, 17, 8, "#313c46d9");
-    ctx.fillStyle = "#dbd3b2";
+    ctx.fillStyle = "#e2dbbd";
     ctx.fillText(label, 0, -s * 0.82 - 7);
     ctx.restore();
   }
@@ -1056,8 +1056,8 @@ function drawBoat(t) {
   ctx.lineTo(-11, -7);
   ctx.lineTo(6, -7);
   ctx.stroke();
-  rounded(-42, -66, 28, 38, 8, "#cfbd9b");
-  ctx.strokeStyle = "#bba484";
+  rounded(-42, -66, 28, 38, 8, "#d9c9aa");
+  ctx.strokeStyle = "#c9b497";
   ctx.lineWidth = 8;
   ctx.beginPath();
   ctx.moveTo(-20, -53);
@@ -1068,7 +1068,7 @@ function drawBoat(t) {
   ctx.lineTo(-5 + winding, -43);
   ctx.lineTo(8, -57 + winding);
   ctx.stroke();
-  ellipse(-27, -80, 13, 14, "#c7ab90");
+  ellipse(-27, -80, 13, 14, "#d3baa1");
   path(
     [
       [-42, -82],
@@ -1076,9 +1076,9 @@ function drawBoat(t) {
       [-15, -101],
       [-7, -82],
     ],
-    "#baa678",
+    "#c8b68c",
   );
-  rounded(-49, -85, 46, 7, 3, "#cbb98f");
+  rounded(-49, -85, 46, 7, 3, "#d6c6a0");
   ellipse(-20, -78, 1.4, 1.8, "#57625d");
   // Curved wooden hull.
   ctx.fillStyle = "#987259";
@@ -1088,7 +1088,7 @@ function drawBoat(t) {
   ctx.quadraticCurveTo(53, 8, 63, -14);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#b4906e";
+  ctx.fillStyle = "#c4a485";
   ctx.beginPath();
   ctx.moveTo(-78, -7);
   ctx.quadraticCurveTo(-20, 3, 63, -14);
@@ -1101,7 +1101,7 @@ function drawBoat(t) {
   ctx.moveTo(-56, 6);
   ctx.quadraticCurveTo(0, 20, 43, 1);
   ctx.stroke();
-  rounded(-61, -16, 24, 10, 3, "#b0a484");
+  rounded(-61, -16, 24, 10, 3, "#bfb497");
   ctx.restore();
   return { x: bx + 79 * scale, y: by + (-53 + bend) * scale };
 }
@@ -1124,7 +1124,7 @@ function draw(t, dt) {
     0,
     mixColor(
       daylight.sky[0],
-      daylight.night ? "#3e374e" : "#a5a7b1",
+      daylight.night ? "#3e374e" : "#b5b7c0",
       fishingMotion.state.sea * (bossStyle === "cute" ? 0.2 : 0.6),
     ),
   );
@@ -1158,7 +1158,7 @@ function draw(t, dt) {
         height * (0.035 + ((i * 0.031) % 0.19)),
         i % 3 === 0 ? 1.8 : 1,
         i % 3 === 0 ? 1.8 : 1,
-        "#d2ccd7",
+        "#dad5df",
       );
       ctx.restore();
     }
@@ -1169,7 +1169,7 @@ function draw(t, dt) {
     height * 0.14,
     36 + sunshine,
     36 + sunshine,
-    "#d6cfbc36",
+    "#ded8c636",
   );
   for (const [x, y, s] of [
     [0.12, 0.13, 1],
@@ -1177,13 +1177,13 @@ function draw(t, dt) {
     [0.91, 0.23, 0.8],
   ]) {
     const drift = reducedMotion ? 0 : Math.sin(t * 0.15 + x * 5) * 12;
-    ellipse(width * x + drift, height * y, 31 * s, 7 * s, "#d7d6c977");
+    ellipse(width * x + drift, height * y, 31 * s, 7 * s, "#deddd277");
     ellipse(
       width * x + 13 + drift,
       height * y - 6,
       17 * s,
       10 * s,
-      "#d7d6c977",
+      "#deddd277",
     );
   }
   path(
@@ -1195,7 +1195,7 @@ function draw(t, dt) {
       [width * 0.23, waterline - 20],
       [width * 0.32, waterline],
     ],
-    "#9dae9f73",
+    "#aebdaf73",
   );
   path(
     [
@@ -1205,9 +1205,9 @@ function draw(t, dt) {
       [width, waterline - 20],
       [width, waterline],
     ],
-    "#9dae9f73",
+    "#aebdaf73",
   );
-  ctx.strokeStyle = "#7d8e81";
+  ctx.strokeStyle = "#93a397";
   ctx.lineWidth = 1;
   for (const [x, y] of [
     [0.22, 0.1],
@@ -1230,7 +1230,7 @@ function draw(t, dt) {
   const blend = fishingMotion.state.sea;
   ocean.addColorStop(
     0,
-    mixColor(game.frenzy ? "#93b8a3" : daylight.sea[0], seaColors[0], blend),
+    mixColor(game.frenzy ? "#a4c6b3" : daylight.sea[0], seaColors[0], blend),
   );
   ocean.addColorStop(0.48, mixColor(daylight.sea[1], seaColors[1], blend));
   ocean.addColorStop(1, mixColor(daylight.sea[2], seaColors[2], blend));
@@ -1250,12 +1250,12 @@ function draw(t, dt) {
         [x + width * 0.2, height],
         [x + width * 0.09, height],
       ],
-      "#bdd3c609",
+      "#c8dbd009",
     );
   }
   for (let layer = 1; layer < 5; layer++) {
     const y = height * (0.31 + layer * 0.128);
-    ctx.strokeStyle = "#b7cdc312";
+    ctx.strokeStyle = "#c3d6cd12";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 8]);
     ctx.beginPath();
@@ -1273,7 +1273,7 @@ function draw(t, dt) {
           height -
           waterline) %
           (height - waterline));
-    ctx.strokeStyle = "#a6c1bc35";
+    ctx.strokeStyle = "#b4cdc835";
     ctx.lineWidth = 0.8;
     ctx.beginPath();
     ctx.arc(x, y, 1.5 + (i % 3), 0, Math.PI * 2);
@@ -1308,7 +1308,7 @@ function draw(t, dt) {
   if (game.bossState === "warning") {
     const total = game.bossWave.length,
       horizontal = total > 1 && width / height > 1.6;
-    ctx.shadowColor = bossStyle === "cute" ? "#cbd49c" : "#d7b783";
+    ctx.shadowColor = bossStyle === "cute" ? "#d4dcaa" : "#e1c495";
     ctx.shadowBlur = 0;
     for (let slot = 0; slot < total; slot++) {
       const cx =
@@ -1342,14 +1342,14 @@ function draw(t, dt) {
           cy - height * 0.015,
           width * 0.018,
           height * 0.012,
-          "#daca9e",
+          "#e2d4ac",
         );
     }
     ctx.shadowBlur = 0;
   }
   if (blend > 0.02) {
     ctx.globalAlpha = blend * 0.45;
-    ctx.strokeStyle = bossStyle === "cute" ? "#bbd3c2" : "#bf9bc4";
+    ctx.strokeStyle = bossStyle === "cute" ? "#c6dbcc" : "#cdacd1";
     ctx.lineWidth = 2;
     for (let i = 0; i < 7; i++) {
       const bx = width * (0.12 + i * 0.12),
@@ -1407,7 +1407,7 @@ function draw(t, dt) {
   }
   ctx.restore();
   // Surface ripples.
-  ctx.strokeStyle = "#c8d0be77";
+  ctx.strokeStyle = "#d1d9c877";
   ctx.lineWidth = 2;
   for (let i = 0; i < 10; i++) {
     const x = (i * width) / 9;
@@ -1426,7 +1426,7 @@ function draw(t, dt) {
     hookY = game.hook.y * height;
   if (game.fight?.type === "follow") {
     const target = game.fight.target * width;
-    ctx.strokeStyle = "#bdd98d";
+    ctx.strokeStyle = "#c8e19c";
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(target, hookY, 22, 0, Math.PI * 2);
@@ -1437,7 +1437,7 @@ function draw(t, dt) {
     ctx.fillText(hookX < target ? "→" : "←", (target + hookX) / 2, hookY - 28);
     ctx.textAlign = "start";
   }
-  ctx.strokeStyle = "#d8d6c1b0";
+  ctx.strokeStyle = "#dfddcbb0";
   ctx.lineWidth = 1.1;
   ctx.beginPath();
   ctx.moveTo(rod.x, rod.y);
@@ -1450,7 +1450,7 @@ function draw(t, dt) {
       hookY + 10,
       game.hook.state !== "fighting",
     );
-  ctx.strokeStyle = "#dbd3b4";
+  ctx.strokeStyle = "#e2dbbf";
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.beginPath();
@@ -1459,9 +1459,9 @@ function draw(t, dt) {
   ctx.arc(hookX + 4, hookY + 5, 4, Math.PI, 0, true);
   ctx.lineTo(hookX + 8, hookY + 1);
   ctx.stroke();
-  ellipse(hookX, height * 0.314, 3, 4, "#cdb47d");
+  ellipse(hookX, height * 0.314, 3, 4, "#d8c190");
   if (game.hook.state === "dropping") {
-    ctx.strokeStyle = "#dcd3b830";
+    ctx.strokeStyle = "#e3dbc330";
     ctx.setLineDash([2, 5]);
     ctx.beginPath();
     ctx.moveTo(hookX, hookY + 15);

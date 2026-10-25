@@ -184,7 +184,7 @@ export function mixColor(from, to, amount) {
   return `rgb(${mix(16)}, ${mix(8)}, ${mix(0)})`;
 }
 export function bossSea(boss, cute = false) {
-  if (cute) return ["#85b0a4", "#5a8d92", "#53687d"];
+  if (cute) return ["#98bfb4", "#5a8d92", "#53687d"];
   const palettes = {
     crocodile: ["#5a766c", "#395b56", "#2c4044"],
     octopus: ["#84698c", "#59476c", "#353142"],

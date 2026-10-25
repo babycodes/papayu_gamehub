@@ -9,8 +9,8 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
   ctx.rotate(pose.sway);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const color = matteColor(fish.color) || "#aec8b0",
-    accent = matteColor(fish.accent) || "#79a090";
+  const color = matteColor(fish.color) || "#bbd2bd",
+    accent = matteColor(fish.accent) || "#8fb2a3";
   const paint = (light = color) => light;
   const oval = (x, y, rx, ry, fill) => {
     ctx.fillStyle = fill;
@@ -51,7 +51,7 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
       [-0.08, 0.12],
       [[-0.13, 0.21, -0.17, 0.25, -0.24, 0.31]],
       0.018,
-      "#dddcda45",
+      "#e3e2e045",
     );
     ctx.restore();
   };
@@ -72,7 +72,7 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
       [-0.13, 0],
       [[-0.25, -0.03, -0.34, -0.13, -0.43, -0.19]],
       0.018,
-      "#dddcda65",
+      "#e3e2e065",
     );
     ctx.restore();
   };
@@ -94,25 +94,25 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
   };
   const eye = (x, y, r) => {
     const h = r * pose.blink;
-    oval(x, y, r, h, "#dddad3");
+    oval(x, y, r, h, "#e3e1da");
     oval(x + r * 0.18, y, r * 0.43, h * 0.7, "#35454f");
     if (pose.blink > 0.5)
-      oval(x + r * 0.1, y - h * 0.25, r * 0.14, h * 0.15, "#dddcda");
+      oval(x + r * 0.1, y - h * 0.25, r * 0.14, h * 0.15, "#e3e2e0");
   };
   let ex = 0.58,
     ey = -0.11;
   const kind = fish.kind;
   if (fish.bonus) {
     ctx.rotate(pose.limb);
-    oval(0, 0, 0.65, 0.65, paint("#dbd1a0", "#be9d59"));
-    oval(0, 0, 0.5, 0.5, "#dddad0");
+    oval(0, 0, 0.65, 0.65, paint("#e2d9ad", "#ccae71"));
+    oval(0, 0, 0.5, 0.5, "#e3e1d8");
     for (let i = 0; i < 12; i++)
       oval(
         Math.sin((i * Math.PI) / 6) * 0.4,
         Math.cos((i * Math.PI) / 6) * 0.4,
         0.022,
         0.022,
-        "#ad9669",
+        "#bea980",
       );
     stroke([0, -0.27], [[0, -0.14, 0, -0.03, 0, 0]], 0.05, "#866b49");
     ctx.save();
@@ -121,8 +121,8 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
     ctx.restore();
   } else if (fish.special) {
     ctx.rotate(pose.limb * 0.4);
-    star(0, 0, 1.05, paint("#dbd5a5", "#c19b55"));
-    star(-0.08, -0.12, 0.65, "#dcd6b755");
+    star(0, 0, 1.05, paint("#e2ddb1", "#cfad6e"));
+    star(-0.08, -0.12, 0.65, "#e3ddc155");
     eye(-0.18, -0.05, 0.095);
     eye(0.18, -0.05, 0.095);
     stroke(
@@ -136,7 +136,7 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
         Math.cos(pose.time + i * 2.1) * 1.02,
         Math.sin(pose.time + i * 2.1) * 0.8,
         0.055,
-        "#dcd6b5",
+        "#e3ddc0",
       );
   } else {
     if (["fish", "shark", "whale", "puffer", "crocodile"].includes(kind))
@@ -147,7 +147,7 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
         oval(Math.cos(a) * 0.79, Math.sin(a) * 0.69, 0.062, 0.067, accent);
       }
       oval(0, 0, 0.81, 0.72, paint());
-      oval(0.09, 0.23, 0.58, 0.3, "#dbd3b99a");
+      oval(0.09, 0.23, 0.58, 0.3, "#e2dbc39a");
       for (const [x, y] of [
         [-0.35, -0.28],
         [0, -0.42],
@@ -173,12 +173,12 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
       );
       ctx.restore();
       oval(0, 0, 1, whale ? 0.5 : shark ? 0.41 : 0.53, paint());
-      oval(0.13, 0.17, 0.73, 0.2, "#dcd6c877");
+      oval(0.13, 0.17, 0.73, 0.2, "#e3ddd177");
       fin(-0.19, 0.16, pose.limb, whale ? 1 : 0.75);
       if (whale)
         for (let row = 0; row < 3; row++)
           for (let i = 0; i < 6; i++)
-            oval(i * 0.22 - 0.65, row * 0.14 - 0.3, 0.026, 0.023, "#d6dad9b0");
+            oval(i * 0.22 - 0.65, row * 0.14 - 0.3, 0.026, 0.023, "#dde1e0b0");
       if (shark)
         for (let i = 0; i < 3; i++)
           stroke(
@@ -197,7 +197,7 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
             accent,
           );
     }
-    oval(-0.19, -0.19, 0.24, 0.055, "#dddcda22");
+    oval(-0.19, -0.19, 0.24, 0.055, "#e3e2e022");
     eye(ex, ey, 0.11);
     const mx = ex + 0.13,
       my = ey + 0.22;
@@ -208,7 +208,7 @@ export function drawFishingAnimal(ctx, fish, size, pose, spooky = false) {
       0.023,
       "#465561",
     );
-    oval(ex - 0.06, ey + 0.15, 0.08, 0.035, "#cda59d70");
+    oval(ex - 0.06, ey + 0.15, 0.08, 0.035, "#d9b5ad70");
   }
   ctx.restore();
 }

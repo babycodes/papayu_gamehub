@@ -6833,18 +6833,18 @@ body:not(.in-game) {
 
 /* Matte playroom: one palette across the library, boards and arcade controls. */
 body.matte-theme {
-  --matte-paper: #d8d6c6;
-  --matte-surface: #e6dfce;
-  --matte-card: #dedac8;
+  --matte-paper: #dfddcf;
+  --matte-surface: #ebe5d5;
+  --matte-card: #e4e1d0;
   --matte-ink: #293e3b;
   --matte-muted: #3e5149;
-  --matte-line: #9da99a;
+  --matte-line: #aeb9ab;
   --matte-teal: #456c66;
   --matte-denim: #4c687d;
-  --matte-sage: #a5b09a;
-  --matte-clay: #c29581;
-  --matte-rose: #ba9294;
-  --matte-mustard: #c7ad76;
+  --matte-sage: #b5bfab;
+  --matte-clay: #d0a795;
+  --matte-rose: #c9a5a7;
+  --matte-mustard: #d3bc8a;
   --matte-green: #416b47;
   --matte-red: #9d5048;
   background: var(--matte-paper);
@@ -6862,10 +6862,10 @@ body.matte-theme {
 }
 .matte-theme #hubHeader .brand-icon {
   background: var(--matte-teal);
-  box-shadow: 3px 3px 0 #b9a36f;
+  box-shadow: 3px 3px 0 #c7b385;
 }
 .matte-theme #hubHeader .brand-icon > span {
-  color: #d3bc83;
+  color: #ddc895;
 }
 .matte-theme #hubHeader .nav-item,
 .matte-theme #hubHeader .brand-label,
@@ -6880,19 +6880,19 @@ body.matte-theme {
   background: #a77563;
 }
 .matte-theme #hubHeader .guest-avatar {
-  background: #bdcbbb;
-  border-color: #8b9e8c;
+  background: #c8d5c6;
+  border-color: #9fb0a0;
   color: #31564f;
 }
 .matte-theme #hubScreen .featured-hero {
-  background: #c9cfb9;
-  border-color: #99aa93;
+  background: #d2d8c4;
+  border-color: #aabaa5;
   box-shadow: none;
 }
 .matte-theme #hubScreen .hero-pill {
   background: var(--matte-teal);
   border-color: var(--matte-teal);
-  color: #f0e8d8;
+  color: #f3ecde;
 }
 .matte-theme #hubScreen .featured-category {
   color: #794c39;
@@ -6913,14 +6913,14 @@ body.matte-theme {
 .matte-theme #hubScreen .featured-controls > button {
   color: var(--matte-ink);
   background: var(--matte-surface);
-  border-color: #899e8e;
+  border-color: #9db0a1;
 }
 .matte-theme #hubScreen .featured-image-wrap {
-  background: #aebcaf;
-  border-color: #8b9e8b;
+  background: #bcc8bd;
+  border-color: #9fb09f;
 }
 .matte-theme #hubScreen .featured-dots button::after {
-  background: #849986;
+  background: #99ac9b;
 }
 .matte-theme #hubScreen .featured-dots button[aria-pressed="true"]::after {
   background: #875643;
@@ -6930,7 +6930,7 @@ body.matte-theme {
 .matte-theme #gameScreen .primary-button,
 .matte-theme #gameScreen .fish-button {
   background: var(--matte-teal);
-  color: #f4eddf;
+  color: #f7f0e4;
   border-color: #3d5d57;
   box-shadow: none;
 }
@@ -6961,25 +6961,25 @@ body.matte-theme {
   color: var(--matte-muted);
 }
 .matte-theme #hubScreen .search-box kbd {
-  background: #c4cdbb;
+  background: #ced6c6;
   color: #415a4b;
-  border-color: #9cac98;
+  border-color: #adbba9;
 }
 .matte-theme #hubScreen .category-filters .selected,
 .matte-theme #hubScreen .page-controls button.selected {
-  color: #f4eddf;
+  color: #f7f0e4;
   background: var(--matte-teal);
   border-color: var(--matte-teal);
 }
 .matte-theme #hubScreen .favorites-filter[aria-pressed="true"] {
-  background: #cfb1a4;
+  background: #dabfb3;
   color: #713c36;
   border-color: #a27869;
 }
 .matte-theme #hubScreen .catalog-card {
   background: var(--matte-surface);
   border-color: var(--matte-line);
-  box-shadow: 0 3px 0 #bbc2ae;
+  box-shadow: 0 3px 0 #c7cdbb;
 }
 .matte-theme #hubScreen .catalog-content h3 {
   color: var(--matte-ink);
@@ -6989,15 +6989,15 @@ body.matte-theme {
   color: var(--matte-muted);
 }
 .matte-theme #hubScreen .catalog-art {
-  background: #bbc5b8 !important;
+  background: #c7d0c4 !important;
 }
 .matte-theme #hubScreen .catalog-art .catalog-category {
-  background: #d4c59e;
+  background: #ddcfac;
   color: #4b513b;
-  border-color: #a5a181;
+  border-color: #b6b295;
 }
 .matte-theme #hubScreen .catalog-card[data-game="fishing"] .catalog-category {
-  background: #b1c0a6;
+  background: #beccb4;
   color: #344f3d;
 }
 .matte-theme #hubScreen .catalog-card[data-game="chess"] .catalog-category,
@@ -7005,22 +7005,22 @@ body.matte-theme {
   #hubScreen
   .catalog-card[data-game="sliding-puzzle"]
   .catalog-category {
-  background: #d0b09c;
+  background: #dbbeac;
   color: #654536;
 }
 .matte-theme #hubScreen .favorite-button {
-  background: #e2d8c4f5;
+  background: #e8dfcdf5;
   color: #875350;
-  border-color: #ac9984;
+  border-color: #bcab98;
 }
 .matte-theme #hubScreen .favorite-button[aria-pressed="true"] {
-  background: #d2ada0;
+  background: #ddbbaf;
   color: #803d3f;
 }
 .matte-theme #hubScreen .popular-section,
 .matte-theme #hubScreen .saved-fishing-banner {
-  background: #c3ceb9;
-  border-color: #97ac93;
+  background: #cdd7c4;
+  border-color: #a9bba5;
 }
 .matte-theme #hubScreen .popular-row,
 .matte-theme #hubScreen .popular-empty,
@@ -7047,8 +7047,8 @@ body.matte-theme {
   color: #314d3c;
 }
 .matte-theme #hubScreen .empty-library {
-  background: #d4c8a9;
-  border-color: #a9a17d;
+  background: #ddd2b6;
+  border-color: #b9b292;
 }
 .matte-theme #hubScreen .empty-library p,
 .matte-theme #hubScreen .empty-library > span {
@@ -7060,8 +7060,8 @@ body.matte-theme {
 .matte-theme #hubScreen .fishing-collection,
 .matte-theme #hubScreen .fishing-sticker {
   color: var(--matte-ink);
-  background: #d1d5c2;
-  border-color: #9baa94;
+  background: #d9ddcc;
+  border-color: #acbaa6;
 }
 .matte-theme #hubScreen .expedition-card p,
 .matte-theme #hubScreen .step p,
@@ -7076,8 +7076,8 @@ body.matte-theme {
 .matte-theme #hubScreen .personal-best,
 .matte-theme #hubScreen .fishing-sticker.unlocked {
   color: #43543b;
-  background: #d7cba9;
-  border-color: #a5a281;
+  background: #dfd4b6;
+  border-color: #b6b395;
 }
 .matte-theme #hubScreen .fish-guide h2 {
   color: var(--matte-ink);
@@ -7088,7 +7088,7 @@ body.matte-theme {
 .matte-theme #gameScreen .arcade-view,
 .matte-theme #gameScreen .board-view,
 .matte-theme #gameScreen .board-view.local-match {
-  background: #c9d0c2;
+  background: #d2d9cc;
   color: var(--matte-ink);
 }
 .matte-theme #gameScreen .icon-button,
@@ -7096,8 +7096,8 @@ body.matte-theme {
 .matte-theme #gameScreen .secondary-button,
 .matte-theme #gameScreen .arcade-hud .secondary-button {
   color: #344e48;
-  background: #dcdac7;
-  border-color: #8ea38f;
+  background: #e3e1d0;
+  border-color: #a1b4a2;
   box-shadow: none;
 }
 .matte-theme #gameScreen .arcade-kicker,
@@ -7114,7 +7114,7 @@ body.matte-theme {
 .matte-theme #gameScreen .bomb-handover {
   background: var(--matte-surface);
   color: var(--matte-ink);
-  border-color: #8a9f8b;
+  border-color: #9eb19f;
   box-shadow: 0 8px 24px #304b3b20;
 }
 .matte-theme #gameScreen .arcade-card h2,
@@ -7137,8 +7137,8 @@ body.matte-theme {
 }
 .matte-theme #gameScreen select,
 .matte-theme #gameScreen input:not([type="range"]) {
-  background: #d2d4c2;
-  border-color: #899e8b;
+  background: #dadccc;
+  border-color: #9db09f;
   color: #293e3b;
   color-scheme: light;
 }
@@ -7164,18 +7164,18 @@ body.matte-theme {
 .matte-theme #gameScreen .arcade-camp,
 .matte-theme #gameScreen .player-camp,
 .matte-theme #gameScreen .tile-panel {
-  background: #d2d4bf;
-  border-color: #92a28d;
+  background: #dadcc9;
+  border-color: #a5b3a0;
   color: var(--matte-ink);
   box-shadow: none;
 }
 .matte-theme #gameScreen .arcade-camp[data-team="red"],
 .matte-theme #gameScreen .player-camp[data-team="red"] {
-  background: #d2b1a3;
+  background: #dcbfb2;
 }
 .matte-theme #gameScreen .arcade-camp[data-team="blue"],
 .matte-theme #gameScreen .player-camp[data-team="blue"] {
-  background: #b1c2cc;
+  background: #becdd6;
 }
 .matte-theme #gameScreen .arcade-camp small,
 .matte-theme #gameScreen .arcade-camp b,
@@ -7192,26 +7192,26 @@ body.matte-theme {
 .matte-theme #gameScreen .memory-card {
   background: #718a9c;
   border-color: #4c687d;
-  color: #f1e4c4;
+  color: #f5e9cc;
   box-shadow: inset 0 -3px #40576930;
 }
 .matte-theme #gameScreen .memory-card.face-up {
-  background: #e3d6b6;
-  border-color: #a59167;
+  background: #e9ddc0;
+  border-color: #b7a57f;
 }
 .matte-theme #gameScreen .memory-card.matched {
-  background: #b6c4a2;
+  background: #c2cfb0;
   border-color: #58734b;
 }
 .matte-theme #gameScreen .memory-card small {
   color: #375637;
 }
 .matte-theme #gameScreen .memory-card:not(:disabled):hover {
-  background: #8c9fac;
+  background: #9fb1bc;
   border-color: #38595f;
 }
 .matte-theme #gameScreen .tic-cell {
-  background: #a3b7bc;
+  background: #b2c4c9;
   border-color: #68868b;
   box-shadow: inset 0 -3px #415c6930;
   color: #253e46;
@@ -7223,32 +7223,32 @@ body.matte-theme {
   color: #354f66;
 }
 .matte-theme #gameScreen .tic-cell.winning {
-  background: #b8c6a1;
+  background: #c4d1af;
   border-color: #4c7245;
   box-shadow: none;
 }
 .matte-theme #gameScreen .tic-cell:hover[aria-disabled="false"] {
-  background: #bbcbc6;
+  background: #c6d5d0;
 }
 .matte-theme #gameScreen .chess-grid {
   border-color: #607665;
   box-shadow: none;
 }
 .matte-theme #gameScreen .chess-cell.light {
-  background: #d9cfb7;
+  background: #e1d8c2;
 }
 .matte-theme #gameScreen .chess-cell.dark {
-  background: #849784;
+  background: #99aa99;
 }
 .matte-theme #gameScreen .chess-cell.selected-square {
-  background: #c6ac70;
+  background: #d2bb85;
   box-shadow: inset 0 0 0 3px #806631;
 }
 .matte-theme #gameScreen .chess-cell.last-move {
   box-shadow: inset 0 0 0 2px #5d7550;
 }
 .matte-theme #gameScreen .white-piece {
-  color: #f0e5ce;
+  color: #f4ead5;
   -webkit-text-stroke: 1px #455746;
   text-shadow: none;
 }
@@ -7265,47 +7265,47 @@ body.matte-theme {
   color: var(--matte-muted);
 }
 .matte-theme #gameScreen .duel-tile {
-  background: #879bad;
+  background: #9badbd;
   border-color: #566f85;
-  color: #f0e4c7;
+  color: #f4e9cf;
   box-shadow: none;
 }
 .matte-theme #gameScreen .duel-tile.revealed-tile {
-  background: #acb59f;
+  background: #bac3af;
   color: #41503e;
   border-color: #7a8d74;
 }
 .matte-theme #gameScreen .collection-column,
 .matte-theme #gameScreen .exchange-empty,
 .matte-theme #gameScreen .theme-preview-picture {
-  background: #c1c9b6;
+  background: #ccd3c2;
   color: #344a3e;
-  border-color: #879c81;
+  border-color: #9bae96;
 }
 .matte-theme #gameScreen .collection-slot {
-  background: #b6c0ad;
+  background: #c3ccba;
   color: #51674d;
-  border-color: #94a187;
+  border-color: #a7b29b;
 }
 .matte-theme #gameScreen .collection-slot.filled-slot {
-  background: #e0d3b3;
+  background: #e7dbbe;
 }
 .matte-theme #gameScreen .tray-tile,
 .matte-theme #gameScreen .tile-drag-ghost {
-  background: #ded0ad;
+  background: #e5d8b9;
   border-color: #54734e;
   box-shadow: none;
 }
 .matte-theme #gameScreen .tile-exchange,
 .matte-theme #gameScreen .tile-dice {
-  background: #b9c8b5;
+  background: #c5d2c1;
   border-color: #70886e;
   color: #344d3d;
   box-shadow: none;
 }
 .matte-theme #gameScreen .dice-face {
-  background: #dbcfb0;
-  border-color: #a39570;
+  background: #e2d8bc;
+  border-color: #b5a887;
   color: #384b37;
 }
 .matte-theme #gameScreen .tile-announcement,
@@ -7323,23 +7323,23 @@ body.matte-theme {
   outline-color: #4b7246;
 }
 .matte-theme #gameScreen .connect-grid {
-  background: #8ba3af;
+  background: #9eb4bf;
   border-color: #5e7d8a;
   box-shadow: none;
 }
 .matte-theme #gameScreen .connect-controls button {
   background: #607e8d;
-  color: #f2e5c8;
+  color: #f5eacf;
   border-color: #496575;
 }
 .matte-theme #gameScreen .connect-hole {
   --chip-bg: #4c6269;
 }
 .matte-theme #gameScreen .connect-hole.team-red {
-  --chip-bg: #bd8874;
+  --chip-bg: #cc9d8b;
 }
 .matte-theme #gameScreen .connect-hole.team-blue {
-  --chip-bg: #d2bb81;
+  --chip-bg: #dcc793;
 }
 .matte-theme #gameScreen .connect-hole::before {
   box-shadow: inset 0 2px 0 #273e3b20;
@@ -7348,28 +7348,28 @@ body.matte-theme {
   outline-color: #315b3b;
 }
 .matte-theme #gameScreen .arcade-canvas-stage {
-  border-color: #7c9287;
+  border-color: #92a69c;
   background: #304a50;
 }
 .matte-theme #gameScreen .reaction-pad {
-  background: #879eaa;
+  background: #9bb0bb;
   border-color: #587482;
   color: #233e48;
   box-shadow: none;
 }
 .matte-theme #gameScreen .reaction-pad[data-team="red"] {
-  background: #c49988;
+  background: #d1ab9b;
   border-color: #8f6656;
 }
 .matte-theme #gameScreen .reaction-pad[data-team="blue"] {
-  background: #9eafb8;
+  background: #aebec6;
   border-color: #5e7b8e;
 }
 .matte-theme
   #gameScreen
   .reaction-stage[data-phase="go"]
   .reaction-pad:not(:disabled) {
-  background: #b1c294;
+  background: #becea4;
   color: #294c31;
   border-color: #426641;
 }
@@ -7378,7 +7378,7 @@ body.matte-theme {
   color: #3e5948;
 }
 .matte-theme #gameScreen .reaction-lights i {
-  background: #869484;
+  background: #9ba899;
 }
 .matte-theme
   #gameScreen
@@ -7397,16 +7397,16 @@ body.matte-theme {
   box-shadow: none;
 }
 .matte-theme #gameScreen .puzzle-grid {
-  background: #a3b7a0;
+  background: #b2c4b0;
   border-color: #748f73;
   box-shadow: none;
 }
 .matte-theme #gameScreen .puzzle-tile span {
-  color: #ece3ce;
+  color: #f0e8d5;
   background: #314b4bce;
 }
 .matte-theme #gameScreen .puzzle-tile.empty-tile {
-  background: #bac5ae;
+  background: #c6d0bb;
   color: #426146;
 }
 .matte-theme #gameScreen .puzzle-tile.hint-tile {
@@ -7416,8 +7416,8 @@ body.matte-theme {
 /* Fishing controls and Bom Bom share the same matte state colours. */
 .matte-theme #fishingView .scoreboard,
 .matte-theme #fishingView .control-bar {
-  background: #dedecb;
-  border-color: #9daa92;
+  background: #e4e4d3;
+  border-color: #aebaa4;
 }
 .matte-theme #fishingView .stat strong,
 .matte-theme #fishingView .hook-status strong {
@@ -7437,8 +7437,8 @@ body.matte-theme {
 }
 .matte-theme #fishingView .overlay-shell,
 .matte-theme #fishingView .fishing-fight {
-  background: #dedbc7;
-  border-color: #8ba184;
+  background: #e4e2d0;
+  border-color: #9fb298;
   box-shadow: none;
 }
 .matte-theme #fishingView .overlay-shell h2,
@@ -7452,26 +7452,26 @@ body.matte-theme {
 }
 .matte-theme #fishingView .boss-danger {
   background: #9b5d4b;
-  border-color: #d2ba8c;
-  color: #f4e6ce;
+  border-color: #dcc69d;
+  color: #f7ead5;
   box-shadow: none;
 }
 .matte-theme #fishingView .frenzy-banner,
 .matte-theme #fishingView .star-banner {
-  background: #c9ae73;
+  background: #d5bc87;
   color: #3e4b35;
-  border-color: #9f8b5b;
+  border-color: #b2a075;
   box-shadow: none;
 }
 .matte-theme #fishingView .announcement {
-  background: #e1d4ae;
+  background: #e7dcb9;
   color: #3d4e37;
-  border-color: #a8a077;
+  border-color: #b8b18c;
   box-shadow: none;
 }
 .matte-theme #gameScreen .bomb-player-panel {
-  background: #d7d8c1;
-  border-color: #91a08a;
+  background: #dedfca;
+  border-color: #a4b19e;
   box-shadow: none;
 }
 .matte-theme #gameScreen .bomb-player-panel.bomb-panel-active {
@@ -7480,7 +7480,7 @@ body.matte-theme {
 }
 .matte-theme #gameScreen .bomb-tile,
 .matte-theme #gameScreen .bomb-duel-grid .bomb-tile {
-  background: #8ca6af;
+  background: #9fb6bf;
   color: #2c4957;
   border-color: #587c89;
   box-shadow: inset 0 -2px #3e596930;
@@ -7489,7 +7489,7 @@ body.matte-theme {
   border-color: #476d7a;
 }
 .matte-theme #gameScreen .bomb-tile:not(:disabled):hover {
-  background: #a2b8ba;
+  background: #b1c5c7;
   border-color: #416c65;
 }
 .matte-theme #gameScreen .bomb-tile small {
@@ -7497,13 +7497,13 @@ body.matte-theme {
 }
 .matte-theme #gameScreen .bomb-tile.has-bomb,
 .matte-theme #gameScreen .bomb-duel-grid .bomb-tile.has-bomb {
-  background: #c99983;
+  background: #d6ab97;
   border-color: #956652;
 }
 .matte-theme #gameScreen .bomb-tile.safe-tile,
 .matte-theme #gameScreen .bomb-duel-grid .bomb-tile.safe-tile {
-  background: #cdbb84;
-  border-color: #9a895c;
+  background: #d7c796;
+  border-color: #ae9e76;
 }
 .matte-theme #gameScreen .bomb-heart {
   color: #9b5356;
@@ -7523,11 +7523,11 @@ body.matte-theme {
 }
 .matte-theme #gameScreen .bomb-panel-feedback.bomb-feedback-hit {
   color: #733f34;
-  background: #c9aa97;
+  background: #d5b9a8;
 }
 .matte-theme #gameScreen .bomb-placement-footer {
-  background: #bac8ac;
-  border-color: #8da47e;
+  background: #c6d2b9;
+  border-color: #a0b593;
 }
 .matte-theme #gameScreen .bomb-placement-footer span {
   color: #405b3b;
@@ -7544,7 +7544,7 @@ body.matte-theme {
 }
 .matte-theme #gameScreen .board-settings fieldset,
 .matte-theme #gameScreen .arcade-card fieldset {
-  border-color: #a6ac94;
+  border-color: #b6bba6;
 }
 .matte-theme #gameScreen .player-camp {
   opacity: 1;
@@ -7558,7 +7558,7 @@ body.matte-theme {
   color: #3c574d;
 }
 .matte-theme #gameScreen .player-camp.active-camp b {
-  color: #eee4cf;
+  color: #f2e9d6;
   background: #416b47;
 }
 .matte-theme #gameScreen .memory-card.face-up:disabled,
@@ -7566,34 +7566,34 @@ body.matte-theme {
   opacity: 1;
 }
 .matte-theme #gameScreen .chess-cell.last-square:not(.selected-square) {
-  background: #acb596;
+  background: #bbc3a7;
   box-shadow: inset 0 0 0 2px #60764f;
 }
 .matte-theme #gameScreen .chess-cell.check-square {
-  background: #c79583 !important;
+  background: #d4a797 !important;
 }
 .matte-theme #fishingView .fishing-fight.good-pull {
   border-color: #4e754a;
 }
 .matte-theme #fishingView .fight-lane,
 .matte-theme #fishingView .fight-progress {
-  background: #bbb999;
+  background: #c8c6a9;
 }
 .matte-theme #fishingView .fight-lane > span {
-  background: #8eac7b;
+  background: #a1bc90;
 }
 .matte-theme #fishingView .fight-progress > span {
   background: #5b815b;
 }
 .matte-theme #fishingView .fishing-fight.line-straining {
-  background: #d7c1a4;
+  background: #e0ccb2;
   border-color: #9c6250;
 }
 .matte-theme #fishingView .fishing-fight.line-straining #fightTitle {
   color: #864536;
 }
 .matte-theme #fishingView .fishing-fight.stage-urgent .fight-heading small {
-  background: #ceaf90;
+  background: #d9bda1;
   color: #704334;
 }
 .matte-theme #fishingView .fight-deadline,
@@ -7602,17 +7602,17 @@ body.matte-theme {
 }
 .matte-theme #fishingView .boss-wave-status {
   background: #3b5759;
-  border-color: #aab79a;
-  color: #eee2c8;
+  border-color: #b9c4aa;
+  color: #f2e7d0;
 }
 .matte-theme #fishingView #fishButton.release-needed {
   background: #8b5946;
-  border-color: #ba9a78;
-  color: #eee2c8;
+  border-color: #c9ac8d;
+  color: #f2e7d0;
 }
 @keyframes bomb-hit-pulse {
   50% {
-    background: #b87d69;
+    background: #c99381;
     box-shadow: none;
     transform: scale(0.95);
   }
@@ -7625,62 +7625,62 @@ body.matte-theme {
 }
 /* Muted colour families distinguish games without adding glare or glow. */
 .matte-theme #hubScreen .catalog-card:nth-child(4n + 1) .catalog-content {
-  background: #d4bcaa;
+  background: #ddc8b8;
 }
 .matte-theme #hubScreen .catalog-card:nth-child(4n + 2) .catalog-content {
-  background: #c4ceb5;
+  background: #ced7c1;
 }
 .matte-theme #hubScreen .catalog-card:nth-child(4n + 3) .catalog-content {
-  background: #d5c59c;
+  background: #decfaa;
 }
 .matte-theme #hubScreen .catalog-card:nth-child(4n + 4) .catalog-content {
-  background: #b5c4c8;
+  background: #c1cfd2;
 }
 .matte-theme #hubScreen .category-filters button:nth-child(2):not(.selected) {
-  background: #cbb68e;
+  background: #d6c39f;
 }
 .matte-theme #hubScreen .category-filters button:nth-child(3):not(.selected) {
-  background: #b0c0a2;
+  background: #bdccb1;
 }
 .matte-theme #hubScreen .category-filters button:nth-child(4):not(.selected) {
-  background: #b5c2ca;
+  background: #c1cdd4;
 }
 .matte-theme #hubScreen .hero-pill {
   background: #4c687d;
   border-color: #4c687d;
 }
 .matte-theme #hubScreen .favorites-filter {
-  background: #d1b4aa;
+  background: #dbc1b8;
 }
 .matte-theme #gameScreen[data-game="memory-match"] .arcade-view {
-  background: #d2c6b2;
+  background: #dbd0be;
 }
 .matte-theme #gameScreen[data-game="tic-tac-toe"] .board-view {
-  background: #c2cbc5;
+  background: #ccd5cf;
 }
 .matte-theme #gameScreen[data-game="chess"] .board-view {
-  background: #cec6b1;
+  background: #d7d0bd;
 }
 .matte-theme #gameScreen[data-game="mahjong"] .board-view {
-  background: #c2c8b2;
+  background: #cdd2be;
 }
 .matte-theme #gameScreen[data-game="connect-four"] .arcade-view {
-  background: #ccb9a8;
+  background: #d7c5b6;
 }
 .matte-theme #gameScreen[data-game="air-hockey"] .arcade-view {
-  background: #b5c2c4;
+  background: #c1cdcf;
 }
 .matte-theme #gameScreen[data-game="reaction-race"] .arcade-view {
-  background: #c9beac;
+  background: #d4cab9;
 }
 .matte-theme #gameScreen[data-game="sliding-puzzle"] .arcade-view {
-  background: #c2c8b3;
+  background: #cdd2bf;
 }
 .matte-theme #gameScreen[data-game="catch-stars"] .arcade-view {
-  background: #b6c0c6;
+  background: #c2cbd1;
 }
 .matte-theme #gameScreen[data-game="bom-bom"] .arcade-view {
-  background: #c6cbb2;
+  background: #d0d5be;
 }
 .matte-theme #gameScreen .player-camp span,
 .matte-theme #gameScreen .player-camp b,
@@ -7690,7 +7690,7 @@ body.matte-theme {
   color: #33483f;
 }
 .matte-theme #gameScreen .player-camp.active-camp b {
-  color: #eee4cf;
+  color: #f2e9d6;
 }
 .matte-theme #gameScreen .bomb-tile small {
   color: #253b3e;
@@ -7706,23 +7706,23 @@ body.matte-theme {
 .matte-theme #gameScreen .board-setup-card {
   background: var(--matte-surface);
   color: var(--matte-ink);
-  border-color: #8a9f8b;
+  border-color: #9eb19f;
   box-shadow: 0 8px 24px #304b3b20;
 }
 .matte-theme #gameScreen .move-history-wrap {
-  background: #d0d1bb;
-  border-color: #92a18a;
+  background: #d9d9c6;
+  border-color: #a5b29e;
 }
 .matte-theme #fishingView .boss-danger {
   background: #80503f;
   animation: boss-alert-enter 0.5s ease-out;
 }
 .matte-theme #fishingView .boss-danger > span {
-  background: #c6a36d;
+  background: #d3b383;
   color: #453528;
 }
 .matte-theme #fishingView .boss-danger b {
-  color: #eee2c8;
+  color: #f2e7d0;
 }
 @media (prefers-reduced-motion: reduce) {
   .matte-theme #fishingView .boss-danger {

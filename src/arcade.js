@@ -602,7 +602,7 @@ export class ArcadeGames {
     ctx.arc(300, 450, 75, 0, Math.PI * 2);
     ctx.stroke();
     const colors = this.players.map((p) =>
-      p.team === "blue" ? "#7ab0cf" : "#cf8094",
+      p.team === "blue" ? "#8ebfdb" : "#dd95a7",
     );
     ctx.fillStyle = colors[1];
     ctx.fillRect(200, 0, 200, 12);
@@ -624,15 +624,15 @@ export class ArcadeGames {
       ctx.lineWidth = 3;
       ctx.stroke();
     }
-    ctx.fillStyle = "#dbd2b0";
-    ctx.shadowColor = "#dbd2b0";
+    ctx.fillStyle = "#e2dabb";
+    ctx.shadowColor = "#e2dabb";
     ctx.shadowBlur = 0;
     ctx.beginPath();
     ctx.arc(g.puck.x, g.puck.y, 16, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
     if (g.serveRemaining) {
-      ctx.fillStyle = "#d1d4c2";
+      ctx.fillStyle = "#d9dccc";
       ctx.font = "bold 38px Arial";
       ctx.textAlign = "center";
       ctx.fillText("SIAP?", 300, 405);
@@ -784,7 +784,7 @@ export class ArcadeGames {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, r.width, r.height);
     for (let i = 0; i < 24; i++) {
-      ctx.fillStyle = i % 3 ? "#777d8e" : "#b6bba6";
+      ctx.fillStyle = i % 3 ? "#777d8e" : "#c3c7b5";
       ctx.beginPath();
       ctx.arc(
         (((i * 97) % 101) / 101) * r.width,
@@ -809,7 +809,7 @@ export class ArcadeGames {
       w = r.width * 0.18,
       h = Math.max(14, Math.min(32, r.height * 0.08));
     ctx.fillStyle =
-      this.players[g.turn].team === "blue" ? "#8abac6" : "#ce959b";
+      this.players[g.turn].team === "blue" ? "#9cc7d2" : "#daa7ac";
     ctx.beginPath();
     ctx.moveTo(x - w / 2, y - h / 2);
     ctx.lineTo(x + w / 2, y - h / 2);
@@ -817,7 +817,7 @@ export class ArcadeGames {
     ctx.lineTo(x - w * 0.38, y + h / 2);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = "#d7cea8";
+    ctx.strokeStyle = "#dfd7b5";
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.beginPath();
@@ -826,7 +826,7 @@ export class ArcadeGames {
     ctx.font = "bold 18px Arial";
     for (const b of this.starBursts || []) {
       ctx.globalAlpha = b.life;
-      ctx.fillStyle = b.type === "bomb" ? "#d2959c" : "#cbd3a4";
+      ctx.fillStyle = b.type === "bomb" ? "#dea7ad" : "#d4dbb1";
       ctx.fillText(b.text, b.x * r.width, r.height * 0.8 - (1 - b.life) * 55);
     }
     ctx.globalAlpha = 1;

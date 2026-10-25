@@ -1,3 +1,8 @@
+export const BOMB_COLUMNS = 6,
+  BOMB_ROWS = 4,
+  MAX_BOMBS = 5;
+export const BOMB_CELLS = BOMB_COLUMNS * BOMB_ROWS;
+
 // Local, in-memory boards. Hidden bomb positions are never rendered during attacks.
 export class BomBom {
   constructor({ bot = false, firstPlayer = 0, random = Math.random } = {}) {
@@ -17,8 +22,11 @@ export class BomBom {
     this.phase = bot ? "placement" : "handover";
     this.pending = "placement";
   }
+  lives(player) {
+    return MAX_BOMBS - this.hits[player];
+  }
   valid(index) {
-    return Number.isInteger(index) && index >= 0 && index < 16;
+    return Number.isInteger(index) && index >= 0 && index < BOMB_CELLS;
   }
   acknowledge() {
     if (this.phase !== "handover" || this.winner !== null) return false;
@@ -34,17 +42,17 @@ export class BomBom {
       return false;
     const bombs = this.bombs[this.turn];
     if (bombs.has(index)) bombs.delete(index);
-    else if (bombs.size < 3) bombs.add(index);
+    else if (bombs.size < MAX_BOMBS) bombs.add(index);
     else return false;
     return true;
   }
   confirm() {
-    if (this.phase !== "placement" || this.bombs[this.turn].size !== 3)
+    if (this.phase !== "placement" || this.bombs[this.turn].size !== MAX_BOMBS)
       return false;
     this.ready[this.turn] = true;
     if (this.bot) {
-      const choices = Array.from({ length: 16 }, (_, i) => i);
-      while (this.bombs[1].size < 3) {
+      const choices = Array.from({ length: BOMB_CELLS }, (_, i) => i);
+      while (this.bombs[1].size < MAX_BOMBS) {
         const position = Math.floor(this.random() * choices.length);
         this.bombs[1].add(choices.splice(position, 1)[0]);
       }
@@ -76,10 +84,10 @@ export class BomBom {
     else this.scores[this.turn]++;
     this.result = { player: this.turn, target, index, hit };
     this.results[this.turn] = this.result;
-    if (this.hits[this.turn] === 3) {
+    if (this.hits[this.turn] === MAX_BOMBS) {
       this.winner = target;
       this.phase = "ending";
-      // Let children see the third bomb before the result screen appears.
+      // Let children see the last bomb before the result screen appears.
       this.endingRemaining = 0.9;
     } else this.turn = target;
     return true;
@@ -95,7 +103,7 @@ export class BomBom {
   // Bot sees only which squares have already been opened, never their contents.
   botChoice() {
     if (!this.bot || this.turn !== 1 || this.phase !== "attack") return null;
-    const choices = Array.from({ length: 16 }, (_, i) => i).filter(
+    const choices = Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
       (i) => !this.revealed[0].has(i),
     );
     return choices.length

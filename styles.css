@@ -6262,3 +6262,571 @@ select {
 .fishing-save-notice[hidden] {
   display: none;
 }
+
+/* Papayu playroom: warm paper, lagoon teal, sunshine and coral. */
+body:not(.in-game) {
+  background:
+    radial-gradient(ellipse at 0 0, #fff0be, transparent 45%),
+    radial-gradient(ellipse at 100% 30%, #d5f5eb, transparent 55%), #f6fbf4;
+  color: #173e42;
+}
+#hubHeader {
+  background: #fffef8;
+  border-color: #c4dcd3;
+  color: #173e42;
+}
+#hubHeader .brand {
+  color: #173e42;
+}
+#hubHeader .brand-icon {
+  background: #087e7b;
+  color: #fff;
+  box-shadow: 3px 3px 0 #ffc764;
+}
+#hubHeader .brand-label,
+#hubHeader .guest-label small {
+  color: #547573;
+}
+#hubHeader .nav-item {
+  color: #526f70;
+}
+#hubHeader .nav-item.active {
+  color: #006e6a;
+}
+#hubHeader .nav-item.active::after {
+  background: #ed815b;
+}
+#hubHeader .guest-avatar {
+  color: #006e6a;
+  background: #dcf3e9;
+  border-color: #8bc6b5;
+}
+#hubHeader .guest-label {
+  color: #173e42;
+}
+#hubScreen .featured-hero {
+  background:
+    radial-gradient(ellipse at top left, #ffe09b, transparent 75%),
+    linear-gradient(120deg, #fff7dc, #d6f3eb);
+  border-color: #a4ccbc;
+  box-shadow: 0 10px 32px #17645c0c;
+}
+#hubScreen .hero-pill {
+  background: #087873;
+  color: #fff;
+  border-color: #087873;
+}
+#hubScreen .featured-category {
+  color: #9d4225;
+  font-weight: 700;
+}
+#hubScreen .featured-copy h1,
+#hubScreen h2,
+#hubScreen h3 {
+  color: #173e42;
+}
+#hubScreen .featured-copy p,
+#hubScreen .featured-meta {
+  color: #365c60;
+}
+#hubScreen .featured-browse {
+  border-color: #5a9189;
+  background: #ffffffa8;
+  color: #175957;
+}
+#hubScreen .featured-image-wrap {
+  border-color: #91bfb3;
+  background: #e7f5ed;
+}
+#hubScreen .featured-controls > button {
+  border-color: #91bfb3;
+  background: #fffef8;
+  color: #175957;
+}
+#hubScreen .featured-dots button::after {
+  background: #84aaa0;
+}
+#hubScreen .featured-dots button[aria-pressed="true"]::after {
+  background: #d35d36;
+  box-shadow: 0 0 0 3px #efb27055;
+}
+#hubScreen .featured-count,
+#hubScreen .eyebrow,
+#hubScreen #resultCount {
+  color: #466e69;
+}
+#hubScreen .primary-button {
+  background: #007b76;
+  color: #fff;
+  border-color: #007b76;
+}
+#hubScreen .primary-button:hover {
+  background: #00615e;
+}
+#hubScreen .search-box {
+  border-color: #a9ccc0;
+  background: #fffef9;
+}
+#hubScreen .search-box > span {
+  color: #247c76;
+}
+#hubScreen .search-box input {
+  color: #173e42;
+  font-size: 14px;
+}
+#hubScreen .search-box input::placeholder {
+  color: #597c78;
+}
+#hubScreen .search-box:focus-within {
+  border-color: #007b76;
+  box-shadow: 0 0 0 3px #88d6c54d;
+}
+#hubScreen .search-box kbd {
+  color: #38655f;
+  background: #e4f2e8;
+  border-color: #adccba;
+}
+#hubScreen select {
+  color-scheme: light;
+  color: #234f50;
+  background: #fffef9;
+  border-color: #a8c9bf;
+  font-size: 13px;
+}
+#hubScreen .sort-box,
+#hubScreen .pagination {
+  color: #476e6a;
+  font-size: 12px;
+  border-color: #b4d1c6;
+}
+#hubScreen .category-filters button,
+#hubScreen .favorites-filter {
+  background: #fffef9;
+  color: #325c58;
+  border-color: #a8c9bf;
+}
+#hubScreen .category-filters .selected {
+  background: #007b76;
+  border-color: #007b76;
+  color: #fff;
+}
+#hubScreen .favorites-filter[aria-pressed="true"] {
+  color: #9c3b33;
+  background: #ffdfd3;
+  border-color: #cf8973;
+}
+#hubScreen .catalog-card {
+  background: #fffef9;
+  border-color: #bad3c7;
+  box-shadow: 0 5px 0 #dcebdc;
+}
+#hubScreen .catalog-card:hover {
+  border-color: #168d82;
+}
+#hubScreen .catalog-content h3 {
+  color: #173e42;
+}
+#hubScreen .card-player-info,
+#hubScreen .card-player-info strong {
+  color: #40645f;
+}
+#hubScreen .catalog-art {
+  background: #dff0e8 !important;
+}
+#hubScreen .catalog-art .catalog-category {
+  background: #fff7d8f5;
+  color: #345b54;
+  border: 1px solid #b1c6a9;
+}
+#hubScreen .favorite-button {
+  background: #fffef5f2;
+  color: #a9423e;
+  border: 1px solid #e2bfa7;
+}
+#hubScreen .favorite-button[aria-pressed="true"] {
+  color: #c3454b;
+  background: #ffe3da;
+}
+#hubScreen .page-controls button {
+  color: #325c58;
+  background: #fffef9;
+  border-color: #a8c9bf;
+  min-width: 40px;
+  height: 40px;
+}
+#hubScreen .page-controls button.selected {
+  background: #007b76;
+  color: #fff;
+  border-color: #007b76;
+}
+#hubScreen .page-controls button:disabled {
+  opacity: 0.5;
+}
+#hubScreen .popular-section {
+  background: #e6f4e8;
+  border-color: #aaccb7;
+}
+#hubScreen .popular-empty {
+  border-color: #a2beac;
+  color: #40645f;
+  background: #f6fbf0;
+}
+#hubScreen .popular-empty > span {
+  color: #b4661e;
+}
+#hubScreen .popular-empty p {
+  font-size: 13px;
+}
+#hubScreen .popular-row {
+  background: #fffef9;
+  border-color: #a8c9bf;
+  color: #234f50;
+}
+#hubScreen .popular-number,
+#hubScreen .popular-row small,
+#hubScreen .session-badge span {
+  color: #476e6a;
+}
+#hubScreen .session-badge b,
+#hubScreen .popular-icon,
+#hubScreen .popular-row b {
+  color: #087873;
+}
+#hubScreen .empty-library {
+  background: #fff8df;
+  border-color: #b9be99;
+}
+#hubScreen .empty-library p,
+#hubScreen .empty-library > span {
+  color: #526b58;
+}
+#hubScreen .fishing-details {
+  background: #fffef9;
+  border-color: #a8c9bf;
+}
+#hubScreen .fishing-details summary,
+#hubScreen .fishing-details summary > span {
+  color: #315f59;
+}
+#hubScreen .saved-fishing-banner {
+  background: linear-gradient(100deg, #d4f0dd, #fff0bc);
+  border-color: #78ad8d;
+}
+#hubScreen .saved-fishing-banner strong,
+#hubScreen .saved-fishing-banner p {
+  color: #254f47;
+}
+#hubScreen button:focus-visible {
+  outline-color: #bc4f2c;
+}
+
+/* Bom Bom: blue lemonade tiles, five heart lives, and quick, gentle feedback. */
+#gameScreen[data-game="bom-bom"] {
+  color: #193f4d;
+  background:
+    radial-gradient(ellipse at top left, #fff2c4, transparent 70%), #e8f6f0;
+}
+#gameScreen[data-game="bom-bom"] .game-toolbar {
+  background: #fffdf1;
+  border-color: #b4d5c6;
+}
+#gameScreen[data-game="bom-bom"] .game-title {
+  color: #214f50;
+}
+#gameScreen[data-game="bom-bom"] .secondary-button,
+#gameScreen[data-game="bom-bom"] .exit-button,
+#gameScreen[data-game="bom-bom"] .icon-button {
+  background: #fffdf1;
+  border-color: #8dbdb4;
+  color: #205a56;
+}
+#gameScreen[data-game="bom-bom"] .primary-button {
+  color: #fff;
+  background: #007b76;
+  border-color: #007b76;
+}
+#gameScreen[data-game="bom-bom"] .primary-button:hover {
+  background: #00615e;
+}
+#gameScreen[data-game="bom-bom"] .arcade-kicker {
+  color: #8f4d1f;
+}
+#gameScreen[data-game="bom-bom"] .arcade-hud {
+  color: #214f50;
+}
+#gameScreen[data-game="bom-bom"] .arcade-overlay {
+  background: #dbeee8dd;
+}
+#gameScreen[data-game="bom-bom"] .arcade-card,
+#gameScreen[data-game="bom-bom"] .bomb-handover {
+  background: linear-gradient(145deg, #fff8df, #edf8ec);
+  border-color: #80ada2;
+  box-shadow: 0 10px 35px #275c5c22;
+}
+#gameScreen[data-game="bom-bom"] .arcade-card h2,
+#gameScreen[data-game="bom-bom"] .bomb-handover h2 {
+  color: #164d4d;
+}
+#gameScreen[data-game="bom-bom"] .arcade-card p,
+#gameScreen[data-game="bom-bom"] .arcade-card label,
+#gameScreen[data-game="bom-bom"] .arcade-card legend,
+#gameScreen[data-game="bom-bom"] .bomb-handover p {
+  color: #3b6460;
+}
+#gameScreen[data-game="bom-bom"] select,
+#gameScreen[data-game="bom-bom"] input {
+  color-scheme: light;
+  color: #234f50;
+  background: #fffef9;
+  border-color: #9cc4b8;
+}
+#gameScreen[data-game="bom-bom"] .arcade-camp {
+  border-color: #9dbcb1;
+  color: #214f50;
+  background: #e0f0e6;
+}
+#gameScreen[data-game="bom-bom"] .arcade-camp[data-team="red"] {
+  background: #ffe2d3;
+}
+#gameScreen[data-game="bom-bom"] .arcade-camp[data-team="blue"] {
+  background: #d8eff8;
+}
+#gameScreen[data-game="bom-bom"] .arcade-camp small,
+#gameScreen[data-game="bom-bom"] .arcade-camp > span,
+#gameScreen[data-game="bom-bom"] .arcade-camp b {
+  color: #315d5a;
+}
+#gameScreen[data-game="bom-bom"] .arcade-camp.active-camp {
+  border-color: #158349;
+  box-shadow: none;
+}
+.bomb-grid,
+.bomb-duel-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.bomb-player-panel {
+  border-color: #9abfb3;
+  background: #fafff6;
+  box-shadow: 0 4px 0 #b5d3bd;
+}
+.bomb-player-panel.bomb-panel-active {
+  border-color: #158349;
+  box-shadow: 0 0 0 1px #158349;
+}
+.bomb-tile {
+  border-color: #458dae;
+  border-bottom-color: #2d7494;
+  background: linear-gradient(150deg, #83d6ec, #47adc9);
+  color: #174768;
+  box-shadow: inset 0 -3px #27688122;
+}
+.bomb-duel-grid .bomb-tile {
+  border-color: #458dae;
+}
+.bomb-panel-active .bomb-duel-grid .bomb-tile:not(:disabled) {
+  border-color: #347e9e;
+}
+.bomb-tile small {
+  color: #194659;
+}
+.bomb-tile:not(:disabled):hover {
+  background: #a7e9ec;
+  border-color: #0f7a76;
+  transform: translateY(-2px);
+}
+.bomb-tile.has-bomb,
+.bomb-duel-grid .bomb-tile.has-bomb {
+  background: #ffb39d;
+  border-color: #b75b48;
+}
+.bomb-tile.safe-tile,
+.bomb-duel-grid .bomb-tile.safe-tile {
+  background: #fff0a8;
+  border-color: #b99b39;
+}
+.bomb-target-label,
+.bomb-board-heading,
+.bomb-board-heading span {
+  color: #3c6663;
+}
+.bomb-panel-feedback {
+  color: #256347;
+  font-weight: 700;
+}
+.bomb-panel-feedback.bomb-feedback-hit {
+  color: #933f35;
+  background: #ffdfd3;
+}
+.bomb-placement-footer {
+  background: #e0f1dd;
+  border-color: #97bb99;
+}
+.bomb-placement-footer span {
+  color: #325d4e;
+}
+.bomb-life-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.bomb-lives {
+  display: flex;
+  gap: 5px;
+  line-height: 1;
+}
+.bomb-heart {
+  font-size: 26px;
+  color: #c43d4b;
+  text-shadow: 0 2px #fff;
+}
+.bomb-heart.empty-heart {
+  color: #748980;
+  text-shadow: none;
+}
+.bomb-life-count {
+  color: #41675e;
+  font-size: 11px;
+  font-weight: 700;
+}
+.heart-just-lost {
+  animation: heart-lost 0.55s ease-out;
+}
+.bomb-safe-reveal > span {
+  display: inline-block;
+  animation: bomb-star-pop 0.45s ease-out;
+}
+.bomb-panel-hit {
+  animation: bomb-panel-shake 0.25s ease-out;
+}
+@keyframes heart-lost {
+  40% {
+    transform: translateY(-4px) scale(1.35);
+    color: #d94749;
+  }
+}
+@keyframes bomb-star-pop {
+  0% {
+    transform: scale(0.4) rotate(-20deg);
+  }
+  65% {
+    transform: scale(1.15) rotate(8deg);
+  }
+}
+@keyframes bomb-panel-shake {
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+@keyframes bomb-hit-pulse {
+  50% {
+    background: #ff8268;
+    box-shadow: 0 0 14px #f28c6655;
+    transform: scale(0.95);
+  }
+}
+@media (max-height: 650px) and (orientation: portrait),
+  (max-height: 500px) and (orientation: landscape) {
+  .bomb-heart {
+    font-size: 20px;
+  }
+  .bomb-life-row {
+    gap: 5px;
+  }
+  .bomb-lives {
+    gap: 4px;
+  }
+  .bomb-duel-grid .bomb-tile span {
+    font-size: 19px;
+  }
+  .bomb-target-label {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heart-just-lost,
+  .bomb-safe-reveal > span,
+  .bomb-panel-hit {
+    animation: none;
+  }
+  .bomb-tile:not(:disabled):hover {
+    transform: none;
+  }
+}
+#hubScreen .expedition-card,
+#hubScreen .how-card,
+#hubScreen .collection-card,
+#hubScreen .fishing-collection,
+#hubScreen .fishing-sticker {
+  background: #eef7ec;
+  border-color: #b0cbb6;
+  color: #284f47;
+}
+#hubScreen .expedition-card p,
+#hubScreen .step p,
+#hubScreen .last-catch p,
+#hubScreen .card-kicker,
+#hubScreen .fishing-collection > p,
+#hubScreen .fishing-sticker small {
+  color: #4d7064;
+}
+#hubScreen .journey,
+#hubScreen .keyboard-tip,
+#hubScreen .personal-best {
+  border-color: #aec8b5;
+  color: #365f50;
+  background: #fff8df;
+}
+#hubScreen .fishing-sticker.unlocked {
+  border-color: #2e8b68;
+  background: #fff3c9;
+}
+#gameScreen[data-game="bom-bom"] .arcade-view {
+  background: transparent;
+  color: #193f4d;
+}
+#hubHeader .brand-icon > span {
+  color: #ffd45c;
+}
+#hubScreen .pagination #pageInfo,
+#hubScreen .popular-row small {
+  font-size: 12px;
+}
+#hubScreen .featured-actions .primary-button {
+  background: #bb4b2d;
+  border-color: #bb4b2d;
+}
+#hubScreen .featured-actions .primary-button:hover {
+  background: #9e3e26;
+}
+#hubScreen .catalog-card[data-game="fishing"] .catalog-category {
+  background: #d2f2e7;
+  color: #225c4e;
+}
+#hubScreen .catalog-card[data-game="chess"] .catalog-category,
+#hubScreen .catalog-card[data-game="sliding-puzzle"] .catalog-category {
+  background: #ffe0cc;
+  color: #814025;
+}
+#hubScreen .fish-guide h2 {
+  color: #284f47;
+}
+#gameScreen[data-game="bom-bom"] .exit-modal {
+  background: #244f4acc;
+}
+#gameScreen[data-game="bom-bom"] .exit-modal-card {
+  background: #fff9e5;
+  border-color: #8fb8a6;
+  color: #214f50;
+}
+#gameScreen[data-game="bom-bom"] .exit-modal-card p {
+  color: #3b6460;
+}
+#gameScreen[data-game="bom-bom"] button:focus-visible {
+  outline: 3px solid #a44d2c;
+  outline-offset: 2px;
+}

@@ -3,7 +3,7 @@ export const GAMES = [
     id: "bom-bom",
     title: "Bom Bom",
     description:
-      "Sembunyikan 3 bom di papan 4 × 4! Buka kotak lawan, kumpulkan poin, dan hindari 3 ledakan.",
+      "Sembunyikan 5 bom di papan 6 × 4! Buka kotak lawan, kumpulkan poin, dan lindungi 5 hati.",
     icon: "💣",
     category: "Arcade",
     modes: ["2 pemain", "Lawan bot"],

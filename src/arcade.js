@@ -129,7 +129,7 @@ export class ArcadeGames {
   instructions() {
     return {
       "bom-bom":
-        "Sembunyikan 3 bom di papan 4 × 4 milikmu. Bergantian buka kotak lawan: aman +1 poin, kena 3 bom berarti kalah. Pilih tepat 3 bom agar permainan adil.",
+        "Sembunyikan 5 bom di papan 6 × 4 milikmu. Kamu punya 5 hati! Bergantian buka kotak lawan: aman +1 poin, kena bom kehilangan satu hati. Pilih 5 bom agar permainan adil.",
       "memory-match":
         "Temukan dua gambar yang sama. Pasangan cocok memberi poin dan giliran tambahan!",
       "connect-four":
@@ -716,7 +716,7 @@ export class ArcadeGames {
   }
   resultDetail() {
     if (this.id === "bom-bom")
-      return `${this.engine.scores[0]} – ${this.engine.scores[1]} poin · Kena bom ${this.engine.hits[0]}/3 – ${this.engine.hits[1]}/3`;
+      return `${this.engine.scores[0]} – ${this.engine.scores[1]} poin · Kena bom ${this.engine.hits[0]}/5 – ${this.engine.hits[1]}/5`;
     if (this.id === "catch-stars")
       return this.settings.opponent === "local"
         ? `${this.engine.scores[0]} – ${this.engine.scores[1]} poin`

@@ -5998,3 +5998,128 @@ select {
     display: none;
   }
 }
+
+/* Both attacking areas stay visible; only the current player's area is unlocked. */
+.bomb-duel {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+}
+.bomb-player-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  padding: 10px;
+  gap: 7px;
+  border: 2px solid #525b75;
+  border-radius: 16px;
+  background: #1e2940;
+}
+.bomb-player-panel.bomb-panel-active {
+  border-color: #a3ff71;
+  box-shadow: 0 0 0 1px #a3ff7133;
+}
+#gameScreen[data-game="bom-bom"] .bomb-player-panel .arcade-camp {
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 0;
+  box-shadow: none;
+  gap: 8px;
+}
+.bomb-target-label {
+  color: #cecee4;
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bomb-duel-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  min-height: 0;
+  flex: 1;
+  width: 100%;
+  max-height: 520px;
+}
+.bomb-duel-grid .bomb-tile {
+  border-color: #68668e;
+}
+.bomb-panel-active .bomb-duel-grid .bomb-tile:not(:disabled) {
+  border-color: #9b8bc8;
+}
+.bomb-duel-grid .bomb-tile.safe-tile {
+  border-color: #80d1a8;
+}
+.bomb-duel-grid .bomb-tile.has-bomb {
+  border-color: #ff9da5;
+}
+.bomb-panel-feedback {
+  margin-top: auto;
+  min-height: 22px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #d5ff9b;
+}
+.bomb-panel-feedback.bomb-feedback-hit {
+  color: #ffd0d0;
+}
+@media (orientation: portrait) and (max-width: 1000px) {
+  .bomb-duel {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .bomb-player-panel {
+    padding: 6px;
+    gap: 4px;
+    border-radius: 12px;
+  }
+  .bomb-duel-grid {
+    gap: 5px;
+  }
+  .bomb-duel-grid .bomb-tile span {
+    font-size: clamp(20px, 3.5vh, 36px);
+  }
+}
+@media (max-height: 650px) and (orientation: portrait),
+  (max-height: 500px) and (orientation: landscape) {
+  .bomb-player-panel {
+    padding: 4px;
+    gap: 3px;
+  }
+  #gameScreen[data-game="bom-bom"] .bomb-player-panel .arcade-camp {
+    min-height: 24px;
+    padding: 2px 4px;
+  }
+  .bomb-player-panel .arcade-camp small {
+    display: none;
+  }
+  .bomb-target-label {
+    font-size: 10px;
+  }
+  .bomb-panel-feedback {
+    font-size: 11px;
+    min-height: 16px;
+  }
+  .bomb-duel-grid {
+    gap: 4px;
+  }
+  .bomb-duel-grid .bomb-tile span {
+    font-size: 22px;
+  }
+  .bomb-duel-grid .bomb-tile small {
+    bottom: 2px;
+    right: 4px;
+    font-size: 9px;
+  }
+}

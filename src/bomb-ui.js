@@ -7,6 +7,61 @@ const esc = (value) =>
         c
       ],
   );
+function tile({
+  index,
+  key = index,
+  player,
+  bomb,
+  shown,
+  placement,
+  lastHit,
+  locked,
+}) {
+  const label = `${placement ? "Tempat bom" : "Kotak"} ${index + 1}, ${bomb ? (placement ? "bom dipasang" : "kena bom") : shown ? "aman" : "tertutup"}`;
+  return `<button class="bomb-tile ${bomb ? "has-bomb" : shown ? "safe-tile" : ""} ${lastHit ? "bomb-hit" : ""}" data-bomb="${key}" ${player !== undefined ? `data-bomb-player="${player}"` : ""} ${locked ? "disabled" : ""} ${placement ? `aria-pressed="${bomb}"` : ""} aria-label="${label}"><span>${bomb ? "💣" : shown ? "⭐" : placement ? "+" : "✦"}</span><small>${index + 1}</small></button>`;
+}
+function renderDuel(arcade) {
+  const g = arcade.engine,
+    playing = arcade.mode === "playing" && g.phase === "attack";
+  $("arcadeStatus").textContent =
+    g.winner !== null
+      ? `${arcade.name(g.winner)} menang! Lawan terkena 3 bom.`
+      : g.bot && g.turn === 1
+        ? "Bot sedang memilih kotak…"
+        : `${arcade.name(g.turn)}: buka satu kotak lawan`;
+  $("arcadePlay").innerHTML = `<div class="bomb-duel">${[1, 0]
+    .map((player) => {
+      const owner = 1 - player;
+      const active = playing && g.turn === player;
+      const interactive = active && !(g.bot && player === 1);
+      const result = g.results[player];
+      const feedback = result
+        ? `${result.hit ? "💥 Kena bom!" : "⭐ Aman! +1 poin"}`
+        : "Kotak aman +1 · 3 bom = kalah";
+      return `<section class="bomb-player-panel ${active ? "bomb-panel-active" : ""}" data-player="${player}" aria-label="Area bermain ${esc(arcade.name(player))}">
+      ${arcade.camp(player, active, `${g.scores[player]} poin · 💣 ${g.hits[player]}/3`)}
+      <div class="bomb-target-label">Kotak lawan · ${esc(arcade.name(owner))}</div>
+      <div class="bomb-duel-grid" role="group" aria-label="${esc(arcade.name(player))}: buka kotak ${esc(arcade.name(owner))}">${Array.from(
+        { length: 16 },
+        (_, index) => {
+          const shown = g.revealed[owner].has(index);
+          return tile({
+            index,
+            key: player * 16 + index,
+            player,
+            shown,
+            bomb: shown && g.bombs[owner].has(index),
+            lastHit:
+              g.result === result && result?.hit && result.index === index,
+            locked: !interactive || shown,
+          });
+        },
+      ).join("")}</div>
+      <div class="bomb-panel-feedback ${result?.hit ? "bomb-feedback-hit" : ""}">${feedback}</div>
+    </section>`;
+    })
+    .join("")}</div>`;
+}
 export function renderBomb(arcade) {
   const g = arcade.engine,
     playing = arcade.mode === "playing";
@@ -16,56 +71,26 @@ export function renderBomb(arcade) {
     return;
   }
   const restore = arcade.preserveBoardFocus();
-  const placement = g.phase === "placement",
-    handover = g.phase === "handover";
-  const botTurn = g.bot && g.turn === 1;
-  const owner = placement ? g.turn : 1 - g.turn;
-  const result = g.result;
-  const status =
-    g.winner !== null
-      ? `${arcade.name(g.winner)} menang! Lawan terkena 3 bom.`
-      : handover
-        ? `Serahkan perangkat ke ${arcade.name(g.turn)}`
-        : placement
-          ? `${arcade.name(g.turn)}: sembunyikan 3 bom`
-          : result
-            ? result.hit
-              ? `${arcade.name(result.player)} kena bom!`
-              : `${arcade.name(result.player)} mendapat 1 poin!`
-            : botTurn
-              ? "Bot sedang memilih kotak…"
-              : `${arcade.name(g.turn)}: buka satu kotak lawan`;
-  $("arcadeStatus").textContent = status;
-  const camp = (p) =>
+  if (["attack", "ending", "ended"].includes(g.phase)) {
+    renderDuel(arcade);
+    restore();
+    return;
+  }
+  const handover = g.phase === "handover";
+  $("arcadeStatus").textContent = handover
+    ? `Serahkan perangkat ke ${arcade.name(g.turn)}`
+    : `${arcade.name(g.turn)}: sembunyikan 3 bom`;
+  const camp = (player) =>
     arcade.camp(
-      p,
-      playing && g.turn === p,
-      `${g.scores[p]} poin · 💣 ${g.hits[p]}/3`,
+      player,
+      playing && g.turn === player,
+      `${g.scores[player]} poin · 💣 ${g.hits[player]}/3`,
     );
-  const footer = result
-    ? `<div class="bomb-feedback ${result.hit ? "bomb-feedback-hit" : ""}" role="status"><strong>${g.winner !== null ? `🏆 ${esc(arcade.name(g.winner))} menang!` : result.hit ? "💥 Kena bom!" : "⭐ Aman! +1 poin"}</strong><span>${result.hit ? `${esc(arcade.name(result.player))} · kena ${g.hits[result.player]} dari 3 bom` : esc(arcade.name(result.player))}</span><button class="primary-button" data-action="bomb-next" ${playing ? "" : "disabled"}>${g.winner !== null ? "Lihat hasil" : "Giliran berikutnya"} →</button></div>`
-    : placement
-      ? `<div class="bomb-placement-footer"><span>${g.bombs[g.turn].size}/3 bom · Ketuk lagi untuk membatalkan</span><button class="primary-button" data-action="bomb-confirm" ${!playing || g.bombs[g.turn].size !== 3 ? "disabled" : ""}>Sembunyikan bom & siap →</button></div>`
-      : `<div class="bomb-tip">Kotak aman +1 poin · Kena 3 bom = kalah</div>`;
   $("arcadePlay").innerHTML =
     `${camp(1)}<div class="bomb-stage" data-phase="${g.phase}">${
       handover
-        ? `<div class="bomb-handover"><span aria-hidden="true">🙈</span><h2>${esc(arcade.name(g.turn))}, giliranmu!</h2><p>${g.pending === "placement" ? "Lawan jangan mengintip. Pilih 3 tempat bom rahasiamu." : "Buka kotak lawan. Hindari 3 bom tersembunyi!"}<br>Posisi bom tetap dirahasiakan.</p><button class="primary-button" data-action="bomb-ready" ${playing ? "" : "disabled"}>Saya ${esc(arcade.name(g.turn))}, siap!</button></div>`
-        : `<div class="bomb-board-heading"><strong>${placement ? "🤫 Papan rahasiamu" : `Papan ${esc(arcade.name(owner))}`}</strong><span>${placement ? "Pilih 3 kotak" : "4 × 4"}</span></div><div class="bomb-grid" role="group" aria-label="${placement ? "Tempatkan bom" : "Buka kotak lawan"}">${Array.from(
-            { length: 16 },
-            (_, i) => {
-              const shown = !placement && g.revealed[owner].has(i);
-              const bomb = placement
-                ? g.bombs[owner].has(i)
-                : shown && g.bombs[owner].has(i);
-              const lastHit = result?.hit && result.index === i;
-              const locked =
-                !playing ||
-                (!placement && (g.phase !== "attack" || botTurn || shown));
-              const label = `${placement ? "Tempat bom" : "Kotak"} ${i + 1}, ${bomb ? (placement ? "bom dipasang" : "kena bom") : shown ? "aman" : "tertutup"}`;
-              return `<button class="bomb-tile ${bomb ? "has-bomb" : shown ? "safe-tile" : ""} ${lastHit ? "bomb-hit" : ""}" data-bomb="${i}" ${locked ? "disabled" : ""} ${placement ? `aria-pressed="${bomb}"` : ""} aria-label="${label}"><span>${bomb ? "💣" : shown ? "⭐" : placement ? "+" : "✦"}</span><small>${i + 1}</small></button>`;
-            },
-          ).join("")}</div>${footer}`
+        ? `<div class="bomb-handover"><span aria-hidden="true">🙈</span><h2>${esc(arcade.name(g.turn))}, giliranmu!</h2><p>Lawan jangan mengintip. Pilih 3 tempat bom rahasiamu.<br>Posisi bom tetap dirahasiakan.</p><button class="primary-button" data-action="bomb-ready" ${playing ? "" : "disabled"}>Saya ${esc(arcade.name(g.turn))}, siap!</button></div>`
+        : `<div class="bomb-board-heading"><strong>🤫 Papan rahasiamu</strong><span>Pilih 3 kotak</span></div><div class="bomb-grid" role="group" aria-label="Tempatkan bom">${Array.from({ length: 16 }, (_, index) => tile({ index, bomb: g.bombs[g.turn].has(index), placement: true, locked: !playing })).join("")}</div><div class="bomb-placement-footer"><span>${g.bombs[g.turn].size}/3 bom · Ketuk lagi untuk membatalkan</span><button class="primary-button" data-action="bomb-confirm" ${!playing || g.bombs[g.turn].size !== 3 ? "disabled" : ""}>Sembunyikan bom & siap →</button></div>`
     }</div>${camp(0)}`;
   restore();
 }
@@ -75,15 +100,16 @@ export function bombAction(arcade, button) {
   if (action === "bomb-ready") g.acknowledge();
   else if (action === "bomb-confirm") {
     if (g.confirm()) arcade.onMove();
-  } else if (action === "bomb-next") {
-    if (g.winner !== null)
-      return arcade.finish(`${arcade.name(g.winner)} menang!`);
-    g.next();
-    arcade.botDelay = 0;
   } else if (button.dataset.bomb !== undefined) {
-    const index = Number(button.dataset.bomb);
-    if (g.phase === "placement") g.toggle(index);
-    else if (!(g.bot && g.turn === 1) && g.open(index)) arcade.onMove();
+    const key = Number(button.dataset.bomb);
+    if (g.phase === "placement") g.toggle(key);
+    else {
+      const player = Number(button.dataset.bombPlayer);
+      if (!(g.bot && player === 1) && g.open(key % 16, player)) {
+        arcade.botDelay = 0;
+        arcade.onMove();
+      }
+    }
   } else return;
   arcade.renderBoard();
 }

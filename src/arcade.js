@@ -292,18 +292,16 @@ export class ArcadeGames {
   }
   loop() {
     cancelAnimationFrame(this.frame);
-    if (
-      this.id === "sliding-puzzle" ||
-      (this.id === "bom-bom" && !this.engine.bot)
-    )
-      return;
+    if (this.id === "sliding-puzzle") return;
     this.last = performance.now();
     const tick = (now) => {
       if (this.mode !== "playing") return;
       const dt = Math.min(0.05, (now - this.last) / 1000);
       this.last = now;
       if (this.id === "bom-bom") {
-        if (
+        if (this.engine.tick(dt)) {
+          this.finish(`${this.name(this.engine.winner)} menang!`);
+        } else if (
           this.engine.bot &&
           this.engine.turn === 1 &&
           this.engine.phase === "attack"

@@ -12,6 +12,8 @@ export class BomBom {
     this.hits = [0, 0];
     this.winner = null;
     this.result = null;
+    this.results = [null, null];
+    this.endingRemaining = 0;
     this.phase = bot ? "placement" : "handover";
     this.pending = "placement";
   }
@@ -55,11 +57,16 @@ export class BomBom {
       this.turn = 1 - this.turn;
       this.pending = "placement";
     }
-    this.phase = this.bot ? this.pending : "handover";
+    this.phase = this.ready.every(Boolean) ? "attack" : "handover";
     return true;
   }
-  open(index) {
-    if (this.phase !== "attack" || this.winner !== null || !this.valid(index))
+  open(index, player = this.turn) {
+    if (
+      player !== this.turn ||
+      this.phase !== "attack" ||
+      this.winner !== null ||
+      !this.valid(index)
+    )
       return false;
     const target = 1 - this.turn;
     if (this.revealed[target].has(index)) return false;
@@ -68,16 +75,21 @@ export class BomBom {
     if (hit) this.hits[this.turn]++;
     else this.scores[this.turn]++;
     this.result = { player: this.turn, target, index, hit };
-    if (this.hits[this.turn] === 3) this.winner = target;
-    this.phase = "result";
+    this.results[this.turn] = this.result;
+    if (this.hits[this.turn] === 3) {
+      this.winner = target;
+      this.phase = "ending";
+      // Let children see the third bomb before the result screen appears.
+      this.endingRemaining = 0.9;
+    } else this.turn = target;
     return true;
   }
-  next() {
-    if (this.phase !== "result" || this.winner !== null) return false;
-    this.turn = 1 - this.turn;
-    this.result = null;
-    this.pending = "attack";
-    this.phase = this.bot ? "attack" : "handover";
+  tick(dt) {
+    if (this.phase !== "ending" || !Number.isFinite(dt) || dt <= 0)
+      return false;
+    this.endingRemaining = Math.max(0, this.endingRemaining - dt);
+    if (this.endingRemaining > 0) return false;
+    this.phase = "ended";
     return true;
   }
   // Bot sees only which squares have already been opened, never their contents.

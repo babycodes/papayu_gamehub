@@ -17,8 +17,6 @@ function tile({
   key = index,
   player,
   bomb,
-  warning = false,
-  peek = false,
   mine = false,
   defused = false,
   shown,
@@ -27,8 +25,8 @@ function tile({
   lastSafe,
   locked,
 }) {
-  const label = `${placement ? "Tempat bom" : "Kotak"} ${index + 1}, ${warning && !shown ? "peringatan STOP, ada bom! Tetap bisa dibuka" : peek ? "bonus Peek, intip bom" : mine ? (placement ? "ranjau dipasang" : defused ? "ranjau dijinakkan" : "ranjau meledak") : bomb ? (placement ? "bom dipasang" : "kena bom") : shown ? "aman" : "tertutup"}`;
-  return `<button class="bomb-tile ${mine ? "has-mine" : ""} ${warning && !shown ? "peek-warning" : ""} ${peek ? "peek-bonus" : ""} ${bomb ? "has-bomb" : shown ? "safe-tile" : ""} ${lastHit ? "bomb-hit" : lastSafe ? "bomb-safe-reveal" : ""}" data-bomb="${key}" ${player !== undefined ? `data-bomb-player="${player}"` : ""} ${locked ? "disabled" : ""} ${placement ? `aria-pressed="${bomb || mine}"` : ""} aria-label="${label}"><span>${warning && !shown ? "🛑" : peek ? "👀" : mine ? mineArt({ defused, exploded: shown && !placement && !defused }) : bomb ? "💣" : shown ? "⭐" : placement ? "+" : "?"}</span><small>${index + 1}</small></button>`;
+  const label = `${placement ? "Tempat bom" : "Kotak"} ${index + 1}, ${mine ? (placement ? "ranjau dipasang" : defused ? "ranjau dijinakkan" : "ranjau meledak") : bomb ? (placement ? "bom dipasang" : "kena bom") : shown ? "aman" : "tertutup"}`;
+  return `<button class="bomb-tile ${mine ? "has-mine" : ""} ${bomb ? "has-bomb" : shown ? "safe-tile" : ""} ${lastHit ? "bomb-hit" : lastSafe ? "bomb-safe-reveal" : ""}" data-bomb="${key}" ${player !== undefined ? `data-bomb-player="${player}"` : ""} ${locked ? "disabled" : ""} ${placement ? `aria-pressed="${bomb || mine}"` : ""} aria-label="${label}"><span>${mine ? mineArt({ defused, exploded: shown && !placement && !defused }) : bomb ? "💣" : shown ? "⭐" : placement ? "+" : "?"}</span><small>${index + 1}</small></button>`;
 }
 function lifeBar(arcade, player) {
   const g = arcade.engine,
@@ -40,13 +38,15 @@ function renderDuel(arcade) {
   const g = arcade.engine,
     playing = arcade.mode === "playing" && ["attack", "mine"].includes(g.phase);
   $("arcadeStatus").textContent =
-    g.winner !== null
-      ? `${arcade.name(g.winner)} menang! Lawan kehabisan nyawa.`
-      : g.phase === "mine"
-        ? `${arcade.name(g.turn)}: tahan tombol untuk jinakkan ranjau!`
-        : g.bot && g.turn === 1
-          ? "Bot sedang memilih kotak…"
-          : `${arcade.name(g.turn)}: buka satu kotak lawan`;
+    g.winner === "draw"
+      ? "Seri! Kalian sama-sama menyisakan satu bom dan satu hati."
+      : g.winner !== null
+        ? `${arcade.name(g.winner)} menang! Lawan kehabisan nyawa.`
+        : g.phase === "mine"
+          ? `${arcade.name(g.turn)}: tahan tombol untuk jinakkan ranjau!`
+          : g.bot && g.turn === 1
+            ? "Bot sedang memilih kotak…"
+            : `${arcade.name(g.turn)}: buka satu kotak lawan`;
   $("arcadePlay").innerHTML = `<div class="bomb-duel">${[1, 0]
     .map((player) => {
       const owner = 1 - player;
@@ -55,7 +55,7 @@ function renderDuel(arcade) {
         active && g.phase === "attack" && !(g.bot && player === 1);
       const result = g.results[player];
       const feedback = result
-        ? `${result.peek ? (result.warning !== null ? `👀 Peek! 🛑 Bom di kotak ${result.warning + 1}` : "👀 Peek! Semua bom sudah terbuka") : result.defused ? "🛡️ Hebat! Ranjau jinak +3 poin" : result.hit ? (result.mine ? "💥 Ranjau meledak! −1 hati" : "💥 DUARR! −1 hati") : "⭐ Aman! +1 poin"}`
+        ? `${result.defused ? "🛡️ Hebat! Ranjau jinak +3 poin" : result.hit ? (result.mine ? "💥 Ranjau meledak! −1 hati" : "💥 DUARR! −1 hati") : "⭐ Aman! +1 poin"}`
         : "Kotak aman +1 · Jaga 5 hatimu!";
       return `<section class="bomb-player-panel ${active ? "bomb-panel-active" : ""} ${g.result === result && result?.hit ? "bomb-panel-hit" : ""}" data-player="${player}" aria-label="Area bermain ${esc(arcade.name(player))}">
       ${arcade.camp(player, active, `${g.scores[player]} poin`)}
@@ -72,8 +72,6 @@ function renderDuel(arcade) {
             key: player * BOMB_CELLS + index,
             player,
             shown,
-            warning: g.warnings[player].has(index),
-            peek: shown && g.peekCells[owner] === index,
             bomb: shown && g.bombs[owner].has(index),
             mine:
               shown &&

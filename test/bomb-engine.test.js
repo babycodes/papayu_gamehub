@@ -116,7 +116,7 @@ test("bot choices ignore hidden positions and only use unopened cells", () => {
   a.open(9);
   assert.equal(a.botChoice(), 1);
 });
-test("many complete bot matches terminate with exactly one loser and at most 47 selections", () => {
+test("many complete bot matches terminate with a valid winner or draw within 47 selections", () => {
   let seed = 17;
   const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
   for (let round = 0; round < 100; round++) {
@@ -143,8 +143,13 @@ test("many complete bot matches terminate with exactly one loser and at most 47 
       moves++;
       assert.ok(moves <= 47);
     }
-    assert.equal(g.hits[1 - g.winner], 5);
-    assert.ok(g.hits[g.winner] < 5);
+    if (g.winner === "draw") {
+      assert.deepEqual(g.hits, [4, 4]);
+      assert.ok(g.revealed.every((board) => board.size === 23));
+    } else {
+      assert.equal(g.hits[1 - g.winner], 5);
+      assert.ok(g.hits[g.winner] < 5);
+    }
     assert.ok(g.scores.every((s) => s <= 21));
   }
 });
@@ -265,57 +270,96 @@ test("a late hold cannot bypass the mine deadline; mine can take the last heart"
   assert.equal(g.phase, "ended");
 });
 
-test("each board has one random Peek on a safe square, separate from the mine", () => {
-  for (const value of [0, 0.25, 0.5, 0.999999]) {
-    const g = new BomBom({ bot: true, random: () => value });
-    [0, 1, 2, 3, 4, 21].forEach((i) => g.toggle(i));
-    g.confirm();
-    for (const owner of [0, 1]) {
-      assert.ok(g.valid(g.peekCells[owner]));
-      assert.equal(g.bombs[owner].has(g.peekCells[owner]), false);
-      assert.notEqual(g.mines[owner], g.peekCells[owner]);
+function openAndDefuse(g, index) {
+  assert.ok(g.open(index));
+  if (g.phase === "mine") {
+    assert.ok(g.holdMine());
+    assert.ok(g.tick(1.61));
+  }
+}
+function lastBombOrder(mineLast = false) {
+  const safe = Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
+    (i) => i >= 5 && i !== 21,
+  );
+  return mineLast ? [0, 1, 2, 3, ...safe, 21] : [21, 0, 1, 2, 3, ...safe];
+}
+test("last bomb on both boards is a draw for either local starter, before anyone loses a heart", () => {
+  for (const starter of [0, 1]) {
+    const g = localReady(starter);
+    const order = lastBombOrder();
+    for (const index of order) {
+      openAndDefuse(g, index);
+      assert.equal(g.winner, null);
+      openAndDefuse(g, index);
     }
-    assert.ok(g.warnings.every((set) => set.size === 0));
+    assert.deepEqual(g.hits, [4, 4]);
+    assert.deepEqual(g.scores, [21, 21]);
+    assert.equal(g.winner, "draw");
+    assert.equal(g.phase, "ending");
+    assert.ok(g.revealed.every((board) => board.size === 23 && !board.has(4)));
+    assert.equal(g.open(4), false);
+    assert.equal(g.holdMine(), false);
+    assert.equal(g.tick(0.4), false);
+    assert.equal(g.tick(0.51), true);
+    assert.equal(g.phase, "ended");
+    assert.equal(g.open(4), false);
+    assert.deepEqual(g.hits, [4, 4]);
   }
 });
-test("Peek awards a normal safe point and marks exactly one unopened bomb without opening it", () => {
+test("successfully defusing the last mine can complete the draw", () => {
   const g = localReady();
-  g.random = () => 0.999;
-  const bonus = g.peekCells[1];
-  assert.ok(g.open(bonus));
-  assert.equal(g.result.peek, true);
-  const warning = g.result.warning;
-  assert.equal(g.bombs[1].has(warning), true);
-  assert.equal(g.revealed[1].has(warning), false);
-  assert.deepEqual([...g.warnings[0]], [warning]);
-  assert.equal(g.warnings[1].size, 0);
-  assert.equal(g.scores[0], 1);
-  assert.equal(g.lives(0), 5);
-  assert.equal(g.turn, 1);
-  g.open(22);
-  assert.equal(g.open(bonus), false);
-  assert.equal(g.warnings[0].size, 1);
-  assert.ok(g.open(warning));
-  assert.equal(g.result.hit, true);
-  assert.equal(g.lives(0), 4);
-  assert.equal(g.scores[0], 1);
+  const order = lastBombOrder(true);
+  for (const index of order.slice(0, -1)) {
+    openAndDefuse(g, index);
+    openAndDefuse(g, index);
+    assert.equal(g.winner, null);
+  }
+  openAndDefuse(g, 21);
+  assert.equal(g.winner, null);
+  assert.ok(g.open(21));
+  assert.equal(g.phase, "mine");
+  assert.equal(g.winner, null);
+  g.holdMine();
+  g.tick(1.61);
+  assert.equal(g.winner, "draw");
+  assert.deepEqual(g.hits, [4, 4]);
 });
-test("Peek excludes previously opened bombs and bot uses only earned warnings", () => {
+test("four hits each is not a draw while safe choices remain", () => {
+  const g = localReady();
+  for (const index of [0, 1, 2, 3]) {
+    g.open(index);
+    g.open(index);
+  }
+  assert.deepEqual(g.hits, [4, 4]);
+  assert.equal(g.checkDraw(), false);
+  openAndDefuse(g, 21);
+  assert.equal(g.winner, null);
+  g.open(5);
+  assert.equal(g.winner, null);
+  g.open(4);
+  assert.equal(g.winner, 1);
+  assert.equal(g.phase, "ending");
+});
+test("bot matches use the same draw rule without exposing hidden positions", () => {
   const g = new BomBom({ bot: true, random: () => 0 });
   [0, 1, 2, 3, 4, 21].forEach((i) => g.toggle(i));
   g.confirm();
-  g.open(0);
-  g.open(0);
-  g.open(g.peekCells[1]);
-  assert.equal(g.result.warning, 1);
-  g.open(g.peekCells[0]);
-  assert.equal(g.result.warning, 1);
+  const orders = [1, 0].map((target) => [
+    g.mines[target],
+    0,
+    1,
+    2,
+    3,
+    ...Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
+      (i) => i >= 5 && i !== g.mines[target],
+    ),
+  ]);
+  for (let move = 0; move < 23; move++) {
+    openAndDefuse(g, orders[0][move]);
+    assert.equal(g.winner, null);
+    openAndDefuse(g, orders[1][move]);
+  }
+  assert.equal(g.winner, "draw");
   assert.equal(g.botChoice(), null);
-  g.open(23);
-  assert.equal(g.botChoice(), 2);
-  assert.equal(g.warnings[1].has(1), true);
-  assert.equal(g.revealed[0].has(1), false);
-  const next = new BomBom();
-  assert.ok(next.warnings.every((set) => set.size === 0));
-  assert.deepEqual(next.peekCells, [null, null]);
+  assert.deepEqual(g.hits, [4, 4]);
 });

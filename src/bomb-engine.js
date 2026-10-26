@@ -5,7 +5,7 @@ export const MINE_HOLD_SECONDS = 1.6,
   MINE_WINDOW_SECONDS = 5;
 export const BOMB_CELLS = BOMB_COLUMNS * BOMB_ROWS;
 
-// Local, in-memory boards. Only opened cells and earned Peek warnings reach the UI.
+// Local, in-memory boards. Hidden bomb positions never reach the UI.
 export class BomBom {
   constructor({ bot = false, firstPlayer = 0, random = Math.random } = {}) {
     this.bot = bot;
@@ -15,8 +15,6 @@ export class BomBom {
     this.bombs = [new Set(), new Set()];
     this.mines = [null, null];
     this.mine = null;
-    this.peekCells = [null, null];
-    this.warnings = [new Set(), new Set()];
     this.defused = [new Set(), new Set()];
     this.revealed = [new Set(), new Set()];
     this.ready = [false, false];
@@ -73,13 +71,6 @@ export class BomBom {
       this.ready[1] = true;
     }
     if (this.ready.every(Boolean)) {
-      // One surprise bonus per board, chosen only from genuinely safe cells.
-      for (const owner of [0, 1]) {
-        const safe = Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
-          (i) => !this.bombs[owner].has(i) && this.mines[owner] !== i,
-        );
-        this.peekCells[owner] = safe[Math.floor(this.random() * safe.length)];
-      }
       this.turn = this.firstPlayer;
       this.pending = "attack";
     } else {
@@ -116,24 +107,13 @@ export class BomBom {
     if (hit) this.hits[this.turn]++;
     else this.scores[this.turn]++;
     this.result = { player: this.turn, target, index, hit };
-    if (!hit && this.peekCells[target] === index) {
-      const hidden = [...this.bombs[target]].filter(
-        (i) =>
-          !this.revealed[target].has(i) && !this.warnings[this.turn].has(i),
-      );
-      const warning = hidden.length
-        ? hidden[Math.floor(this.random() * hidden.length)]
-        : null;
-      if (warning !== null) this.warnings[this.turn].add(warning);
-      this.result = { ...this.result, peek: true, warning };
-    }
     this.results[this.turn] = this.result;
     if (this.hits[this.turn] >= MAX_BOMBS) {
       this.winner = target;
       this.phase = "ending";
       // Let children see the last bomb before the result screen appears.
       this.endingRemaining = 0.9;
-    } else this.turn = target;
+    } else if (!this.checkDraw()) this.turn = target;
     return true;
   }
   holdMine(player = this.turn) {
@@ -161,9 +141,30 @@ export class BomBom {
       this.phase = "ending";
       this.endingRemaining = 0.9;
     } else {
-      this.turn = target;
       this.phase = "attack";
+      if (!this.checkDraw()) this.turn = target;
     }
+    return true;
+  }
+  checkDraw() {
+    if (this.phase !== "attack" || this.winner !== null) return false;
+    // Both players have one heart and exactly one unopened square, a bomb.
+    // There is no safe choice: turn order must not decide the winner.
+    const tied = [0, 1].every((player) => {
+      const target = 1 - player;
+      if (
+        this.lives(player) !== 1 ||
+        this.revealed[target].size !== BOMB_CELLS - 1
+      )
+        return false;
+      return [...this.bombs[target]].some(
+        (index) => !this.revealed[target].has(index),
+      );
+    });
+    if (!tied) return false;
+    this.winner = "draw";
+    this.phase = "ending";
+    this.endingRemaining = 0.9;
     return true;
   }
   tick(dt) {
@@ -183,14 +184,14 @@ export class BomBom {
     this.phase = "ended";
     return true;
   }
-  // Bot uses opened squares and earned peek warnings, never hidden contents.
+  // Bot sees only opened squares, never hidden contents.
   botChoice() {
     if (!this.bot || this.turn !== 1 || this.phase !== "attack") return null;
     const choices = Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
       (i) => !this.revealed[0].has(i),
     );
-    const unmarked = choices.filter((i) => !this.warnings[1].has(i));
-    const pool = unmarked.length ? unmarked : choices;
-    return pool.length ? pool[Math.floor(this.random() * pool.length)] : null;
+    return choices.length
+      ? choices[Math.floor(this.random() * choices.length)]
+      : null;
   }
 }

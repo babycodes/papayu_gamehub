@@ -135,7 +135,7 @@ export class ArcadeGames {
   instructions() {
     return {
       "bom-bom":
-        "Sembunyikan 5 bom + 1 ranjau di papan 6 × 4. Jaga 5 hati! Aman +1 poin, bom −1 hati. Kena ranjau? Dalam 5 detik, tahan tombol 1,6 detik sampai penuh: berhasil +3 poin, dilepas terlalu cepat kehilangan 1 hati. Bonus Peek 👀 menunjukkan 1 bom dengan tanda 🛑. Kotak bertanda tetap bisa ditekan, hati-hati!",
+        "Sembunyikan 5 bom + 1 ranjau di papan 6 × 4. Jaga 5 hati! Aman +1 poin, bom −1 hati. Kena ranjau? Dalam 5 detik, tahan tombol 1,6 detik sampai penuh: berhasil +3 poin, dilepas terlalu cepat kehilangan 1 hati. Seri otomatis jika kalian sama-sama tinggal satu hati dan satu kotak berisi bom.",
       "memory-match":
         "Temukan dua gambar yang sama. Pasangan cocok memberi poin dan giliran tambahan!",
       "connect-four":
@@ -314,7 +314,11 @@ export class ArcadeGames {
           this.engine.holdMine();
         if (this.engine.tick(dt)) {
           if (this.engine.phase === "ended")
-            this.finish(`${this.name(this.engine.winner)} menang!`);
+            this.finish(
+              this.engine.winner === "draw"
+                ? "Seri! Kalian sama hebatnya!"
+                : `${this.name(this.engine.winner)} menang!`,
+            );
           else {
             this.onMove();
             this.botDelay = 0;
@@ -736,7 +740,7 @@ export class ArcadeGames {
   }
   resultDetail() {
     if (this.id === "bom-bom")
-      return `${this.engine.scores[0]} – ${this.engine.scores[1]} poin · Kena bom ${this.engine.hits[0]}/5 – ${this.engine.hits[1]}/5`;
+      return `${this.engine.winner === "draw" ? "Sama-sama tinggal satu hati dan satu bom. Tidak ada pilihan aman lagi.<br>" : ""}${this.engine.scores[0]} – ${this.engine.scores[1]} poin · Kena ledakan ${this.engine.hits[0]}/5 – ${this.engine.hits[1]}/5`;
     if (this.id === "catch-stars")
       return this.settings.opponent === "local"
         ? `${this.engine.scores[0]} – ${this.engine.scores[1]} poin`

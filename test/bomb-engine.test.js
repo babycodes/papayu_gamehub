@@ -8,6 +8,7 @@ function localReady(firstPlayer = 0) {
     assert.equal(g.phase, "handover");
     g.acknowledge();
     for (const i of [0, 1, 2, 3, 4]) assert.ok(g.toggle(i));
+    g.toggle(21);
     assert.ok(g.confirm());
   }
   assert.equal(g.phase, "attack");
@@ -19,10 +20,14 @@ test("bomb placement requires five distinct valid cells and can be corrected", (
     assert.equal(g.toggle(invalid), false);
   assert.equal(g.confirm(), false);
   for (const i of [0, 5, 15, 20, 23]) assert.ok(g.toggle(i));
-  assert.equal(g.toggle(9), false);
+  assert.equal(g.toggle(9), true);
+  assert.equal(g.toggle(10), false);
+  assert.ok(g.toggle(9));
   assert.ok(g.toggle(5));
   assert.equal(g.confirm(), false);
   assert.ok(g.toggle(9));
+  assert.equal(g.confirm(), false);
+  assert.ok(g.toggle(21));
   assert.ok(g.confirm());
   assert.deepEqual([...g.bombs[0]], [0, 15, 20, 23, 9]);
   assert.equal(g.bombs[1].size, 5);
@@ -36,6 +41,7 @@ test("only placement needs handover; attacks switch directly and reject the inac
   assert.equal(g.open(0), false);
   g.acknowledge();
   [0, 1, 2, 3, 4].forEach((i) => g.toggle(i));
+  g.toggle(21);
   g.confirm();
   assert.equal(g.turn, 1);
   assert.equal(g.phase, "handover");
@@ -43,6 +49,7 @@ test("only placement needs handover; attacks switch directly and reject the inac
   assert.equal(g.open(3), false);
   g.acknowledge();
   [5, 6, 7, 8, 9].forEach((i) => g.toggle(i));
+  g.toggle(21);
   g.confirm();
   assert.equal(g.turn, 0);
   assert.equal(g.phase, "attack");
@@ -99,6 +106,7 @@ test("bot choices ignore hidden positions and only use unopened cells", () => {
     [b, [12, 13, 14, 15, 16]],
   ]) {
     positions.forEach((i) => g.toggle(i));
+    g.toggle(21);
     g.confirm();
     g.open(8);
   }
@@ -114,6 +122,7 @@ test("many complete bot matches terminate with exactly one loser and at most 47 
   for (let round = 0; round < 100; round++) {
     const g = new BomBom({ bot: true, random });
     [2, 7, 14, 19, 23].forEach((i) => g.toggle(i));
+    g.toggle(21);
     g.confirm();
     let moves = 0;
     while (g.winner === null) {
@@ -127,12 +136,16 @@ test("many complete bot matches terminate with exactly one loser and at most 47 
             : choices[Math.floor(random() * choices.length)],
         ),
       );
+      if (g.phase === "mine") {
+        if (random() > 0.5) g.holdMine();
+        g.tick(5);
+      }
       moves++;
       assert.ok(moves <= 47);
     }
     assert.equal(g.hits[1 - g.winner], 5);
     assert.ok(g.hits[g.winner] < 5);
-    assert.ok(g.scores.every((s) => s <= 19));
+    assert.ok(g.scores.every((s) => s <= 21));
   }
 });
 
@@ -177,4 +190,77 @@ test("24 cells and five hearts: every bomb costs one life, safe cells preserve l
   assert.equal(g.winner, 1);
   assert.equal(g.lives(0), 0);
   assert.equal(g.lives(1), 5);
+});
+
+test("one extra mine is required, cannot overlap bombs, and remains editable", () => {
+  const g = new BomBom({ bot: true, random: () => 0 });
+  [0, 1, 2, 3, 4].forEach((i) => g.toggle(i));
+  assert.equal(g.confirm(), false);
+  assert.ok(g.toggle(5));
+  assert.equal(g.mines[0], 5);
+  assert.equal(g.toggle(6), false);
+  assert.ok(g.toggle(5));
+  assert.ok(g.toggle(23));
+  assert.ok(g.confirm());
+  assert.equal(g.mines[1], 5);
+  assert.ok(g.mines.every((mine, p) => !g.bombs[p].has(mine)));
+});
+test("mine locks both boards until held long enough; success earns three points once", () => {
+  const g = localReady();
+  assert.ok(g.open(21));
+  assert.equal(g.phase, "mine");
+  assert.equal(g.turn, 0);
+  assert.equal(g.open(10), false);
+  assert.equal(g.holdMine(1), false);
+  assert.equal(g.releaseMine(), false);
+  assert.ok(g.holdMine());
+  assert.equal(g.tick(0.8), false);
+  assert.equal(g.tick(0.81), true);
+  assert.equal(g.phase, "attack");
+  assert.equal(g.turn, 1);
+  assert.deepEqual(g.scores, [3, 0]);
+  assert.deepEqual(g.hits, [0, 0]);
+  assert.equal(g.result.defused, true);
+  assert.equal(g.resolveMine(true), false);
+  g.open(10);
+  assert.equal(g.open(21), false);
+});
+test("early release or ignoring a mine costs one heart, never multiple hearts", () => {
+  for (const release of [true, false]) {
+    const g = localReady();
+    g.open(21);
+    if (release) {
+      g.holdMine();
+      g.tick(0.4);
+      assert.ok(g.releaseMine());
+    } else {
+      assert.equal(g.tick(4.9), false);
+      assert.ok(g.tick(0.11));
+    }
+    assert.equal(g.phase, "attack");
+    assert.equal(g.turn, 1);
+    assert.equal(g.lives(0), 4);
+    assert.equal(g.result.mine, true);
+    assert.equal(g.result.hit, true);
+    assert.equal(g.releaseMine(), false);
+    g.tick(10);
+    assert.equal(g.lives(0), 4);
+  }
+});
+test("a late hold cannot bypass the mine deadline; mine can take the last heart", () => {
+  const g = localReady();
+  for (let i = 0; i < 4; i++) {
+    g.open(i);
+    g.open(10 + i);
+  }
+  g.open(21);
+  g.tick(4);
+  g.holdMine();
+  assert.ok(g.tick(2));
+  assert.equal(g.winner, 1);
+  assert.equal(g.lives(0), 0);
+  assert.equal(g.phase, "ending");
+  assert.equal(g.scores[0], 0);
+  g.tick(1);
+  assert.equal(g.phase, "ended");
 });

@@ -1,5 +1,10 @@
 import { BomBom } from "./bomb-engine.js";
-import { renderBomb, bombAction } from "./bomb-ui.js";
+import {
+  renderBomb,
+  bombAction,
+  bindBombInteraction,
+  updateMineUI,
+} from "./bomb-ui.js";
 import { GAMES } from "./catalog.js";
 import { localPlayers, TEAM_NAMES } from "./players.js";
 import { MemoryMatch, MEMORY_THEMES } from "./memory-engine.js";
@@ -37,6 +42,7 @@ export class ArcadeGames {
       last: 0,
     });
     this.root = $("arcadeView");
+    bindBombInteraction(this);
     this.pointers = new Map();
     this.keys = new Set();
     this.root.addEventListener("keydown", (e) => {
@@ -129,7 +135,7 @@ export class ArcadeGames {
   instructions() {
     return {
       "bom-bom":
-        "Sembunyikan 5 bom di papan 6 × 4 milikmu. Kamu punya 5 hati! Bergantian buka kotak lawan: aman +1 poin, kena bom kehilangan satu hati. Pilih 5 bom agar permainan adil.",
+        "Sembunyikan 5 bom + 1 ranjau di papan 6 × 4. Jaga 5 hati! Aman +1 poin, bom −1 hati. Kena ranjau? Dalam 5 detik, tahan tombol 1,6 detik sampai penuh: berhasil +3 poin, dilepas terlalu cepat kehilangan 1 hati.",
       "memory-match":
         "Temukan dua gambar yang sama. Pasangan cocok memberi poin dan giliran tambahan!",
       "connect-four":
@@ -299,8 +305,21 @@ export class ArcadeGames {
       const dt = Math.min(0.05, (now - this.last) / 1000);
       this.last = now;
       if (this.id === "bom-bom") {
+        if (
+          this.engine.phase === "mine" &&
+          this.engine.bot &&
+          this.engine.turn === 1 &&
+          this.engine.mine.remaining < 4.2
+        )
+          this.engine.holdMine();
         if (this.engine.tick(dt)) {
-          this.finish(`${this.name(this.engine.winner)} menang!`);
+          if (this.engine.phase === "ended")
+            this.finish(`${this.name(this.engine.winner)} menang!`);
+          else {
+            this.onMove();
+            this.botDelay = 0;
+            this.renderBoard();
+          }
         } else if (
           this.engine.bot &&
           this.engine.turn === 1 &&
@@ -315,6 +334,7 @@ export class ArcadeGames {
             }
           }
         }
+        updateMineUI(this);
       } else if (this.id === "catch-stars") {
         this.starKeys(dt);
         this.engine.tick(dt);
@@ -896,6 +916,10 @@ export class ArcadeGames {
   pause() {
     if (this.mode !== "playing") return;
     this.mode = "paused";
+    if (this.id === "bom-bom" && this.engine.mine) {
+      this.engine.mine.holding = false;
+      this.engine.mine.held = 0;
+    }
     this.pointers.clear();
     this.keys.clear();
     cancelAnimationFrame(this.frame);

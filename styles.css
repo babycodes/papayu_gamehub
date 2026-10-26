@@ -7729,3 +7729,250 @@ body.matte-theme {
     animation: none;
   }
 }
+
+/* Bom Bom: a visible turn cue, playful bursts and a hold-to-defuse challenge. */
+.matte-theme #gameScreen .bomb-player-panel {
+  position: relative;
+  isolation: isolate;
+}
+.matte-theme #gameScreen .bomb-player-panel.bomb-panel-active {
+  background: #e7f2cd;
+  border-color: #3e9c38;
+  box-shadow: inset 0 0 0 2px #89c956;
+}
+.matte-theme #gameScreen .bomb-panel-active .arcade-camp {
+  background: #c4e88d;
+  animation: bomb-turn-arrive 0.38s ease-out;
+}
+.matte-theme #gameScreen .bomb-panel-active .arcade-camp b {
+  background: #285c28;
+  color: #fffde9;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.matte-theme #gameScreen .bomb-panel-active .bomb-tile:not(:disabled) {
+  background: #c2dfb1;
+  border-color: #518747;
+  color: #243e26;
+}
+.matte-theme #gameScreen .bomb-tile.has-mine {
+  background: #ead29b;
+  border-color: #916b32;
+}
+.bomb-explosion {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: inherit;
+  animation: bomb-burst-fade 1.15s both;
+}
+.bomb-explosion > span {
+  font-size: clamp(60px, 12vh, 120px);
+  animation: bomb-burst-pop 0.65s both;
+}
+.bomb-explosion > b {
+  background: #ffdf94;
+  color: #713a28;
+  font-size: clamp(24px, 5vh, 44px);
+  padding: 3px 18px;
+  border: 3px solid #b56b46;
+  border-radius: 12px;
+  transform: rotate(-7deg);
+}
+.bomb-explosion > i {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 12px;
+  height: 22px;
+  background: #d77c4c;
+  border-radius: 4px;
+  transform: rotate(calc(var(--ray) * 45deg)) translateY(-90px);
+  animation: bomb-sparks 0.7s ease-out both;
+}
+.bomb-explosion > i:nth-child(even) {
+  background: #f5c465;
+}
+.bomb-mine-challenge {
+  position: absolute;
+  inset: 3px;
+  z-index: 10;
+  border: 3px solid #ad7534;
+  border-radius: 12px;
+  background: #fbedd0f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(3px, 1vh, 9px);
+  padding: 8px;
+  text-align: center;
+  color: #503c28;
+}
+.bomb-mine-challenge > span:first-child {
+  font-size: clamp(24px, 6vh, 52px);
+  animation: mine-wiggle 0.8s ease-in-out infinite alternate;
+}
+.bomb-mine-challenge > strong {
+  font-size: clamp(13px, 2.5vh, 20px);
+}
+.mine-countdown {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.mine-hold-button {
+  width: min(90%, 260px);
+  padding: 12px;
+  border: 3px solid #538341;
+  border-radius: 14px;
+  background: #cae9a6;
+  color: #29472b;
+  font-weight: 900;
+  font-size: 18px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.mine-hold-button.is-holding {
+  background: #a9d77f;
+  transform: scale(0.98);
+}
+.mine-hold-button:focus-visible {
+  outline: 3px solid #234e28;
+  outline-offset: 3px;
+}
+.mine-hold-button:disabled {
+  opacity: 1;
+}
+.mine-meter {
+  height: 12px;
+  margin-top: 6px;
+  background: #f3f4d9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mine-meter > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #438738;
+  border-radius: inherit;
+}
+@keyframes bomb-turn-arrive {
+  from {
+    transform: scale(0.97);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes bomb-burst-pop {
+  0% {
+    transform: scale(0.25) rotate(-20deg);
+  }
+  45% {
+    transform: scale(1.3) rotate(8deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bomb-burst-fade {
+  0%,
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes bomb-sparks {
+  from {
+    transform: rotate(calc(var(--ray) * 45deg)) translateY(-15px) scale(0.3);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(calc(var(--ray) * 45deg)) translateY(-150px) scale(0.5);
+    opacity: 0;
+  }
+}
+@keyframes mine-wiggle {
+  from {
+    transform: rotate(-8deg);
+  }
+  to {
+    transform: rotate(8deg);
+  }
+}
+@media (max-height: 600px) {
+  .bomb-mine-challenge {
+    gap: 2px;
+    padding: 4px;
+  }
+  .bomb-mine-challenge > span:first-child {
+    font-size: 24px;
+  }
+  .mine-hold-button {
+    padding: 7px;
+    font-size: 15px;
+  }
+  .bomb-mine-challenge small {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .matte-theme #gameScreen .bomb-panel-active .arcade-camp,
+  .bomb-explosion > span,
+  .bomb-explosion > i,
+  .bomb-mine-challenge > span:first-child {
+    animation: none;
+  }
+  .bomb-explosion > i {
+    display: none;
+  }
+  .bomb-explosion {
+    animation: bomb-burst-fade 1.15s steps(1, end) both;
+  }
+}
+.matte-theme #gameScreen .bomb-panel-active .arcade-camp b {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.matte-theme #gameScreen .bomb-panel-hit {
+  animation: bomb-impact-rock 0.4s ease-out;
+}
+@keyframes bomb-impact-rock {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px) rotate(-0.5deg);
+  }
+  45% {
+    transform: translateX(5px) rotate(0.5deg);
+  }
+  70% {
+    transform: translateX(-3px);
+  }
+}
+@media (max-width: 360px), (max-height: 500px) {
+  .matte-theme #gameScreen .bomb-panel-active .arcade-camp b {
+    font-size: 9px;
+    padding: 4px 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .matte-theme #gameScreen .bomb-panel-hit {
+    animation: none;
+  }
+}

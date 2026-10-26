@@ -5,7 +5,7 @@ export const MINE_HOLD_SECONDS = 1.6,
   MINE_WINDOW_SECONDS = 5;
 export const BOMB_CELLS = BOMB_COLUMNS * BOMB_ROWS;
 
-// Local, in-memory boards. Hidden bomb positions are never rendered during attacks.
+// Local, in-memory boards. Only opened cells and earned Peek warnings reach the UI.
 export class BomBom {
   constructor({ bot = false, firstPlayer = 0, random = Math.random } = {}) {
     this.bot = bot;
@@ -15,6 +15,8 @@ export class BomBom {
     this.bombs = [new Set(), new Set()];
     this.mines = [null, null];
     this.mine = null;
+    this.peekCells = [null, null];
+    this.warnings = [new Set(), new Set()];
     this.defused = [new Set(), new Set()];
     this.revealed = [new Set(), new Set()];
     this.ready = [false, false];
@@ -71,6 +73,13 @@ export class BomBom {
       this.ready[1] = true;
     }
     if (this.ready.every(Boolean)) {
+      // One surprise bonus per board, chosen only from genuinely safe cells.
+      for (const owner of [0, 1]) {
+        const safe = Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
+          (i) => !this.bombs[owner].has(i) && this.mines[owner] !== i,
+        );
+        this.peekCells[owner] = safe[Math.floor(this.random() * safe.length)];
+      }
       this.turn = this.firstPlayer;
       this.pending = "attack";
     } else {
@@ -107,6 +116,17 @@ export class BomBom {
     if (hit) this.hits[this.turn]++;
     else this.scores[this.turn]++;
     this.result = { player: this.turn, target, index, hit };
+    if (!hit && this.peekCells[target] === index) {
+      const hidden = [...this.bombs[target]].filter(
+        (i) =>
+          !this.revealed[target].has(i) && !this.warnings[this.turn].has(i),
+      );
+      const warning = hidden.length
+        ? hidden[Math.floor(this.random() * hidden.length)]
+        : null;
+      if (warning !== null) this.warnings[this.turn].add(warning);
+      this.result = { ...this.result, peek: true, warning };
+    }
     this.results[this.turn] = this.result;
     if (this.hits[this.turn] >= MAX_BOMBS) {
       this.winner = target;
@@ -163,14 +183,14 @@ export class BomBom {
     this.phase = "ended";
     return true;
   }
-  // Bot sees only which squares have already been opened, never their contents.
+  // Bot uses opened squares and earned peek warnings, never hidden contents.
   botChoice() {
     if (!this.bot || this.turn !== 1 || this.phase !== "attack") return null;
     const choices = Array.from({ length: BOMB_CELLS }, (_, i) => i).filter(
       (i) => !this.revealed[0].has(i),
     );
-    return choices.length
-      ? choices[Math.floor(this.random() * choices.length)]
-      : null;
+    const unmarked = choices.filter((i) => !this.warnings[1].has(i));
+    const pool = unmarked.length ? unmarked : choices;
+    return pool.length ? pool[Math.floor(this.random() * pool.length)] : null;
   }
 }

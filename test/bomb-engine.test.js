@@ -264,3 +264,58 @@ test("a late hold cannot bypass the mine deadline; mine can take the last heart"
   g.tick(1);
   assert.equal(g.phase, "ended");
 });
+
+test("each board has one random Peek on a safe square, separate from the mine", () => {
+  for (const value of [0, 0.25, 0.5, 0.999999]) {
+    const g = new BomBom({ bot: true, random: () => value });
+    [0, 1, 2, 3, 4, 21].forEach((i) => g.toggle(i));
+    g.confirm();
+    for (const owner of [0, 1]) {
+      assert.ok(g.valid(g.peekCells[owner]));
+      assert.equal(g.bombs[owner].has(g.peekCells[owner]), false);
+      assert.notEqual(g.mines[owner], g.peekCells[owner]);
+    }
+    assert.ok(g.warnings.every((set) => set.size === 0));
+  }
+});
+test("Peek awards a normal safe point and marks exactly one unopened bomb without opening it", () => {
+  const g = localReady();
+  g.random = () => 0.999;
+  const bonus = g.peekCells[1];
+  assert.ok(g.open(bonus));
+  assert.equal(g.result.peek, true);
+  const warning = g.result.warning;
+  assert.equal(g.bombs[1].has(warning), true);
+  assert.equal(g.revealed[1].has(warning), false);
+  assert.deepEqual([...g.warnings[0]], [warning]);
+  assert.equal(g.warnings[1].size, 0);
+  assert.equal(g.scores[0], 1);
+  assert.equal(g.lives(0), 5);
+  assert.equal(g.turn, 1);
+  g.open(22);
+  assert.equal(g.open(bonus), false);
+  assert.equal(g.warnings[0].size, 1);
+  assert.ok(g.open(warning));
+  assert.equal(g.result.hit, true);
+  assert.equal(g.lives(0), 4);
+  assert.equal(g.scores[0], 1);
+});
+test("Peek excludes previously opened bombs and bot uses only earned warnings", () => {
+  const g = new BomBom({ bot: true, random: () => 0 });
+  [0, 1, 2, 3, 4, 21].forEach((i) => g.toggle(i));
+  g.confirm();
+  g.open(0);
+  g.open(0);
+  g.open(g.peekCells[1]);
+  assert.equal(g.result.warning, 1);
+  g.open(g.peekCells[0]);
+  assert.equal(g.result.warning, 1);
+  assert.equal(g.botChoice(), null);
+  g.open(23);
+  assert.equal(g.botChoice(), 2);
+  assert.equal(g.warnings[1].has(1), true);
+  assert.equal(g.revealed[0].has(1), false);
+  const next = new BomBom();
+  assert.ok(next.warnings.every((set) => set.size === 0));
+  assert.deepEqual(next.peekCells, [null, null]);
+});

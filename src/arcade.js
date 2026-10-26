@@ -135,7 +135,7 @@ export class ArcadeGames {
   instructions() {
     return {
       "bom-bom":
-        "Sembunyikan 5 bom + 1 ranjau di papan 6 × 4. Jaga 5 hati! Aman +1 poin, bom −1 hati. Kena ranjau? Dalam 5 detik, tahan tombol 1,6 detik sampai penuh: berhasil +3 poin, dilepas terlalu cepat kehilangan 1 hati.",
+        "Sembunyikan 5 bom + 1 ranjau di papan 6 × 4. Jaga 5 hati! Aman +1 poin, bom −1 hati. Kena ranjau? Dalam 5 detik, tahan tombol 1,6 detik sampai penuh: berhasil +3 poin, dilepas terlalu cepat kehilangan 1 hati. Bonus Peek 👀 menunjukkan 1 bom dengan tanda 🛑. Kotak bertanda tetap bisa ditekan, hati-hati!",
       "memory-match":
         "Temukan dua gambar yang sama. Pasangan cocok memberi poin dan giliran tambahan!",
       "connect-four":

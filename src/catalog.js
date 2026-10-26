@@ -3,7 +3,7 @@ export const GAMES = [
     id: "bom-bom",
     title: "Bom Bom",
     description:
-      "5 bom, 1 ranjau, 5 hati! Buka kotak lawan dan tahan tombol untuk menjinakkan ranjau.",
+      "5 bom, 1 ranjau waktu, 5 hati! Temukan bonus Peek dan jinakkan ranjau.",
     icon: "💣",
     category: "Arcade",
     modes: ["2 pemain", "Lawan bot"],

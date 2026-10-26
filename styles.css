@@ -7976,3 +7976,57 @@ body.matte-theme {
     animation: none;
   }
 }
+
+/* Time mine: local vector illustration and a persistent, clickable Peek warning. */
+.bomb-tile > span > .bomb-mine-art {
+  display: block;
+  width: min(100%, 62px);
+  height: min(100%, 54px);
+  margin: auto;
+}
+.bomb-mine-challenge > span:first-child {
+  line-height: 0;
+}
+.bomb-mine-challenge > span > .bomb-mine-art {
+  display: block;
+  width: clamp(50px, 12vh, 96px);
+  height: clamp(45px, 10vh, 86px);
+}
+.matte-theme #gameScreen .bomb-player-panel .bomb-tile.peek-warning {
+  background: #f0c9a6;
+  border: 3px dashed #9e4b37;
+  color: #743b2c;
+}
+.matte-theme
+  #gameScreen
+  .bomb-player-panel
+  .bomb-tile.peek-warning:not(:disabled):hover {
+  background: #e9b595;
+  border-color: #793b2c;
+}
+.matte-theme #gameScreen .bomb-tile.peek-bonus {
+  background: #f4e2a7;
+  border-color: #a78738;
+}
+.bomb-tile.peek-warning > span {
+  animation: peek-mark-arrive 0.45s ease-out;
+}
+@keyframes peek-mark-arrive {
+  from {
+    transform: scale(0.5) rotate(-12deg);
+  }
+  to {
+    transform: scale(1) rotate(0);
+  }
+}
+@media (max-height: 600px) {
+  .bomb-mine-challenge > span > .bomb-mine-art {
+    width: 50px;
+    height: 45px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bomb-tile.peek-warning > span {
+    animation: none;
+  }
+}
